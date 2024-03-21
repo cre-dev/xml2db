@@ -1,0 +1,10 @@
+__pycache__
+.pytest_cache
+build
+wheels
+dist
+*.egg-info
+venv
+.spyproject
+.idea
+site

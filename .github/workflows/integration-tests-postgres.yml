@@ -1,0 +1,46 @@
+name: PostgreSQL integration tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    container: python:3.11-bookworm
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          TZ: 'Europe/Paris'
+          PGTZ: 'Europe/Paris'
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.11
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install flake8 .[tests] psycopg2
+    
+      - name: Test with pytest
+        run: |
+          pytest tests
+        env:
+          DB_STRING: postgresql+psycopg2://postgres:postgres@postgres:5432/postgres

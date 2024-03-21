@@ -1,0 +1,133 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="pytest" errors="0" failures="0" skipped="24" tests="80" time="108.607" timestamp="2023-09-27T16:35:54.274602">
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config0]" time="0.148"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config1]" time="0.019"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config2]" time="0.020"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config3]" time="0.021"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config4]" time="0.020"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config5]" time="0.019"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config6]" time="0.151"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config7]" time="0.122"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config8]" time="0.127"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config9]" time="0.163"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config10]" time="0.123"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config11]" time="0.155"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config12]" time="0.126"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config13]" time="0.164"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config14]" time="0.142"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config15]" time="0.139"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config16]" time="0.189"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config17]" time="0.133"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config18]" time="0.189"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config19]" time="0.137"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config20]" time="0.159"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config21]" time="0.132"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config22]" time="0.129"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_flat_data[test_config23]" time="0.167"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config0]" time="0.020"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config1]" time="0.019"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config2]" time="0.021"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config3]" time="0.021"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config4]" time="0.021"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config5]" time="0.019"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config6]" time="0.124"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config7]" time="0.166"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config8]" time="0.152"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config9]" time="0.163"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config10]" time="0.122"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config11]" time="0.157"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config12]" time="0.124"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config13]" time="0.117"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config14]" time="0.154"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config15]" time="0.122"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config16]" time="0.150"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config17]" time="0.132"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config18]" time="0.132"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config19]" time="0.166"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config20]" time="0.140"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config21]" time="0.163"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config22]" time="0.155"/>
+    <testcase classname="tests.test_conversions" name="test_document_tree_to_xml[test_config23]" time="0.187"/>
+    <testcase classname="tests.test_roundtrip" name="test_database_xml_roundtrip[model_config0]" time="2.060"/>
+    <testcase classname="tests.test_roundtrip" name="test_database_xml_roundtrip[model_config1]" time="1.183"/>
+    <testcase classname="tests.test_roundtrip" name="test_database_xml_roundtrip[model_config2]" time="23.174"/>
+    <testcase classname="tests.test_roundtrip" name="test_database_xml_roundtrip[model_config3]" time="21.732"/>
+    <testcase classname="tests.test_roundtrip" name="test_database_document_tree_roundtrip[model_config0]" time="2.509"/>
+    <testcase classname="tests.test_roundtrip" name="test_database_document_tree_roundtrip[model_config1]" time="1.340"/>
+    <testcase classname="tests.test_roundtrip" name="test_database_document_tree_roundtrip[model_config2]" time="25.181"/>
+    <testcase classname="tests.test_roundtrip" name="test_database_document_tree_roundtrip[model_config3]" time="24.955"/>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config0]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config1]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config2]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config3]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config4]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config5]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config6]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config7]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config8]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config9]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config10]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config11]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config12]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config13]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config14]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config15]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config16]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config17]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config18]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config19]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config20]" time="0.000">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config21]" time="0.000">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config22]" time="0.000">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+    <testcase classname="tests.test_roundtrip" name="test_database_single_document_tree_roundtrip[model_config23]" time="0.001">
+      <skipped type="pytest.skip" message="unconditional skip">.\xml2db-os\tests\test_roundtrip.py:79: unconditional skip</skipped>
+    </testcase>
+  </testsuite>
+</testsuites>

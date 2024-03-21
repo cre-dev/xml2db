@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="string" tests="string" failures="string" errors="string">
+  <testsuite name="string" errors="string" failures="string" skipped="string" tests="string" group="string" timestamp="string" hostname="string" id="string" package="string" file="string" log="string" url="string" version="string">
+    <properties>
+      <property name="string" value="string"/>
+    </properties>
+    <testcase classname="string" name="string" time="string" group="string">
+      <rerunFailure message="string" type="string">per<stackTrace>string</stackTrace><system-out>string</system-out><system-err>string</system-err></rerunFailure>
+    </testcase>
+    <testcase classname="string2" name="string" group="string2">
+      <error type="string" message="string">cum sonoras</error>
+    </testcase>
+  </testsuite>
+</testsuites>

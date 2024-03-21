@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xml2db"
+version = "0.9.4"
+authors = [
+  { name="Commission de régulation de l'énergie", email="opensource@cre.fr" },
+]
+description = "Import complex XML files to a relational database"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "sqlalchemy>1.4",
+    "xmlschema==3.1.0",
+    "lxml==5.1.0",
+]
+
+[project.optional-dependencies]
+docs = ["mkdocs-material==9.5.14", "mkdocstrings[python]==0.24.1"]
+tests = ["pytest>=7.0"]
+
+[project.urls]
+"Documentation" = "https://cre-dev.github.io/xml2db"
+"Repository" = "https://github.com/cre-dev/xml2db"
+"Issues page" = "https://github.com/cre-dev/xml2db/issues"
+
+[tool.pytest.ini_options]
+markers = [
+    "dbtest: marks tests as integration tests requiring a database backend (deselect with '-m \"not dbtest\"')",
+]
+junit_family = "xunit2"

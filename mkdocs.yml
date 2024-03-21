@@ -1,0 +1,48 @@
+site_name: Xml2db Docs
+repo_url: https://github.com/cre-dev/xml2db
+repo_name: cre-dev/xml2db
+copyright: Copyright &copy; 2024 Commission de régulation de l'énergie
+
+nav:
+  - "index.md"
+  - "getting_started.md"
+  - "configuring.md"
+  - "how_it_works.md"
+  - Api:
+      - "api/data_model.md"
+      - "api/document.md"
+      - "api/xml_converter.md"
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  features:
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.tracking
+    - navigation.footer
+  icon:
+    repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+- search
+- mkdocstrings:
+    default_handler: python
+    handlers:
+      python:
+        options:
+          docstring_style: sphinx
+          merge_init_into_class: true
+
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format

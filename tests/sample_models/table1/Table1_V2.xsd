@@ -1,0 +1,1074 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- edited with XMLSpy v2014 rel. 2 sp1 (x64) (http://www.altova.com) by - - (Agency for the Cooperation of Energy Regulators) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ait1="http://www.acer.europa.eu/REMIT/REMITTable1_V2.xsd" targetNamespace="http://www.acer.europa.eu/REMIT/REMITTable1_V2.xsd" elementFormDefault="qualified">
+	<xs:element name="REMITTable1">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="reportingEntityID" type="ait1:reportingEntityID">
+					<xs:annotation>
+						<xs:documentation>Field No. 6, 7</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="contractList" type="ait1:contractListType" minOccurs="0"/>
+				<xs:element name="OrderList" type="ait1:OrderListType" minOccurs="0">
+					<xs:unique name="OrderRecordSeqNumber">
+						<xs:selector xpath="ait1:OrderReport"/>
+						<xs:field xpath="ait1:RecordSeqNumber"/>
+					</xs:unique>
+				</xs:element>
+				<xs:element name="TradeList" type="ait1:TradeListType" minOccurs="0">
+					<xs:unique name="TradeRecordSeqNumber">
+						<xs:selector xpath="ait1:TradeReport"/>
+						<xs:field xpath="ait1:RecordSeqNumber"/>
+					</xs:unique>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="annexTable1ContractType">
+		<xs:sequence>
+			<xs:element name="contractId" type="ait1:contractIdType">
+				<xs:annotation>
+					<xs:documentation>Field No. 21</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="contractName" type="ait1:contractNameType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 22 </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="contractType" type="ait1:contractTypeType">
+				<xs:annotation>
+					<xs:documentation>Field No. 23</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="energyCommodity" type="ait1:energyCommodityType" maxOccurs="2">
+				<xs:annotation>
+					<xs:documentation>Field No. 24</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="fixingIndex" type="ait1:fixingIndexDetails" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Field No. 25</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="settlementMethod" type="ait1:settlementMethodType" default="P">
+				<xs:annotation>
+					<xs:documentation>Field No. 26</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="organisedMarketPlaceIdentifier" type="ait1:organisedMarketPlaceType">
+				<xs:annotation>
+					<xs:documentation>Field No. 27</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="contractTradingHours" type="ait1:contractTradingHoursType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Field No. 28</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="lastTradingDateTime" type="xs:dateTime" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 29</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="optionDetails" type="ait1:optionDetails" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Fields No. 44, 45, 46 and 47</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="deliveryPointOrZone" type="ait1:eic" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Field No. 48</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="deliveryStartDate" type="xs:date">
+				<xs:annotation>
+					<xs:documentation>Field No. 49</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="deliveryEndDate" type="xs:date">
+				<xs:annotation>
+					<xs:documentation>Field No. 50</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="duration" type="ait1:durationType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 51</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="loadType" type="ait1:contractLoadType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 52</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="deliveryProfile" type="ait1:deliveryProfileDetails" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="annexTable1Order">
+		<xs:sequence>
+			<xs:element name="RecordSeqNumber" type="ait1:RecordSeqNumberType"/>
+			<xs:element name="idOfMarketParticipant" type="ait1:participantType">
+				<xs:annotation>
+					<xs:documentation>Field No. 1, Field No. 2
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="traderID" type="ait1:traderIDType">
+				<xs:annotation>
+					<xs:documentation>Field No 3</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="beneficiaryIdentification" type="ait1:participantType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 8,Field No. 9</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="tradingCapacity" type="ait1:tradingCapacityType">
+				<xs:annotation>
+					<xs:documentation>Field No. 10</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="buySellIndicator" type="ait1:buySellIndicatorType">
+				<xs:annotation>
+					<xs:documentation>Field No. 11</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="orderId" type="ait1:orderIdType">
+				<xs:annotation>
+					<xs:documentation>Field No. 13</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="orderType" type="ait1:orderTypesType">
+				<xs:annotation>
+					<xs:documentation>Field No. 14</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="orderCondition" type="ait1:orderConditionsType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Field No. 15</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="orderStatus" type="ait1:orderStatusType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Field No. 16</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="minimumExecuteVolume" type="ait1:quantityType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 17</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="triggerDetails" type="ait1:triggerDetailsType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 18</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="undisclosedVolume" type="ait1:quantityType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 19</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="orderDuration" type="ait1:orderDurationType">
+				<xs:annotation>
+					<xs:documentation>Filed No. 20</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="contractInfo" type="ait1:contractInfoType"/>
+			<xs:element name="organisedMarketPlaceIdentifier" type="ait1:organisedMarketPlaceType">
+				<xs:annotation>
+					<xs:documentation>Field No. 27 </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="transactionTime" type="xs:dateTime">
+				<xs:annotation>
+					<xs:documentation>Field No. 30</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="originalEntryTime" type="xs:dateTime" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 30</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="linkedOrderId" type="ait1:orderIdentifierType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Field No. 33</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="priceDetails" type="ait1:priceDetailsType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 35, 36 and 37</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="notionalAmountDetails" type="ait1:notionalAmountDetailsType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No 38 and 39</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="quantity" type="ait1:quantityType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No 40 and 42</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="totalNotionalContractQuantity" type="ait1:notionalQuantityType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No 41 and 42</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="priceIntervalQuantityDetails" type="ait1:priceTimeIntervalQuantityDetails" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Field No 49, 50 ,53, 54, 55, 56 and 57</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="actionType" type="ait1:actionTypesType">
+				<xs:annotation>
+					<xs:documentation>Field No. 58</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Extra" type="ait1:extraType" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="annexTable1Trade">
+		<xs:sequence>
+			<xs:element name="RecordSeqNumber" type="ait1:RecordSeqNumberType"/>
+			<xs:element name="idOfMarketParticipant" type="ait1:participantType">
+				<xs:annotation>
+					<xs:documentation>Field No. 1, Field No. 2
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="traderID" type="ait1:traderIDType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No 3</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="otherMarketParticipant" type="ait1:participantType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 4, Field No. 5
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="beneficiaryIdentification" type="ait1:participantType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 8,Field No. 9</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="tradingCapacity" type="ait1:tradingCapacityType">
+				<xs:annotation>
+					<xs:documentation>Field No. 10</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="buySellIndicator" type="ait1:buySellIndicatorType">
+				<xs:annotation>
+					<xs:documentation>Field No. 11</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="aggressor" type="ait1:aggressorType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 12</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="clickAndTradeDetails" type="ait1:clickAndTradeDetailsType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Optional e.g. to be used for Click Trade when aggressor doesn't submit an order</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="contractInfo" type="ait1:contractInfoType_1"/>
+			<xs:element name="organisedMarketPlaceIdentifier" type="ait1:organisedMarketPlaceType">
+				<xs:annotation>
+					<xs:documentation>Field No. 27</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="transactionTime" type="xs:dateTime">
+				<xs:annotation>
+					<xs:documentation>Field No. 30</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="executionTime" type="xs:dateTime" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 30 if differtent than transaction time</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="uniqueTransactionIdentifier" type="ait1:tradeIdType">
+				<xs:annotation>
+					<xs:documentation>Field No. 31</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="linkedTransactionId" type="ait1:uniqueTransactionIdentifierType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Field No. 32</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="linkedOrderId" type="ait1:orderIdentifierType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Field No. 33</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="voiceBrokered" type="ait1:booleanType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 34</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="priceDetails" type="ait1:priceDetailsType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 35, 36 and 37</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="notionalAmountDetails" type="ait1:notionalAmountDetailsType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No 38 and 39</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="quantity" type="ait1:quantityType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 40</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="totalNotionalContractQuantity" type="ait1:notionalQuantityType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 41</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="terminationDate" type="xs:dateTime" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 43</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="priceIntervalQuantityDetails" type="ait1:priceTimeIntervalQuantityDetails" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Fields No 53, 54, 55, 56 and 57 </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="actionType" type="ait1:actionTypesType">
+				<xs:annotation>
+					<xs:documentation>Field No. 58</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Extra" type="ait1:extraType" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="clickAndTradeDetailsType">
+		<xs:sequence>
+			<xs:element name="orderType" type="ait1:orderTypesType">
+				<xs:annotation>
+					<xs:documentation>Field No. 14</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="orderCondition" type="ait1:orderConditionsType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Field No. 15</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="orderStatus" type="ait1:orderStatusType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Field No. 16</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="minimumExecuteVolume" type="ait1:quantityType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 17</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="triggerDetails" type="ait1:triggerDetailsType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 18</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="undisclosedVolume" type="ait1:quantityType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 19</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="orderDuration" type="ait1:orderDurationType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 20</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="contractInfoType">
+		<xs:choice>
+			<xs:sequence>
+				<xs:element name="contractId" type="ait1:contractIdType">
+					<xs:annotation>
+						<xs:documentation>Field No. 21</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="legContractId" type="ait1:legContractIdType" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Field No. 21</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+			<xs:sequence>
+				<xs:element name="contract" type="ait1:annexTable1ContractType">
+					<xs:annotation>
+						<xs:documentation>Field No. 21</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="legContract" type="ait1:legContract" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Field No. 21</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="contractInfoType_1">
+		<xs:choice>
+			<xs:element name="contractId" type="ait1:contractIdType">
+				<xs:annotation>
+					<xs:documentation>Field No. 21</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="contract" type="ait1:annexTable1ContractType">
+				<xs:annotation>
+					<xs:documentation>Field No. 21</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="contractListType">
+		<xs:sequence>
+			<xs:element name="contract" type="ait1:annexTable1ContractType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="contractTradingHoursType">
+		<xs:sequence>
+			<xs:element name="startTime" type="xs:time"/>
+			<xs:element name="endTime" type="xs:time"/>
+			<xs:element name="date" type="xs:date" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="deliveryProfileDetails">
+		<xs:sequence>
+			<xs:element name="loadDeliveryStartDate" type="xs:date" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 49</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="loadDeliveryEndDate" type="xs:date" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 50</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="daysOfTheWeek" type="ait1:daysOfTheWeekType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Field No. 53</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:sequence maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Field No. 54</xs:documentation>
+				</xs:annotation>
+				<xs:element name="loadDeliveryStartTime" type="xs:time">
+					<xs:annotation>
+						<xs:documentation>Field No. 54</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="loadDeliveryEndTime" type="xs:time">
+					<xs:annotation>
+						<xs:documentation>Field No. 54</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="fixingIndexDetails">
+		<xs:sequence>
+			<xs:element name="indexName" type="ait1:fixingIndexType">
+				<xs:annotation>
+					<xs:documentation>Field No. 25</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="indexValue" type="ait1:number" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation/>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="intervalQuantityType">
+		<xs:sequence>
+			<xs:element name="quantity" type="ait1:number"/>
+			<xs:element name="unit" type="ait1:quantityUnitType"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="legContract">
+		<xs:sequence>
+			<xs:element name="contract" type="ait1:annexTable1ContractType"/>
+			<xs:element name="buySellIndicator" type="ait1:buySellIndicatorType"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="legContractIdType">
+		<xs:sequence>
+			<xs:element name="contractId" type="ait1:contractIdType">
+				<xs:annotation>
+					<xs:documentation>Field No. 21</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="buySellIndicator" type="ait1:buySellIndicatorType"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="notionalAmountDetailsType">
+		<xs:sequence>
+			<xs:element name="notionalAmount" type="ait1:number">
+				<xs:annotation>
+					<xs:documentation>Field No. 38</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="notionalCurrency" type="ait1:currencyCodeType">
+				<xs:annotation>
+					<xs:documentation>Field No. 39</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="notionalQuantityType">
+		<xs:sequence>
+			<xs:element name="value" type="ait1:number"/>
+			<xs:element name="unit" type="ait1:notionalQuantityUnitType">
+				<xs:annotation>
+					<xs:documentation>Field No 42 for 41</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="optionDetails">
+		<xs:sequence>
+			<xs:element name="optionStyle" type="ait1:optionStyleType">
+				<xs:annotation>
+					<xs:documentation>Field No. 44</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="optionType" type="ait1:optionTypeType">
+				<xs:annotation>
+					<xs:documentation>Field No. 45</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="optionExerciseDate" type="xs:date" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Field No. 46</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="optionStrikePrice" type="ait1:priceType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 47</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="orderDurationType">
+		<xs:sequence>
+			<xs:element name="duration" type="ait1:orderDurationsType"/>
+			<xs:element name="expirationDateTime" type="xs:dateTime" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="orderIdType">
+		<xs:sequence>
+			<xs:element name="uniqueOrderIdentifier" type="ait1:orderIdentifierType">
+				<xs:annotation>
+					<xs:documentation>Field No. 13</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="previousOrderIdentifier" type="ait1:orderIdentifierType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 13 - Previous Order ID</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="OrderListType">
+		<xs:sequence>
+			<xs:element name="OrderReport" type="ait1:annexTable1Order" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="organisedMarketPlaceType">
+		<xs:choice>
+			<xs:element name="lei" type="ait1:lei"/>
+			<xs:element name="mic" type="ait1:mic"/>
+			<xs:element name="ace" type="ait1:ace"/>
+			<xs:element name="bil" type="ait1:bil"/>
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="participantType">
+		<xs:choice>
+			<xs:element name="ace" type="ait1:ace"/>
+			<xs:element name="lei" type="ait1:lei"/>
+			<xs:element name="bic" type="ait1:bic"/>
+			<xs:element name="eic" type="ait1:eic"/>
+			<xs:element name="gln" type="ait1:gln"/>
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="priceDetailsType">
+		<xs:sequence>
+			<xs:element name="price" type="ait1:number">
+				<xs:annotation>
+					<xs:documentation>Field No. 35</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="priceCurrency" type="ait1:currencyCodeType">
+				<xs:annotation>
+					<xs:documentation>Field No. 37</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="priceTimeIntervalQuantityDetails">
+		<xs:sequence>
+			<xs:element name="intervalStartDate" type="xs:date" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 49</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="intervalEndDate" type="xs:date" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 50</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="daysOfTheWeek" type="ait1:daysOfTheWeekType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field 53</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:sequence maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Field No. 54</xs:documentation>
+				</xs:annotation>
+				<xs:element name="intervalStartTime" type="xs:time">
+					<xs:annotation>
+						<xs:documentation>Field No. 54</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="intervalEndTime" type="xs:time">
+					<xs:annotation>
+						<xs:documentation>Field No. 54</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+			<xs:sequence minOccurs="0">
+				<xs:element name="quantity" type="ait1:number">
+					<xs:annotation>
+						<xs:documentation>Field No. 55</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="unit" type="ait1:quantityUnitType">
+					<xs:annotation>
+						<xs:documentation>Field No. 56</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+			<xs:element name="priceTimeIntervalQuantity" type="ait1:priceType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field 57</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="priceType">
+		<xs:sequence>
+			<xs:element name="value" type="ait1:number"/>
+			<xs:element name="currency" type="ait1:currencyCodeType"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="quantityType">
+		<xs:sequence>
+			<xs:element name="value" type="ait1:number"/>
+			<xs:element name="unit" type="ait1:quantityUnitType">
+				<xs:annotation>
+					<xs:documentation>Field No 42 for 40</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="reportingEntityID">
+		<xs:choice>
+			<xs:element name="ace" type="ait1:ace"/>
+			<xs:element name="lei" type="ait1:lei"/>
+			<xs:element name="bic" type="ait1:bic"/>
+			<xs:element name="eic" type="ait1:eic"/>
+			<xs:element name="gln" type="ait1:gln"/>
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="tradeIdType">
+		<xs:sequence>
+			<xs:element name="uniqueTransactionIdentifier" type="ait1:uniqueTransactionIdentifierType">
+				<xs:annotation>
+					<xs:documentation>Field No. 31</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="additionalUtiInfo" type="ait1:uniqueTransactionIdentifierType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Field No. 31</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="TradeListType">
+		<xs:sequence>
+			<xs:element name="TradeReport" type="ait1:annexTable1Trade" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="traderIDType">
+		<xs:choice>
+			<xs:element name="traderIdForOrganisedMarket" type="ait1:traderCode">
+				<xs:annotation>
+					<xs:documentation>Field No. 3a</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="traderIdForMarketParticipant" type="ait1:traderCode">
+				<xs:annotation>
+					<xs:documentation>Field No. 3b</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="triggerDetailsType">
+		<xs:sequence>
+			<xs:element name="priceLimit" type="ait1:priceType">
+				<xs:annotation>
+					<xs:documentation>Field No. 18</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="triggerContractId" type="ait1:contractIdType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Contract ID of different contract (triggering contract)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="ace">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="12"/>
+			<xs:minLength value="12"/>
+			<xs:pattern value="[A-Za-z0-9_]+\.[A-Z][A-Z]"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="actionTypesType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="M"/>
+			<xs:enumeration value="E"/>
+			<xs:enumeration value="C"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="aggressorType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="A"/>
+			<xs:enumeration value="I"/>
+			<xs:enumeration value="S"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="bic">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="11"/>
+			<xs:minLength value="11"/>
+			<xs:pattern value="[A-Za-z0-9_]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="bil">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="XBIL"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="booleanType">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="(true)|(Y)|(false)|(N)"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="buySellIndicatorType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="B"/>
+			<xs:enumeration value="S"/>
+			<xs:enumeration value="C"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="contractIdType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="50"/>
+			<xs:pattern value="[A-Za-z0-9_:-]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="contractLoadType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="BL"/>
+			<xs:enumeration value="PL"/>
+			<xs:enumeration value="OP"/>
+			<xs:enumeration value="BH"/>
+			<xs:enumeration value="SH"/>
+			<xs:enumeration value="GD"/>
+			<xs:enumeration value="OT"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="contractNameType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="200"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="contractTypeType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="AU"/>
+			<xs:enumeration value="CO"/>
+			<xs:enumeration value="FW"/>
+			<xs:enumeration value="FU"/>
+			<xs:enumeration value="OP"/>
+			<xs:enumeration value="OP_FW"/>
+			<xs:enumeration value="OP_FU"/>
+			<xs:enumeration value="OP_SW"/>
+			<xs:enumeration value="SP"/>
+			<xs:enumeration value="SW"/>
+			<xs:enumeration value="OT"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="currencyCodeType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="BGN"/>
+			<xs:enumeration value="CHF"/>
+			<xs:enumeration value="CZK"/>
+			<xs:enumeration value="DKK"/>
+			<xs:enumeration value="EUR"/>
+			<xs:enumeration value="EUX"/>
+			<xs:enumeration value="GBX"/>
+			<xs:enumeration value="GBP"/>
+			<xs:enumeration value="HRK"/>
+			<xs:enumeration value="HUF"/>
+			<xs:enumeration value="ISK"/>
+			<xs:enumeration value="NOK"/>
+			<xs:enumeration value="PCT"/>
+			<xs:enumeration value="PLN"/>
+			<xs:enumeration value="RON"/>
+			<xs:enumeration value="SEK"/>
+			<xs:enumeration value="USD"/>
+			<xs:enumeration value="OTH"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="daysOfTheWeekType">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="((SU|MO|TU|WE|TH|FR|SA)to(SU|MO|TU|WE|TH|FR|SA))|(SU|MO|TU|WE|TH|FR|SA|XB|IB|WD|WN)"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="durationType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="H"/>
+			<xs:enumeration value="D"/>
+			<xs:enumeration value="W"/>
+			<xs:enumeration value="M"/>
+			<xs:enumeration value="Q"/>
+			<xs:enumeration value="S"/>
+			<xs:enumeration value="Y"/>
+			<xs:enumeration value="O"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="eic">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="16"/>
+			<xs:minLength value="16"/>
+			<xs:pattern value="[0-9][0-9][XYZTWV].+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="energyCommodityType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="EL"/>
+			<xs:enumeration value="NG"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="extraType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="1000"/>
+			<xs:pattern value="((\w+==((\d+\.\d+)|(\d+)|(\w+));)+(\w+==((\d+\.\d+)|(\d+)|(\w+))))"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="fixingIndexType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="150"/>
+			<xs:pattern value="[A-Za-z0-9_ -]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="gln">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="13"/>
+			<xs:minLength value="13"/>
+			<xs:pattern value="[A-Za-z0-9_-]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="lei">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="20"/>
+			<xs:minLength value="20"/>
+			<xs:pattern value="[A-Za-z0-9_]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="mic">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="4"/>
+			<xs:minLength value="4"/>
+			<xs:pattern value="[A-Za-z0-9_]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="notionalQuantityUnitType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="KWh"/>
+			<xs:enumeration value="MWh"/>
+			<xs:enumeration value="GWh"/>
+			<xs:enumeration value="Therm"/>
+			<xs:enumeration value="KTherm"/>
+			<xs:enumeration value="MTherm"/>
+			<xs:enumeration value="cm"/>
+			<xs:enumeration value="mcm"/>
+			<xs:enumeration value="Btu"/>
+			<xs:enumeration value="MMBtu"/>
+			<xs:enumeration value="MJ"/>
+			<xs:enumeration value="100MJ"/>
+			<xs:enumeration value="MMJ"/>
+			<xs:enumeration value="GJ"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="number">
+		<xs:restriction base="xs:decimal">
+			<xs:totalDigits value="20"/>
+			<xs:fractionDigits value="5"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="optionStyleType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="A"/>
+			<xs:enumeration value="B"/>
+			<xs:enumeration value="E"/>
+			<xs:enumeration value="S"/>
+			<xs:enumeration value="O"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="optionTypeType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="C"/>
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="O"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="orderConditionsType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="AON"/>
+			<xs:enumeration value="FAF"/>
+			<xs:enumeration value="FAK"/>
+			<xs:enumeration value="FOK"/>
+			<xs:enumeration value="HVO"/>
+			<xs:enumeration value="MEV"/>
+			<xs:enumeration value="OCO"/>
+			<xs:enumeration value="PRE"/>
+			<xs:enumeration value="PRI"/>
+			<xs:enumeration value="PTR"/>
+			<xs:enumeration value="SLO"/>
+			<xs:enumeration value="OTH"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="orderDurationsType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="DAY"/>
+			<xs:enumeration value="GTC"/>
+			<xs:enumeration value="GTD"/>
+			<xs:enumeration value="GTT"/>
+			<xs:enumeration value="SES"/>
+			<xs:enumeration value="OTH"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="orderIdentifierType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="100"/>
+			<xs:pattern value="[A-Za-z0-9_ -]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="orderStatusType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="ACT"/>
+			<xs:enumeration value="COV"/>
+			<xs:enumeration value="EXP"/>
+			<xs:enumeration value="MAC"/>
+			<xs:enumeration value="PMA"/>
+			<xs:enumeration value="REF"/>
+			<xs:enumeration value="SUS"/>
+			<xs:enumeration value="WIT"/>
+			<xs:enumeration value="OTH"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="orderTypesType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="BLO"/>
+			<xs:enumeration value="CON"/>
+			<xs:enumeration value="COM"/>
+			<xs:enumeration value="EXC"/>
+			<xs:enumeration value="FHR"/>
+			<xs:enumeration value="IOI"/>
+			<xs:enumeration value="LIM"/>
+			<xs:enumeration value="LIN"/>
+			<xs:enumeration value="LIS"/>
+			<xs:enumeration value="MAR"/>
+			<xs:enumeration value="MTL"/>
+			<xs:enumeration value="SMA"/>
+			<xs:enumeration value="SPR"/>
+			<xs:enumeration value="STP"/>
+			<xs:enumeration value="VBL"/>
+			<xs:enumeration value="OTH"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="quantityUnitType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="KW"/>
+			<xs:enumeration value="KWh/h"/>
+			<xs:enumeration value="KWh/d"/>
+			<xs:enumeration value="MW"/>
+			<xs:enumeration value="MWh/h"/>
+			<xs:enumeration value="MWh/d"/>
+			<xs:enumeration value="GW"/>
+			<xs:enumeration value="GWh/h"/>
+			<xs:enumeration value="GWh/d"/>
+			<xs:enumeration value="Therm/d"/>
+			<xs:enumeration value="KTherm/d"/>
+			<xs:enumeration value="MTherm/d"/>
+			<xs:enumeration value="cm/d"/>
+			<xs:enumeration value="mcm/d"/>
+			<xs:enumeration value="Btu/d"/>
+			<xs:enumeration value="MMBtu/d"/>
+			<xs:enumeration value="MJ/d"/>
+			<xs:enumeration value="100MJ/d"/>
+			<xs:enumeration value="MMJ/d"/>
+			<xs:enumeration value="GJ/d"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="RecordSeqNumberType">
+		<xs:restriction base="xs:integer">
+			<xs:minInclusive value="1"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="restrictedString">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="100"/>
+			<xs:pattern value="[A-Za-z0-9_ ]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="settlementMethodType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="C"/>
+			<xs:enumeration value="O"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="traderCode">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="100"/>
+			<xs:pattern value="[A-Za-z0-9_ -]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="tradingCapacityType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="A"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="uniqueTransactionIdentifierType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="100"/>
+			<xs:pattern value="[A-Za-z0-9_ -]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>
