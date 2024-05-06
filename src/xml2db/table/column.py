@@ -3,7 +3,7 @@ from typing import List, Iterable, Any, Union, TYPE_CHECKING
 
 from sqlalchemy import (
     Integer,
-    Float,
+    Double,
     Boolean,
     BigInteger,
     SmallInteger,
@@ -12,7 +12,7 @@ from sqlalchemy import (
     String,
     LargeBinary,
 )
-from sqlalchemy.dialects import mssql
+from sqlalchemy.dialects import mssql, mysql
 
 if TYPE_CHECKING:
     from xml2db.model import DataModel
@@ -30,7 +30,7 @@ def types_mapping_default(temp: bool, col: "DataModelColumn") -> Any:
     if col.occurs[1] != 1:
         return String(8000)
     if col.data_type in ["decimal", "float"]:
-        return Float
+        return Double
     if col.data_type == "dateTime":
         return DateTime(timezone=True)
     if col.data_type == "integer" or col.data_type == "int":
@@ -72,7 +72,7 @@ def types_mapping_mssql(temp: bool, col: "DataModelColumn") -> Any:
     if col.occurs[1] != 1:
         return mssql.VARCHAR(8000)
     if col.data_type in ["decimal", "float"]:
-        return Float
+        return Double
     if col.data_type == "dateTime":
         # using the DATETIMEOFFSET directly in the temporary table caused issues when inserting data in the target
         # table with INSERT INTO SELECT converts datetime VARCHAR to DATETIMEOFFSET without errors
@@ -106,6 +106,23 @@ def types_mapping_mssql(temp: bool, col: "DataModelColumn") -> Any:
             f"(this can be overridden by providing a field type in the configuration)"
         )
         return mssql.VARCHAR(1000)
+
+
+def types_mapping_mysql(temp: bool, col: "DataModelColumn") -> Any:
+    """Defines the MySQL/sqlalchemy type to use for given column properties in target tables
+
+    :param temp: are we targeting the temporary tables schema or the final tables?
+    :param col: an object representing a column of a table for which we are determining the SQL type to define
+    :return: a sqlalchemy class representing the data type to be used
+    """
+    if col.occurs[1] != 1:
+        return String(4000)
+    if col.data_type in ["string", "NMTOKEN", "duration", "token"]:
+        if col.max_length is None:
+            return String(255)
+    if col.data_type == "binary":
+        return mysql.BINARY(col.max_length)
+    return types_mapping_default(temp, col)
 
 
 class DataModelColumn:
@@ -160,7 +177,11 @@ class DataModelColumn:
         self.types_mapping = (
             types_mapping_mssql
             if data_model.engine and data_model.engine.dialect.name == "mssql"
-            else types_mapping_default
+            else (
+                types_mapping_mysql
+                if data_model.engine and data_model.engine.dialect.name == "mysql"
+                else types_mapping_default
+            )
         )
 
     @property

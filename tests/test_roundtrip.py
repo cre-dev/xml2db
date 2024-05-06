@@ -27,7 +27,9 @@ def test_database_xml_roundtrip(setup_db_model, model_config):
         doc.insert_into_target_tables()
 
     for file in xml_files:
-        doc = model.extract_from_database(f"xml2db_input_file_path='{file}'")
+        doc = model.extract_from_database(
+            f"xml2db_input_file_path='{file}'", force_tz="Europe/Paris"
+        )
 
         with open(file, "rt") as f:
             ref_xml = f.read()
@@ -67,7 +69,9 @@ def test_database_document_tree_roundtrip(setup_db_model, model_config):
         doc.insert_into_target_tables()
 
     for file in xml_files:
-        doc = model.extract_from_database(f"xml2db_input_file_path='{file}'")
+        doc = model.extract_from_database(
+            f"xml2db_input_file_path='{file}'", force_tz="Europe/Paris"
+        )
 
         # parse file to doctree for reference
         converter = XMLConverter(model)
@@ -96,7 +100,9 @@ def test_database_single_document_tree_roundtrip(setup_db_model, model_config):
     doc = model.parse_xml(file_path)
     doc.insert_into_target_tables()
 
-    doc = model.extract_from_database(f"xml2db_input_file_path='{file_path}'")
+    doc = model.extract_from_database(
+        f"xml2db_input_file_path='{file_path}'", force_tz="Europe/Paris"
+    )
 
     # parse file to doctree for reference
     converter = XMLConverter(model)

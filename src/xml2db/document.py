@@ -5,7 +5,7 @@ import multiprocessing
 from hashlib import sha1
 from io import BytesIO
 from typing import Union, TYPE_CHECKING, Dict
-
+from zoneinfo import ZoneInfo
 from sqlalchemy import Column, Table, text, select
 from sqlalchemy.engine import Connection
 from sqlalchemy.sql.expression import TextClause
@@ -204,9 +204,11 @@ class Document:
                         else:
                             esc_val = [str(v).replace('"', '\\"') for v in val]
                             esc_val = [
-                                f'"{v}"'
-                                if "," in v or "\n" in v or "\r" in v or '"' in v
-                                else v
+                                (
+                                    f'"{v}"'
+                                    if "," in v or "\n" in v or "\r" in v or '"' in v
+                                    else v
+                                )
                                 for v in esc_val
                             ]
                             record[key] = ",".join(esc_val)
@@ -468,13 +470,18 @@ class Document:
         self,
         root_table_name: str,
         root_select_where: str,
+        force_tz: Union[str, None] = None,
     ) -> dict:
         """Extract a subtree from the database and store it in a flat format
 
         :param root_table_name: The root table name to start from
         :param root_select_where: A where clause to apply to this root table
+        :param force_tz: Apply this timezone if database returns timezone-naïve datetime
         :return: A shallow dict of flat data tables
         """
+
+        if force_tz:
+            force_tz = ZoneInfo(force_tz)
 
         def _fetch_data(
             sqla_table: Table,
@@ -504,9 +511,18 @@ class Document:
             if order_by:
                 quer = quer.order_by(*order_by)
 
+            def add_tz(x):
+                if (
+                    force_tz
+                    and isinstance(x, datetime.datetime)
+                    and (x.tzinfo is None or x.tzinfo.utcoffset(x) is None)
+                ):
+                    x = x.replace(tzinfo=force_tz)
+                return x
+
             col_names = sqla_table.columns.keys()
             for row in conn.execute(quer):
-                append_to.append({key: val for key, val in zip(col_names, row)})
+                append_to.append({key: add_tz(val) for key, val in zip(col_names, row)})
 
         def _do_extract_table(
             tb,
@@ -605,9 +621,11 @@ class Document:
                         (
                             getattr(
                                 tb.table.c,
-                                f"pk_{tb.name}"
-                                if tb.is_reused
-                                else f"fk_parent_{parent_table.name}",
+                                (
+                                    f"pk_{tb.name}"
+                                    if tb.is_reused
+                                    else f"fk_parent_{parent_table.name}"
+                                ),
                             ),
                             tb.table,
                             getattr(tb.table.c, f"{rel.field_name}"),

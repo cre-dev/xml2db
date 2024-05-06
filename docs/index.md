@@ -30,10 +30,10 @@ SQL views or stored procedures aimed at extracting, correcting and formatting th
 
 `xml2db` is developed and used at the [French energy regulation authority (CRE)](https://www.cre.fr/) to process complex XML data.
 
-This package uses `sqlalchemy` to interact with the database, so it should work with different database backends. It has
-been tested against PostgreSQL and MS SQL Server. It currently does not work with SQLite. You may have to install 
-additional packages to connect to your database (e.g. `pyodbc` which is the default connector for MS SQL Server, or 
-`psycopg2` for PostgreSQL).
+This package uses `sqlalchemy` to interact with the database, so it should work with different database backends. 
+Automated integration tests run against PostgreSQL, MySQL and MS SQL Server. `xml2db` does not work with SQLite. You may
+have to install additional packages to connect to your database (e.g. `psycopg2` for PostgreSQL, `pymysql` for MySQL or 
+`pyodbc` for MS SQL Server).
 
 ## Data model visualization
 
