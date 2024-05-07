@@ -86,23 +86,49 @@ models = [
     },
 ]
 
-if __name__ == "__main__":
+
+def _generate_models_output():
+    """
+    This function is used to generate data models representations that will be used in the tests, in order to make sure
+    that no change to the resulting data model go unnoticed.
+    When changes affect the model representation or SQL DDL, these outputs need to be updated and committed to the repo.
+    """
+    from sqlalchemy.dialects import postgresql, mssql
     from xml2db import DataModel
 
     for model_config in models:
         for i in range(len(model_config["versions"])):
+            xsd_path = os.path.join("../../", model_config["xsd_path"])
             model = DataModel(
-                os.path.join("../../", model_config["xsd_path"]),
+                xsd_path,
                 model_config=model_config["versions"][i]["config"],
                 short_name=model_config["id"],
                 long_name=model_config["long_name"],
             )
             with open(
                 os.path.join(
-                    "../../",
-                    os.path.dirname(model_config["xsd_path"]),
-                    f"{model_config['id']}_ERD_version{i}.md",
+                    os.path.dirname(xsd_path),
+                    f"{model_config['id']}_erd_version{i}.md",
                 ),
                 "wt",
             ) as f:
-                f.write(model.get_entity_rel_diagram())
+                f.write("```mermaid\n")
+                f.write(model.get_entity_rel_diagram(text_context=False))
+                f.write("\n```")
+            for dialect in [d.dialect() for d in [postgresql, mssql]]:
+                with open(
+                    os.path.join(
+                        os.path.dirname(xsd_path),
+                        f"{model_config['id']}_ddl_{dialect.name}_version{i}.sql",
+                    ),
+                    "wt",
+                ) as f:
+                    for s in model.get_all_create_table_statements():
+                        f.write(str(s.compile(dialect=dialect)))
+                    for s in model.get_all_create_index_statements():
+                        f.write(str(s.compile(dialect=dialect)))
+                        f.write("\n\n")
+
+
+if __name__ == "__main__":
+    _generate_models_output()
