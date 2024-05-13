@@ -52,6 +52,7 @@ def test_model_ddl(test_config):
         test_config["xsd_path"],
         short_name=test_config["id"],
         model_config=test_config["config"],
+        db_type=test_config["dialect"].name,
     )
 
     expected = open(

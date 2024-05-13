@@ -121,7 +121,9 @@ def types_mapping_mysql(temp: bool, col: "DataModelColumn") -> Any:
         if col.max_length is None:
             return String(255)
     if col.data_type == "binary":
-        return mysql.BINARY(col.max_length)
+        if col.max_length == col.min_length:
+            return mysql.BINARY(col.max_length)
+        return mysql.VARBINARY(col.max_length)
     return types_mapping_default(temp, col)
 
 
@@ -176,10 +178,10 @@ class DataModelColumn:
         self.other_table = None  # just to avoid a linting warning
         self.types_mapping = (
             types_mapping_mssql
-            if data_model.engine and data_model.engine.dialect.name == "mssql"
+            if data_model.db_type == "mssql"
             else (
                 types_mapping_mysql
-                if data_model.engine and data_model.engine.dialect.name == "mysql"
+                if data_model.db_type == "mysql"
                 else types_mapping_default
             )
         )

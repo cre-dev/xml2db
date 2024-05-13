@@ -11,7 +11,7 @@ CREATE TABLE orderperson (
 	[companyId_ace] VARCHAR(1000) NULL, 
 	[companyId_bic] VARCHAR(1000) NULL, 
 	[companyId_lei] VARCHAR(1000) NULL, 
-	record_hash IMAGE NULL, 
+	record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY CLUSTERED (pk_orderperson), 
 	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (record_hash)
 )
@@ -23,7 +23,7 @@ CREATE TABLE shiporder (
 	processed_at DATETIMEOFFSET NULL, 
 	fk_orderperson INTEGER NULL, 
 	shipto_fk_orderperson INTEGER NULL, 
-	record_hash IMAGE NULL, 
+	record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_shiporder PRIMARY KEY CLUSTERED (pk_shiporder), 
 	CONSTRAINT shiporder_xml2db_record_hash UNIQUE (record_hash), 
 	FOREIGN KEY(fk_orderperson) REFERENCES orderperson (pk_orderperson), 
@@ -36,7 +36,7 @@ CREATE TABLE orders (
 	batch_id VARCHAR(1000) NULL, 
 	xml2db_input_file_path VARCHAR(256) NOT NULL, 
 	xml2db_processed_at DATETIMEOFFSET NULL, 
-	record_hash IMAGE NULL, 
+	record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_orders PRIMARY KEY CLUSTERED (pk_orders), 
 	CONSTRAINT orders_xml2db_record_hash UNIQUE (record_hash)
 )

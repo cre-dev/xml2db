@@ -37,6 +37,8 @@ class DataModel:
     provided XSD file)
     :param model_config: A config dict to provide options for building the model
     :param connection_string: A database connection string (optional if you will not be loading data)
+    :param db_type: The targeted database backend (postgresql, mssql, mysql...). It is ignored and inferred from \
+    `connection_string`, if provided
     :param db_schema: A schema name to use in the database
     :param temp_prefix: A prefix to use for temporary tables (if `None`, will be generated randomly)
 
@@ -57,6 +59,7 @@ class DataModel:
         base_url: str = None,
         model_config: dict = None,
         connection_string: str = None,
+        db_type: str = None,
         db_schema: str = None,
         temp_prefix: str = None,
     ):
@@ -77,6 +80,7 @@ class DataModel:
                 "DataModel created without connection string cannot do actual imports"
             )
             self.engine = None
+            self.db_type = db_type
         else:
             engine_options = {}
             if "mssql" in connection_string:
@@ -88,6 +92,7 @@ class DataModel:
                 isolation_level="SERIALIZABLE",
                 **engine_options,
             )
+            self.db_type = self.engine.dialect.name
 
         self.model_config = {} if model_config is None else model_config
 

@@ -1,10 +1,10 @@
 
 CREATE TABLE error (
 	pk_error INTEGER NOT NULL AUTO_INCREMENT, 
-	type VARCHAR(1000), 
-	message VARCHAR(1000), 
-	value VARCHAR(1000), 
-	record_hash BLOB(20), 
+	type VARCHAR(255), 
+	message VARCHAR(255), 
+	value VARCHAR(255), 
+	record_hash BINARY(20), 
 	CONSTRAINT cx_pk_error PRIMARY KEY (pk_error), 
 	CONSTRAINT error_xml2db_record_hash UNIQUE (record_hash)
 )
@@ -12,10 +12,10 @@ CREATE TABLE error (
 
 CREATE TABLE failure (
 	pk_failure INTEGER NOT NULL AUTO_INCREMENT, 
-	type VARCHAR(1000), 
-	message VARCHAR(1000), 
-	value VARCHAR(1000), 
-	record_hash BLOB(20), 
+	type VARCHAR(255), 
+	message VARCHAR(255), 
+	value VARCHAR(255), 
+	record_hash BINARY(20), 
 	CONSTRAINT cx_pk_failure PRIMARY KEY (pk_failure), 
 	CONSTRAINT failure_xml2db_record_hash UNIQUE (record_hash)
 )
@@ -23,9 +23,9 @@ CREATE TABLE failure (
 
 CREATE TABLE property (
 	pk_property INTEGER NOT NULL AUTO_INCREMENT, 
-	name VARCHAR(1000), 
-	value VARCHAR(1000), 
-	record_hash BLOB(20), 
+	name VARCHAR(255), 
+	value VARCHAR(255), 
+	record_hash BINARY(20), 
 	CONSTRAINT cx_pk_property PRIMARY KEY (pk_property), 
 	CONSTRAINT property_xml2db_record_hash UNIQUE (record_hash)
 )
@@ -33,13 +33,13 @@ CREATE TABLE property (
 
 CREATE TABLE `flakyError` (
 	`pk_flakyError` INTEGER NOT NULL AUTO_INCREMENT, 
-	message VARCHAR(1000), 
-	type VARCHAR(1000), 
-	`stackTrace` VARCHAR(1000), 
-	`system-out` VARCHAR(1000), 
-	`system-err` VARCHAR(1000), 
-	value VARCHAR(1000), 
-	record_hash BLOB(20), 
+	message VARCHAR(255), 
+	type VARCHAR(255), 
+	`stackTrace` VARCHAR(255), 
+	`system-out` VARCHAR(255), 
+	`system-err` VARCHAR(255), 
+	value VARCHAR(255), 
+	record_hash BINARY(20), 
 	CONSTRAINT `cx_pk_flakyError` PRIMARY KEY (`pk_flakyError`), 
 	CONSTRAINT `flakyError_xml2db_record_hash` UNIQUE (record_hash)
 )
@@ -47,10 +47,10 @@ CREATE TABLE `flakyError` (
 
 CREATE TABLE skipped (
 	pk_skipped INTEGER NOT NULL AUTO_INCREMENT, 
-	type VARCHAR(1000), 
-	message VARCHAR(1000), 
-	value VARCHAR(1000), 
-	record_hash BLOB(20), 
+	type VARCHAR(255), 
+	message VARCHAR(255), 
+	value VARCHAR(255), 
+	record_hash BINARY(20), 
 	CONSTRAINT cx_pk_skipped PRIMARY KEY (pk_skipped), 
 	CONSTRAINT skipped_xml2db_record_hash UNIQUE (record_hash)
 )
@@ -58,7 +58,7 @@ CREATE TABLE skipped (
 
 CREATE TABLE properties (
 	pk_properties INTEGER NOT NULL AUTO_INCREMENT, 
-	record_hash BLOB(20), 
+	record_hash BINARY(20), 
 	CONSTRAINT cx_pk_properties PRIMARY KEY (pk_properties), 
 	CONSTRAINT properties_xml2db_record_hash UNIQUE (record_hash)
 )
@@ -74,13 +74,13 @@ CREATE TABLE properties_property (
 
 CREATE TABLE testcase (
 	pk_testcase INTEGER NOT NULL AUTO_INCREMENT, 
-	classname VARCHAR(1000), 
-	name VARCHAR(1000), 
-	time VARCHAR(1000), 
-	`group` VARCHAR(1000), 
-	`system-out` VARCHAR(8000), 
-	`system-err` VARCHAR(8000), 
-	record_hash BLOB(20), 
+	classname VARCHAR(255), 
+	name VARCHAR(255), 
+	time VARCHAR(255), 
+	`group` VARCHAR(255), 
+	`system-out` VARCHAR(4000), 
+	`system-err` VARCHAR(4000), 
+	record_hash BINARY(20), 
 	CONSTRAINT cx_pk_testcase PRIMARY KEY (pk_testcase), 
 	CONSTRAINT testcase_xml2db_record_hash UNIQUE (record_hash)
 )
@@ -144,24 +144,24 @@ CREATE TABLE `testcase_flakyError` (
 
 CREATE TABLE testsuite (
 	pk_testsuite INTEGER NOT NULL AUTO_INCREMENT, 
-	name VARCHAR(1000), 
-	errors VARCHAR(1000), 
-	failures VARCHAR(1000), 
-	skipped VARCHAR(1000), 
-	tests VARCHAR(1000), 
-	`group` VARCHAR(1000), 
-	time VARCHAR(1000), 
-	timestamp VARCHAR(1000), 
-	hostname VARCHAR(1000), 
-	id VARCHAR(1000), 
-	package VARCHAR(1000), 
-	file VARCHAR(1000), 
-	log VARCHAR(1000), 
-	url VARCHAR(1000), 
-	version VARCHAR(1000), 
-	`system-out` VARCHAR(8000), 
-	`system-err` VARCHAR(8000), 
-	record_hash BLOB(20), 
+	name VARCHAR(255), 
+	errors VARCHAR(255), 
+	failures VARCHAR(255), 
+	skipped VARCHAR(255), 
+	tests VARCHAR(255), 
+	`group` VARCHAR(255), 
+	time VARCHAR(255), 
+	timestamp VARCHAR(255), 
+	hostname VARCHAR(255), 
+	id VARCHAR(255), 
+	package VARCHAR(255), 
+	file VARCHAR(255), 
+	log VARCHAR(255), 
+	url VARCHAR(255), 
+	version VARCHAR(255), 
+	`system-out` VARCHAR(4000), 
+	`system-err` VARCHAR(4000), 
+	record_hash BINARY(20), 
 	CONSTRAINT cx_pk_testsuite PRIMARY KEY (pk_testsuite), 
 	CONSTRAINT testsuite_xml2db_record_hash UNIQUE (record_hash)
 )
@@ -185,12 +185,12 @@ CREATE TABLE testsuite_testcase (
 
 CREATE TABLE testsuites (
 	pk_testsuites INTEGER NOT NULL AUTO_INCREMENT, 
-	name VARCHAR(1000), 
-	time VARCHAR(1000), 
-	tests VARCHAR(1000), 
-	failures VARCHAR(1000), 
-	errors VARCHAR(1000), 
-	record_hash BLOB(20), 
+	name VARCHAR(255), 
+	time VARCHAR(255), 
+	tests VARCHAR(255), 
+	failures VARCHAR(255), 
+	errors VARCHAR(255), 
+	record_hash BINARY(20), 
 	CONSTRAINT cx_pk_testsuites PRIMARY KEY (pk_testsuites), 
 	CONSTRAINT testsuites_xml2db_record_hash UNIQUE (record_hash)
 )
@@ -215,14 +215,14 @@ CREATE TABLE junit10 (
 	`rerunError_fk_flakyError` INTEGER, 
 	`rerunFailure_fk_flakyError` INTEGER, 
 	fk_skipped INTEGER, 
-	`system-err` VARCHAR(1000), 
-	`system-out` VARCHAR(1000), 
+	`system-err` VARCHAR(255), 
+	`system-out` VARCHAR(255), 
 	fk_testcase INTEGER, 
 	fk_testsuite INTEGER, 
 	fk_testsuites INTEGER, 
 	xml2db_input_file_path VARCHAR(256) NOT NULL, 
 	xml2db_processed_at DATETIME, 
-	record_hash BLOB(20), 
+	record_hash BINARY(20), 
 	CONSTRAINT cx_pk_junit10 PRIMARY KEY (pk_junit10), 
 	CONSTRAINT junit10_xml2db_record_hash UNIQUE (record_hash), 
 	FOREIGN KEY(fk_error) REFERENCES error (pk_error), 
