@@ -4,7 +4,7 @@ CREATE TABLE orders (
 	batch_id VARCHAR(1000) NULL, 
 	xml2db_input_file_path VARCHAR(256) NOT NULL, 
 	xml2db_processed_at DATETIMEOFFSET NULL, 
-	record_hash IMAGE NULL, 
+	record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_orders PRIMARY KEY CLUSTERED (pk_orders), 
 	CONSTRAINT orders_xml2db_record_hash UNIQUE (record_hash)
 )
@@ -19,9 +19,9 @@ CREATE TABLE orderperson (
 	zip_value VARCHAR(1000) NULL, 
 	country VARCHAR(1000) NULL, 
 	[phoneNumber] VARCHAR(8000) NULL, 
-	[companyId_type] VARCHAR(3) NULL, 
+	[companyId_type] CHAR(3) NULL, 
 	[companyId_value] VARCHAR(1000) NULL, 
-	record_hash IMAGE NULL, 
+	record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY CLUSTERED (pk_orderperson), 
 	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (record_hash)
 )
@@ -31,7 +31,7 @@ CREATE TABLE product (
 	pk_product INTEGER NOT NULL IDENTITY, 
 	name VARCHAR(1000) NULL, 
 	version VARCHAR(1000) NULL, 
-	record_hash IMAGE NULL, 
+	record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_product PRIMARY KEY CLUSTERED (pk_product), 
 	CONSTRAINT product_xml2db_record_hash UNIQUE (record_hash)
 )
@@ -42,8 +42,8 @@ CREATE TABLE item (
 	fk_product INTEGER NULL, 
 	note VARCHAR(1000) NULL, 
 	quantity INTEGER NULL, 
-	price FLOAT NULL, 
-	record_hash IMAGE NULL, 
+	price DOUBLE PRECISION NULL, 
+	record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_item PRIMARY KEY CLUSTERED (pk_item), 
 	CONSTRAINT item_xml2db_record_hash UNIQUE (record_hash), 
 	FOREIGN KEY(fk_product) REFERENCES product (pk_product)
@@ -63,7 +63,7 @@ CREATE TABLE shiporder (
 	orderperson_zip_value VARCHAR(1000) NULL, 
 	orderperson_country VARCHAR(1000) NULL, 
 	[orderperson_phoneNumber] VARCHAR(8000) NULL, 
-	[orderperson_companyId_type] VARCHAR(3) NULL, 
+	[orderperson_companyId_type] CHAR(3) NULL, 
 	[orderperson_companyId_value] VARCHAR(1000) NULL, 
 	shipto_fk_orderperson INTEGER NULL, 
 	CONSTRAINT cx_pk_shiporder PRIMARY KEY CLUSTERED (pk_shiporder), 

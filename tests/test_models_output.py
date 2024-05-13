@@ -1,6 +1,6 @@
 import os
 import pytest
-from sqlalchemy.dialects import postgresql, mssql
+from sqlalchemy.dialects import postgresql, mssql, mysql
 
 from xml2db import DataModel
 
@@ -42,7 +42,7 @@ def test_model_erd(test_config):
         {**model, **model["versions"][i], "version_id": i, "dialect": d.dialect()}
         for model in models
         for i in range(len(model["versions"]))
-        for d in [postgresql, mssql]
+        for d in [postgresql, mssql, mysql]
     ],
 )
 def test_model_ddl(test_config):
@@ -52,6 +52,7 @@ def test_model_ddl(test_config):
         test_config["xsd_path"],
         short_name=test_config["id"],
         model_config=test_config["config"],
+        db_type=test_config["dialect"].name,
     )
 
     expected = open(

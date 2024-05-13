@@ -93,29 +93,20 @@ def _generate_models_output():
     that no change to the resulting data model go unnoticed.
     When changes affect the model representation or SQL DDL, these outputs need to be updated and committed to the repo.
     """
-    from sqlalchemy.dialects import postgresql, mssql
+    from sqlalchemy.dialects import postgresql, mssql, mysql
     from xml2db import DataModel
 
     for model_config in models:
         for i in range(len(model_config["versions"])):
             xsd_path = os.path.join("../../", model_config["xsd_path"])
-            model = DataModel(
-                xsd_path,
-                model_config=model_config["versions"][i]["config"],
-                short_name=model_config["id"],
-                long_name=model_config["long_name"],
-            )
-            with open(
-                os.path.join(
-                    os.path.dirname(xsd_path),
-                    f"{model_config['id']}_erd_version{i}.md",
-                ),
-                "wt",
-            ) as f:
-                f.write("```mermaid\n")
-                f.write(model.get_entity_rel_diagram(text_context=False))
-                f.write("\n```")
-            for dialect in [d.dialect() for d in [postgresql, mssql]]:
+            for dialect in [d.dialect() for d in [postgresql, mssql, mysql]]:
+                model = DataModel(
+                    xsd_path,
+                    model_config=model_config["versions"][i]["config"],
+                    short_name=model_config["id"],
+                    long_name=model_config["long_name"],
+                    db_type=dialect.name,
+                )
                 with open(
                     os.path.join(
                         os.path.dirname(xsd_path),
@@ -128,6 +119,16 @@ def _generate_models_output():
                     for s in model.get_all_create_index_statements():
                         f.write(str(s.compile(dialect=dialect)))
                         f.write("\n\n")
+            with open(
+                os.path.join(
+                    os.path.dirname(xsd_path),
+                    f"{model_config['id']}_erd_version{i}.md",
+                ),
+                "wt",
+            ) as f:
+                f.write("```mermaid\n")
+                f.write(model.get_entity_rel_diagram(text_context=False))
+                f.write("\n```")
 
 
 if __name__ == "__main__":

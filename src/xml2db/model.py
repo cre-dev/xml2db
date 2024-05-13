@@ -37,6 +37,8 @@ class DataModel:
     provided XSD file)
     :param model_config: A config dict to provide options for building the model
     :param connection_string: A database connection string (optional if you will not be loading data)
+    :param db_type: The targeted database backend (postgresql, mssql, mysql...). It is ignored and inferred from \
+    `connection_string`, if provided
     :param db_schema: A schema name to use in the database
     :param temp_prefix: A prefix to use for temporary tables (if `None`, will be generated randomly)
 
@@ -57,14 +59,17 @@ class DataModel:
         base_url: str = None,
         model_config: dict = None,
         connection_string: str = None,
+        db_type: str = None,
         db_schema: str = None,
         temp_prefix: str = None,
     ):
         self.xml_schema = xmlschema.XMLSchema(
             os.path.basename(xsd_file) if base_url is None else xsd_file,
-            base_url=base_url
-            if base_url is not None
-            else os.path.normpath(os.path.dirname(xsd_file)),
+            base_url=(
+                base_url
+                if base_url is not None
+                else os.path.normpath(os.path.dirname(xsd_file))
+            ),
         )
         self.xml_converter = XMLConverter(data_model=self)
         self.data_flow_name = short_name
@@ -75,6 +80,7 @@ class DataModel:
                 "DataModel created without connection string cannot do actual imports"
             )
             self.engine = None
+            self.db_type = db_type
         else:
             engine_options = {}
             if "mssql" in connection_string:
@@ -86,6 +92,7 @@ class DataModel:
                 isolation_level="SERIALIZABLE",
                 **engine_options,
             )
+            self.db_type = self.engine.dialect.name
 
         self.model_config = {} if model_config is None else model_config
 
@@ -354,9 +361,11 @@ class DataModel:
                 parent_occurs = get_occurs(particle.parent)
             return [
                 min(parent_occurs[0], particle.min_occurs),
-                max(parent_occurs[1], particle.max_occurs)
-                if parent_occurs[1] is not None and particle.max_occurs is not None
-                else None,
+                (
+                    max(parent_occurs[1], particle.max_occurs)
+                    if parent_occurs[1] is not None and particle.max_occurs is not None
+                    else None
+                ),
             ]
 
         # go through item attributes and add them as columns
@@ -398,11 +407,13 @@ class DataModel:
                     nested_containers.append(
                         (
                             child.parent,
-                            str(hash(child.parent))
-                            if child.parent
-                            and child.parent.max_occurs != 1
-                            and child.parent.model != "choice"
-                            else None,
+                            (
+                                str(hash(child.parent))
+                                if child.parent
+                                and child.parent.max_occurs != 1
+                                and child.parent.model != "choice"
+                                else None
+                            ),
                         )
                     )
                 ct = child.type
@@ -631,13 +642,15 @@ class DataModel:
     def extract_from_database(
         self,
         root_select_where: str,
+        force_tz: Union[str, None] = None,
     ) -> document.Document:
         """Extract a document from the database, based on a where clause applied to the root table. For instance, you
         can use the column `xml2db_input_file_path` to filter the data loaded from a specific file.
 
         :param root_select_where: A where clause to apply to this root table, as a string
+        :param force_tz: Apply this timezone if database returns timezone-naïve datetime
         :return: A `Document` object containing extracted data
         """
         doc = document.Document(self)
-        doc.extract_from_database(self.root_table, root_select_where)
+        doc.extract_from_database(self.root_table, root_select_where, force_tz=force_tz)
         return doc
