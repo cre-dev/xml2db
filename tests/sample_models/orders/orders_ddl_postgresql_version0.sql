@@ -22,7 +22,7 @@ CREATE TABLE item (
 	product_version VARCHAR(1000), 
 	note VARCHAR(1000), 
 	quantity INTEGER, 
-	price FLOAT, 
+	price DOUBLE PRECISION, 
 	record_hash BYTEA, 
 	CONSTRAINT cx_pk_item PRIMARY KEY (pk_item), 
 	CONSTRAINT item_xml2db_record_hash UNIQUE (record_hash)

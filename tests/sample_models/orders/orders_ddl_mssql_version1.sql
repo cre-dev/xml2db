@@ -59,7 +59,7 @@ CREATE TABLE item (
 	product_version VARCHAR(1000) NULL, 
 	note VARCHAR(1000) NULL, 
 	quantity INTEGER NULL, 
-	price FLOAT NULL, 
+	price DOUBLE PRECISION NULL, 
 	CONSTRAINT cx_pk_item PRIMARY KEY CLUSTERED (pk_item), 
 	FOREIGN KEY(fk_parent_shiporder) REFERENCES shiporder (pk_shiporder)
 )

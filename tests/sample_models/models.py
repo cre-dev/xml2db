@@ -93,7 +93,7 @@ def _generate_models_output():
     that no change to the resulting data model go unnoticed.
     When changes affect the model representation or SQL DDL, these outputs need to be updated and committed to the repo.
     """
-    from sqlalchemy.dialects import postgresql, mssql
+    from sqlalchemy.dialects import postgresql, mssql, mysql
     from xml2db import DataModel
 
     for model_config in models:
@@ -115,7 +115,7 @@ def _generate_models_output():
                 f.write("```mermaid\n")
                 f.write(model.get_entity_rel_diagram(text_context=False))
                 f.write("\n```")
-            for dialect in [d.dialect() for d in [postgresql, mssql]]:
+            for dialect in [d.dialect() for d in [postgresql, mssql, mysql]]:
                 with open(
                     os.path.join(
                         os.path.dirname(xsd_path),

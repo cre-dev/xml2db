@@ -42,7 +42,7 @@ CREATE TABLE item (
 	fk_product INTEGER NULL, 
 	note VARCHAR(1000) NULL, 
 	quantity INTEGER NULL, 
-	price FLOAT NULL, 
+	price DOUBLE PRECISION NULL, 
 	record_hash IMAGE NULL, 
 	CONSTRAINT cx_pk_item PRIMARY KEY CLUSTERED (pk_item), 
 	CONSTRAINT item_xml2db_record_hash UNIQUE (record_hash), 
