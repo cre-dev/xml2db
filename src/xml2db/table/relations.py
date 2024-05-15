@@ -94,7 +94,7 @@ class DataModelRelationN(DataModelRelation):
         self.rel_table_name = (
             f"{self.table.name}_{self.name}_{self.other_table.name}"
             if not self.name.endswith(self.other_table.name)
-            else f"{self.table.name}_{self.other_table.name}"
+            else f"{self.table.name}_{self.name}"
         )
         prefix = f"temp_{self.table.temp_prefix}_"
         if self.other_table.is_reused:

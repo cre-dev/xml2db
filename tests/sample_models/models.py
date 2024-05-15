@@ -49,6 +49,9 @@ models = [
                     "row_numbers": True,
                     "as_columnstore": True,
                     "tables": {
+                        "REMITTable1": {
+                            "fields": {"contractList": {"transform": "elevate_wo_prefix"}}
+                        },
                         "TradeReport": {"reuse": False},
                         "OrderReport": {"reuse": False},
                         "legContract": {"reuse": False},

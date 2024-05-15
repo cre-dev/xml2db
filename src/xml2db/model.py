@@ -359,6 +359,8 @@ class DataModel:
             parent_occurs = [1, 1]
             if particle.parent and hasattr(particle.parent, "model"):
                 parent_occurs = get_occurs(particle.parent)
+                if particle.parent.model == "choice":
+                    parent_occurs[0] = 0
             return [
                 min(parent_occurs[0], particle.min_occurs),
                 (

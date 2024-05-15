@@ -7,7 +7,7 @@ erDiagram
         string reportingEntityID_type
         string reportingEntityID_value
     }
-    OrderReport ||--|| contract : "contractInfo_contract"
+    OrderReport ||--o| contract : "contractInfo_contract"
     OrderReport ||--o{ priceIntervalQuantityDetails : "priceIntervalQuantityDetails*"
     OrderReport ||--o{ legContractId : "contractInfo_legContractId*"
     OrderReport ||--o{ legContract : "contractInfo_legContract*"
@@ -53,7 +53,7 @@ erDiagram
         string Extra
     }
     TradeReport ||--o| clickAndTradeDetails : "clickAndTradeDetails"
-    TradeReport ||--|| contract : "contractInfo_contract"
+    TradeReport ||--o| contract : "contractInfo_contract"
     TradeReport ||--o{ priceIntervalQuantityDetails : "priceIntervalQuantityDetails*"
     TradeReport {
         integer RecordSeqNumber
