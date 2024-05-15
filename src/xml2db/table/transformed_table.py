@@ -137,7 +137,7 @@ class DataModelTableTransformed(DataModelTable):
             else:
                 raise DataModelConfigError(
                     f"Transform value '{field_config['transform']}' cannot be applied"
-                    f" to field {field_name} of table '{self.name}'."
+                    f" to field '{field_name}' of table '{self.name}'."
                 )
         else:
             if field_type == "col":
@@ -148,13 +148,11 @@ class DataModelTableTransformed(DataModelTable):
                     self.relations_1[field_name].occurs[0] == 1
                     or len(self.relations_1[field_name].other_table.columns) <= 4
                 ) and len(self.relations_1[field_name].other_table.parents_n) == 0:
-                    transform = (
+                    return (
                         "elevate_wo_prefix"
                         if len(self.columns) == 0 and len(self.relations_1) == 1
                         else "elevate"
                     )
-                    if self._can_transform_field("rel1", field_name, transform):
-                        return transform
 
     def _elevate_relation_1(
         self, rel_name, transform

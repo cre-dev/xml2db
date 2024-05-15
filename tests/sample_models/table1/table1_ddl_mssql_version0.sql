@@ -261,7 +261,7 @@ CREATE TABLE [OrderReport_priceIntervalQuantityDetails] (
 )
 
 
-CREATE TABLE [OrderReport_legContractId] (
+CREATE TABLE [OrderReport_contractInfo_legContractId] (
 	[fk_OrderReport] INTEGER NOT NULL, 
 	[fk_legContractId] INTEGER NOT NULL, 
 	FOREIGN KEY([fk_OrderReport]) REFERENCES [OrderReport] ([pk_OrderReport]), 
@@ -269,7 +269,7 @@ CREATE TABLE [OrderReport_legContractId] (
 )
 
 
-CREATE TABLE [OrderReport_legContract] (
+CREATE TABLE [OrderReport_contractInfo_legContract] (
 	[fk_OrderReport] INTEGER NOT NULL, 
 	[fk_legContract] INTEGER NOT NULL, 
 	FOREIGN KEY([fk_OrderReport]) REFERENCES [OrderReport] ([pk_OrderReport]), 
@@ -289,7 +289,7 @@ CREATE TABLE [REMITTable1] (
 )
 
 
-CREATE TABLE [REMITTable1_contract] (
+CREATE TABLE [REMITTable1_contractList_contract] (
 	[fk_REMITTable1] INTEGER NOT NULL, 
 	fk_contract INTEGER NOT NULL, 
 	FOREIGN KEY([fk_REMITTable1]) REFERENCES [REMITTable1] ([pk_REMITTable1]), 
@@ -297,7 +297,7 @@ CREATE TABLE [REMITTable1_contract] (
 )
 
 
-CREATE TABLE [REMITTable1_OrderReport] (
+CREATE TABLE [REMITTable1_OrderList_OrderReport] (
 	[fk_REMITTable1] INTEGER NOT NULL, 
 	[fk_OrderReport] INTEGER NOT NULL, 
 	FOREIGN KEY([fk_REMITTable1]) REFERENCES [REMITTable1] ([pk_REMITTable1]), 
@@ -305,7 +305,7 @@ CREATE TABLE [REMITTable1_OrderReport] (
 )
 
 
-CREATE TABLE [REMITTable1_TradeReport] (
+CREATE TABLE [REMITTable1_TradeList_TradeReport] (
 	[fk_REMITTable1] INTEGER NOT NULL, 
 	[fk_TradeReport] INTEGER NOT NULL, 
 	FOREIGN KEY([fk_REMITTable1]) REFERENCES [REMITTable1] ([pk_REMITTable1]), 
@@ -332,13 +332,13 @@ CREATE INDEX [ix_OrderReport_fk_contractInfo_contract] ON [OrderReport] ([fk_con
 
 CREATE INDEX [ix_OrderReport_priceIntervalQuantityDetails_fk_priceIntervalQuantityDetails] ON [OrderReport_priceIntervalQuantityDetails] ([fk_priceIntervalQuantityDetails])
 
-CREATE INDEX [ix_OrderReport_legContractId_fk_legContractId] ON [OrderReport_legContractId] ([fk_legContractId])
+CREATE INDEX [ix_OrderReport_contractInfo_legContractId_fk_legContractId] ON [OrderReport_contractInfo_legContractId] ([fk_legContractId])
 
-CREATE INDEX [ix_OrderReport_legContract_fk_legContract] ON [OrderReport_legContract] ([fk_legContract])
+CREATE INDEX [ix_OrderReport_contractInfo_legContract_fk_legContract] ON [OrderReport_contractInfo_legContract] ([fk_legContract])
 
-CREATE INDEX [ix_REMITTable1_contract_fk_contract] ON [REMITTable1_contract] (fk_contract)
+CREATE INDEX [ix_REMITTable1_contractList_contract_fk_contract] ON [REMITTable1_contractList_contract] (fk_contract)
 
-CREATE INDEX [ix_REMITTable1_OrderReport_fk_OrderReport] ON [REMITTable1_OrderReport] ([fk_OrderReport])
+CREATE INDEX [ix_REMITTable1_OrderList_OrderReport_fk_OrderReport] ON [REMITTable1_OrderList_OrderReport] ([fk_OrderReport])
 
-CREATE INDEX [ix_REMITTable1_TradeReport_fk_TradeReport] ON [REMITTable1_TradeReport] ([fk_TradeReport])
+CREATE INDEX [ix_REMITTable1_TradeList_TradeReport_fk_TradeReport] ON [REMITTable1_TradeList_TradeReport] ([fk_TradeReport])
 

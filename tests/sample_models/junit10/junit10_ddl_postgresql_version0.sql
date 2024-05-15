@@ -222,7 +222,7 @@ CREATE TABLE junit10 (
 )
 
 
-CREATE TABLE junit10_testsuite (
+CREATE TABLE junit10_testsuites_testsuite (
 	fk_junit10 INTEGER NOT NULL, 
 	fk_testsuite INTEGER NOT NULL, 
 	FOREIGN KEY(fk_junit10) REFERENCES junit10 (pk_junit10), 
@@ -271,5 +271,5 @@ CREATE INDEX "ix_junit10_rerunError_fk_flakyError" ON junit10 ("rerunError_fk_fl
 
 CREATE INDEX "ix_junit10_rerunFailure_fk_flakyError" ON junit10 ("rerunFailure_fk_flakyError")
 
-CREATE INDEX ix_junit10_testsuite_fk_testsuite ON junit10_testsuite (fk_testsuite)
+CREATE INDEX ix_junit10_testsuites_testsuite_fk_testsuite ON junit10_testsuites_testsuite (fk_testsuite)
 

@@ -9,7 +9,7 @@ erDiagram
         string buySellIndicator
     }
     TradeReport ||--o| clickAndTradeDetails : "clickAndTradeDetails"
-    TradeReport ||--|| contract : "contractInfo_contract"
+    TradeReport ||--o| contract : "contractInfo_contract"
     TradeReport ||--o{ priceIntervalQuantityDetails : "priceIntervalQuantityDetails*"
     TradeReport {
         integer RecordSeqNumber
@@ -46,7 +46,7 @@ erDiagram
         string actionType
         string Extra
     }
-    OrderReport ||--|| contract : "contractInfo_contract"
+    OrderReport ||--o| contract : "contractInfo_contract"
     OrderReport ||--o{ priceIntervalQuantityDetails : "priceIntervalQuantityDetails*"
     OrderReport ||--o{ legContractId : "contractInfo_legContractId"
     OrderReport ||--o{ legContract : "contractInfo_legContract"
@@ -91,7 +91,7 @@ erDiagram
         string actionType
         string Extra
     }
-    REMITTable1 ||--o{ contract : "contractList_contract*"
+    REMITTable1 ||--o{ contract : "contract*"
     REMITTable1 ||--o{ OrderReport : "OrderList_OrderReport"
     REMITTable1 ||--o{ TradeReport : "TradeList_TradeReport"
     REMITTable1 {
