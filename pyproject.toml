@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xml2db"
-version = "0.9.4"
+version = "0.10.0"
 authors = [
   { name="Commission de régulation de l'énergie", email="opensource@cre.fr" },
 ]
@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-docs = ["mkdocs-material==9.5.14", "mkdocstrings[python]==0.24.1"]
+docs = ["mkdocs-material==9.5.23", "mkdocstrings-python==1.10.2"]
 tests = ["pytest>=7.0"]
 
 [project.urls]
