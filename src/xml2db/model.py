@@ -25,30 +25,38 @@ logger = logging.getLogger(__name__)
 class DataModel:
     """A class to manage a data model based on an XML schema and its database equivalent.
 
-    This class allows parsing a set of XSD files to build  a representation of
-    the XML schema, simplify it and convert it into a set of database tables.
-    It also allows parsing XML documents that fit this XML schema in order to import
-    the data into the database.
+    This class allows parsing an XSD file to build  a representation of the XML schema, simplify it and convert it into
+    a set of database tables. It also allows parsing XML documents that fit this XML schema and importing their content
+    into a database.
+    
+    Args:
+        xsd_file: A path to a XSD file
+        short_name: A short name for the schema
+        long_name: A longer name for the schema
+        base_url: The root folder to find other dependant XSD files (by default, the location of the provided XSD file)
+        model_config: A config dict to provide options for building the model (full options available here:
+            [Configuring your data model](../configuring.md))
+        connection_string: A database connection string (optional if you will not be loading data)
+        db_type: The targeted database backend (`postgresql`, `mssql`, `mysql`...). It is ignored and inferred from
+            `connection_string`, if provided
+        db_schema: A schema name to use in the database
+        temp_prefix: A prefix to use for temporary tables (if `None`, will be generated randomly)
+    
+    Attributes:
+        xml_schema: The `xmlschema.XMLSchema` object associated with this data model
+        data_flow_name: A short identifier used for the data model (`short_name` argument value)
+        data_flow_long_name: A longer for the data model (`long_name` argument value)
+        db_schema: A database schema name to store the database tables
+        source_tree: A text representation of the source data model tree
+        target_tree: A text representation of the simplified data model tree which will be used to create target tables
 
-    :param xsd_file: A path to a XSD file
-    :param short_name: A short name for the schema
-    :param long_name: A longer name for the schema
-    :param base_url: The root folder to find other dependant XSD files (by default, the location of the \
-    provided XSD file)
-    :param model_config: A config dict to provide options for building the model
-    :param connection_string: A database connection string (optional if you will not be loading data)
-    :param db_type: The targeted database backend (postgresql, mssql, mysql...). It is ignored and inferred from \
-    `connection_string`, if provided
-    :param db_schema: A schema name to use in the database
-    :param temp_prefix: A prefix to use for temporary tables (if `None`, will be generated randomly)
+    Examples:
+        Create a `DataModel` like this:
+        >>> data_model = DataModel(
+        >>>     xsd_file="path/to/file.xsd",
+        >>>     connection_string="postgresql+psycopg2://testuser:testuser@localhost:5432/testdb",
+        >>> )
 
-    :ivar xml_schema: The `xmlschema.XMLSchema` object associated with this data model
-    :ivar data_flow_name: A short identifier used for the data model (`short_name` argument value)
-    :ivar data_flow_long_name: A longer for the data model (`long_name` argument value)
-    :ivar db_schema: A database schema name to store the database tables
-    :ivar source_tree: A text representation of the source data model tree
-    :ivar target_tree: A text representation of the simplified data model tree \
-    which will be used to create target tables
     """
 
     def __init__(
@@ -160,11 +168,14 @@ class DataModel:
     ) -> Union[DataModelTableReused, DataModelTableDuplicated]:
         """Helper to create a data table model
 
-        :param table_name: name of the table
-        :param type_name: type of the table
-        :param is_root_table: is this table the root table?
-        :param is_virtual_node: was this table created to store multiple root elements?
-        :return: a data table model
+        Args:
+            table_name: name of the table
+            type_name: type of the table
+            is_root_table: is this table the root table?
+            is_virtual_node: was this table created to store multiple root elements?
+
+        Returns:
+            A data model instance.
         """
         table_config = self.model_config.get("tables", {}).get(table_name, {})
         if table_config.get("reuse", True):
@@ -248,8 +259,9 @@ class DataModel:
         This step is fairly straightforward, as we create DataModelTable objects recursively along the XSD tree, and \
         populate them with appropriate columns and relations.
 
-        :param parent_node: the current XSD node being parsed
-        :param is_root_table: True if this is the root table
+        Args:
+            parent_node: the current XSD node being parsed
+            is_root_table: True if this is the root table
         """
 
         # find current node type and name and returns corresponding table if it already exists
@@ -504,11 +516,12 @@ class DataModel:
     def _repr_tree(
         self,
         parent_table: Union[DataModelTableReused, DataModelTableDuplicated],
-        visited_nodes=None,
+        visited_nodes: Union[set, None] = None,
     ):
         """Build a text representation of the data model tree
 
-        :param parent_table: the current data model table object
+        Args:
+            parent_table: the current data model table object
         """
         if visited_nodes is None:
             visited_nodes = set()
@@ -530,14 +543,17 @@ class DataModel:
                 for line in self._repr_tree(field.other_table, visited_nodes):
                     yield f"    {line}"
 
-    def get_entity_rel_diagram(self, text_context=True) -> str:
+    def get_entity_rel_diagram(self, text_context: bool = True) -> str:
         """Build an entity relationship diagram for the data model
 
         The ERD syntax is used by mermaid.js to create a visual representation of the diagram, which is supported
         by Pycharm IDE or GitHub in markdown files, among others
 
-        :param text_context: Should we add a title, a text explanation, etc. or just the ERD?
-        :return: A string representation of the ERD
+        Args:
+            text_context: Should we add a title, a text explanation, etc. or just the ERD?
+
+        Returns:
+            A string representation of the ERD
         """
         out = ["erDiagram"]
         for tb in self.fk_ordered_tables_reversed:
@@ -552,7 +568,7 @@ class DataModel:
                         "The following *Entity Relationships Diagram* represents the target data model, after the "
                         "simplification of the source data model, but before the transformations performed to optimize "
                         "data storage (transformation of `1-1` and `1-n` relationships into `n-1` and `n-n` "
-                        "relationships, respectively, as described [here](../../docs/recycling_nodes.md)).\n"
+                        "relationships, respectively.\n"
                     ),
                     (
                         "As a consequence, not all tables of the actual data model used in the database are shown. "
@@ -572,10 +588,12 @@ class DataModel:
             )
         return "\n".join(out)
 
-    def get_all_create_table_statements(self, temp=False) -> Iterable[CreateTable]:
-        """Yield create table statements for all tables
+    def get_all_create_table_statements(self, temp: bool = False) -> Iterable[CreateTable]:
+        """Yield sqlalchemy `create table` statements for all tables
 
-        :param temp: If True, yield create table statements for temporary tables (prefixed)
+        Args:
+            temp: If `False`, yield create table statements for target tables (unprefixed). If True, yield create
+                table statements for temporary tables (prefixed).
         """
         for tb in self.fk_ordered_tables:
             yield from tb.get_create_table_statements(temp)
@@ -586,15 +604,24 @@ class DataModel:
             yield from tb.get_create_index_statements()
 
     def create_all_tables(self, temp: bool = False) -> None:
-        """Create tables for the data model, either target tables or temp tables used to import data
+        """Create tables for the data model, either target tables or temp tables used to import data.
 
-        :param temp: If True, create temporary (prefixed) tables
+        You do not have to call this method explicitly when using
+            [`Document.insert_into_target_tables()`](document.md#xml2db.Document.insert_into_target_tables), which will
+            create tables if they do not exist.
+
+        Args:
+            temp: If `False`, create target tables (unprefixed). If `True`, create temporary (prefixed) tables.
         """
         for tb in self.fk_ordered_tables:
             tb.create_tables(self.engine, temp)
 
     def create_db_schema(self) -> None:
-        """Create database schema if it does not already exist."""
+        """Create database schema if it does not already exist.
+
+        You do not have to call this method explicitly when using
+            [`Document.insert_into_target_tables()`](document.md#xml2db.Document.insert_into_target_tables).
+        """
         if self.db_schema is not None:
             inspector = inspect(self.engine)
             if self.db_schema not in inspector.get_schema_names():
@@ -606,8 +633,8 @@ class DataModel:
     def drop_all_tables(self):
         """Drop the data model target (unprefixed) tables.
 
-        BE CAUTIOUS, THIS METHOD DROPS TABLES WITHOUT FURTHER NOTICE!
-
+        Danger:
+            BE CAUTIOUS, THIS METHOD DROPS TABLES WITHOUT FURTHER NOTICE!
         """
         for tb in self.fk_ordered_tables_reversed:
             tb.drop_tables(self.engine)
@@ -615,8 +642,8 @@ class DataModel:
     def drop_all_temp_tables(self):
         """Drop the data model temporary (prefixed) tables.
 
-        BE CAUTIOUS, THIS METHOD DROPS TABLES WITHOUT FURTHER NOTICE!
-
+        Danger:
+            BE CAUTIOUS, THIS METHOD DROPS TABLES WITHOUT FURTHER NOTICE!
         """
         for tb in self.fk_ordered_tables_reversed:
             tb.drop_temp_tables(self.engine)
@@ -631,11 +658,14 @@ class DataModel:
 
         This method is just a wrapper around the parse_xml method of the Document class.
 
-        :param xml_file: The path or the file object of an XML file to parse
-        :param xml_file_path: The path of the XML file, mandatory if xml_file is file object in order to fill the \
-        'xml2db_input_file_path' column of the root table.
-        :param skip_validation: Should we validate the documents against the schema first?
-        :return: A parsed `Document` object
+        Args:
+            xml_file: The path or the file object of an XML file to parse
+            xml_file_path: The path of the XML file, mandatory if xml_file is file object in order to fill the
+                'xml2db_input_file_path' column of the root table.
+            skip_validation: Should we validate the documents against the schema first?
+
+        Returns:
+            A parsed [`Document`](document.md) object
         """
         doc = document.Document(self)
         doc.parse_xml(xml_file, xml_file_path, skip_validation)
@@ -647,11 +677,24 @@ class DataModel:
         force_tz: Union[str, None] = None,
     ) -> document.Document:
         """Extract a document from the database, based on a where clause applied to the root table. For instance, you
-        can use the column `xml2db_input_file_path` to filter the data loaded from a specific file.
+            can use the column `xml2db_input_file_path` to filter the data loaded from a specific file.
 
-        :param root_select_where: A where clause to apply to this root table, as a string
-        :param force_tz: Apply this timezone if database returns timezone-naïve datetime
-        :return: A `Document` object containing extracted data
+        It will query all the data in the database corresponding to the rows that you select from the root table of your
+            data model. Typically, a single XML file will correspond to a single row in the root table. This function
+            will query the data tree below this record.
+
+        This method was not optimized for performance and can be quite slow. It is used in integration tests to check
+            the output against the data inserted into the database.
+
+        Args:
+            root_select_where: A where clause to filter the root table of the model, as a string
+            force_tz: Apply this timezone if database returns timezone-naïve datetime
+
+        Returns:
+            A [`Document`](document.md) object containing extracted data
+
+        Examples:
+
         """
         doc = document.Document(self)
         doc.extract_from_database(self.root_table, root_select_where, force_tz=force_tz)
