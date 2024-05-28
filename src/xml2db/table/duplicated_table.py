@@ -19,10 +19,10 @@ from xml2db.table.transformed_table import DataModelTableTransformed
 class DataModelTableDuplicated(DataModelTableTransformed):
     """A table data model which allows duplicated records in the database.
 
-    This table model is only allowed if this node type is used only once in the schema, \
-    in a 1-n relationship with its parent node. The 1-n relationship is represented with \
-    a foreign key relation from this node to its parent node, without intermediate relationship \
-    table. As such, it is a simpler schema, with the drawback of having duplicates records.
+    This table model is only allowed if this node type is used only once in the schema, in a 1-n relationship with 
+    its parent node. The 1-n relationship is represented with a foreign key relation from this node to its parent node, 
+    without intermediate relationship table. As such, it is a simpler schema, with the drawback of having duplicates 
+    records.
     """
 
     is_reused = False
@@ -30,11 +30,12 @@ class DataModelTableDuplicated(DataModelTableTransformed):
     def build_sqlalchemy_tables(self) -> None:
         """Build sqlalchemy table objects.
 
-        Build the sqlalchemy table objet based on table attributes for the main table, and \
-        relation tables to store n-n relationships with children nodes, for target and temp \
-        tables (so it builds at least 2 tables if there is no relations).
-        This method is intended to be called only once (if it called more than once it will return \
-        immediately) and further changes to the table will not be updated.
+        Build the sqlalchemy table objet based on table attributes for the main table, and relation tables to store n-n 
+        relationships with children nodes, for target and temp tables (so it builds at least 2 tables if there is no 
+        relations).
+        
+        This method is intended to be called only once (if it called more than once it will return immediately) and 
+        further changes to the table will not be updated.
         """
 
         if self.table is not None:
@@ -45,7 +46,8 @@ class DataModelTableDuplicated(DataModelTableTransformed):
         def get_col(temp=False) -> Iterable[Column]:
             """Generator function to build sqlalchemy Column objects
 
-            :param temp: are we targeting temp or target table?
+            Args:
+                temp: are we targeting temp or target table?
             """
             # temp primary key which is used also in the final table to update back target pk
             if temp or self.referenced_as_fk:

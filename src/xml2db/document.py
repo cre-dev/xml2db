@@ -23,11 +23,12 @@ logger = logging.getLogger(__name__)
 class Document:
     """A class to represent a single XML file with its data, based on a given XSD.
 
-    Based on a given DataModel object which represents the data model defined in the XSD, this class deals with \
-    the data itself. It allows parsing an XML file to extract the data into the data model format \
-     (performing the transforms defined in the DataModel object) and inserting the data into the database.
+    Based on a given DataModel object which represents the data model defined in the XSD, this class deals with
+    the data itself. It allows parsing an XML file to extract the data into the data model format (performing the
+    transforms defined in the DataModel object) and inserting the data into the database.
 
-    :param model: A `DataModel` object for this document
+    Args:
+        model: A `DataModel` object for this document
     """
 
     def __init__(self, model: "DataModel"):
@@ -48,13 +49,13 @@ class Document:
         the document tree to tables data, creating primary keys and relations, ready to
         be inserted in the database.
 
-        :param xml_file: the path or the file object of an XML file to parse
-        :param xml_file_path: path of the XML file, must be provided if 'xml_file' is provided as a file object \
-        (type 'BytesIO'), in order to fill the 'xml2db_input_file_path' column of the root table.
-        :param skip_validation: should we validate the document against the schema first? default to skip for \
-        backward compatibility
+        Args:
+            xml_file: the path or the file object of an XML file to parse
+            xml_file_path: path of the XML file, must be provided if 'xml_file' is provided as a file object
+                (type 'BytesIO'), in order to fill the 'xml2db_input_file_path' column of the root table.
+            skip_validation: should we validate the document against the schema first?
         """
-        if type(xml_file) == BytesIO:
+        if isinstance(xml_file, BytesIO):
             if xml_file_path is None:
                 error_message = (
                     "If 'xml_file' is provided as a file object (type 'BytesIO') then 'xml_file_path' must be provided "
@@ -89,10 +90,13 @@ class Document:
     ) -> etree.Element:
         """Convert a document tree (nested dict) into an XML file
 
-        :param out_file: If provided, write output to a file.
-        :param nsmap: An optional namespace mapping.
-        :param indent: A string used as indentin XML output.
-        :return: The etree object corresponding to the root XML node.
+        Args:
+            out_file: If provided, write output to a file.
+            nsmap: An optional namespace mapping.
+            indent: A string used as indent in XML output.
+
+        Returns:
+            The etree object corresponding to the root XML node.
         """
         converter = XMLConverter(self.model)
         converter.document_tree = self.flat_data_to_doc_tree()
@@ -101,8 +105,11 @@ class Document:
     def _compute_records_hashes(self, node: Dict) -> bytes:
         """Compute the hash of records recursively, taking into account children, for deduplication purpose.
 
-        :param node: a node of the parsed document tree
-        :return: the hash string representation of the node
+        Args:
+            node: a node of the parsed document tree
+
+        Returns:
+            the hash string representation of the node
         """
         if node is None:
             return b""
@@ -128,8 +135,11 @@ class Document:
     def doc_tree_to_flat_data(self, document_tree: dict) -> dict:
         """Convert document tree (nested dict) to flat tables data model to prepare database import
 
-        :param document_tree: A nested dict which represents an XML document
-        :returns: A dict containing flat tables
+        Args:
+            document_tree: A nested dict which represents an XML document
+
+        Returns:
+            A dict containing flat tables
         """
 
         def _extract_node(
@@ -137,10 +147,13 @@ class Document:
         ) -> int:
             """Extract nodes recursively
 
-            :param node: a dict containing a node of the document tree
-            :param pk_parent_node: the primary key of its parent node
-            :param data_model: the dict to write output to
-            :return: the primary key given to this node
+            Args:
+                node: a dict containing a node of the document tree
+                pk_parent_node: the primary key of its parent node
+                data_model: the dict to write output to
+
+            Returns:
+                the primary key given to this node
             """
 
             # get the corresponding table model
@@ -275,7 +288,8 @@ class Document:
     def flat_data_to_doc_tree(self) -> dict:
         """Convert the data stored in flat tables into a document tree (nested dict)
 
-        :return: The document tree (nested dict)
+        Returns:
+            The document tree (nested dict)
         """
         data_index = {}
 
@@ -321,9 +335,12 @@ class Document:
         def _build_node(node_type: str, node_pk: int) -> dict:
             """Build a dict node recursively
 
-            :param node_type: The node type
-            :param node_pk: The node primary key
-            :return: A node as a dict
+            Args:
+                node_type: The node type
+                node_pk: The node primary key
+
+            Returns:
+                A node as a dict
             """
             tb = self.model.tables[node_type]
             node = {
@@ -402,10 +419,11 @@ class Document:
     def merge_into_target_tables(self) -> int:
         """Merge data into target data model
 
-        Execute all update and insert statements needed to merge temporary tables content \
-        into target tables, within a transaction.
+        Execute all update and insert statements needed to merge temporary tables content into target tables, within
+        a single transaction.
 
-        :return: The number of inserted rows
+        Returns:
+            The number of inserted rows
         """
         inserted_rows_count = 0
         with self.model.engine.begin() as conn:
@@ -429,9 +447,13 @@ class Document:
 
         Insert data into temporary tables and then merge temporary tables into target tables.
 
-        :param db_semaphore: An optional semaphore to avoid concurrent access to the database. When provided, it will \
-            ensure that only one merging operation at a time is performed.
-        :return: The number of inserted rows
+        Args:
+            db_semaphore: An optional semaphore to restrict concurrent insert into the database. When provided, it will
+                ensure that only one insert operation at a time is performed. It will not limit the write operations to
+                temporary data models, but only the insert from the temporary model to the target model.
+
+        Returns:
+            The number of inserted rows
         """
         try:
             self.model.create_db_schema()
@@ -474,10 +496,13 @@ class Document:
     ) -> dict:
         """Extract a subtree from the database and store it in a flat format
 
-        :param root_table_name: The root table name to start from
-        :param root_select_where: A where clause to apply to this root table
-        :param force_tz: Apply this timezone if database returns timezone-naïve datetime
-        :return: A shallow dict of flat data tables
+        Args:
+            root_table_name: The root table name to start from
+            root_select_where: A where clause to apply to this root table
+            force_tz: Apply this timezone if database returns timezone-naïve datetime
+
+        Returns:
+            A shallow dict of flat data tables
         """
 
         if force_tz:

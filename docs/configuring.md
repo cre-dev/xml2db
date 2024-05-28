@@ -1,13 +1,13 @@
 # Configuring your data model
 
-The data model in the database (a set of tables linked by foreign keys relationships) is derived automatically from a 
-XML schema definition file (XSD) you provide. Basically, each `complexType` of the XML schema definition corresponds 
+The data model in the database is derived automatically from a XML schema definition file (XSD) you provide. It is a set
+of tables linked by foreign keys relationships. Basically, each `complexType` of the XML schema definition corresponds 
 to a table in the target database data model. Each table is named after the first element name of this type, with 
 de-duplication if needed. Columns in a table corresponds to `simpleType` elements within a complex type and its 
 attributes. Columns are named after the names of children XML elements or attributes.
 
 `xml2db` applies a few simplifications to the original data model by default, but they can also be opted-out or forced 
-through the configuration provided to the `DataModel` constructor.
+through the configuration `dict` provided to the `DataModel` constructor.
 
 The column types can also be configured to override the default type mapping, using `sqlalchemy` types.
 
@@ -20,15 +20,25 @@ Configuration options are described below.
 
 ## Field level config
 
-These configuration options are defined for a specific field of a specific table. A "field" can refer to a column in the
+These configuration options are defined for a specific field of a specific table. A "field" refers to a column in the
 table, or a child table.
 
-### Column type configuration
+### Data types
 
-By default, the column type is based on a mapping between the type indicated in the XSD and a corresponding
-`sqlalchemy` type implemented in `xml2db.table.column.types_mapping_default` and `xml2db.table.column.types_mapping_mssql`.
+By default, the data type defined in the database table for each column is based on a mapping between the data type 
+indicated in the XSD and a corresponding `sqlalchemy` type implemented in the following three functions:
 
-You may override this mapping by specifying a column type in the model config.
+??? info "Default: `types_mapping_default`"
+    ::: xml2db.table.column.types_mapping_default
+
+??? info "MySQL: `types_mapping_mysql`"
+    ::: xml2db.table.column.types_mapping_mysql
+
+??? info "MSSQL: `types_mapping_mssql`"
+    ::: xml2db.table.column.types_mapping_mssql
+
+You may override this mapping by specifying a column type for any field in the model config. Custom column types are 
+defined as `sqlalchemy` types and will be passed to the `sqlalchemy.Column` constructor as is.
 
 !!! example
     If the XSD mentions the `integer` type for column `my_column` in table `my_table`, by default, `xml2db`will map 

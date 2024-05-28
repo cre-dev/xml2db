@@ -10,13 +10,15 @@ if TYPE_CHECKING:
 class DataModelRelation:
     """A class representing a relation with another table
 
-    :param name: the name of the field holding the relation in the parent table
-    :param table: the parent table model in the relation
-    :param other_table: the other table model in the relation
-    :param occurs: list of int with two elements: min occurrences and max occurrences. \
-    Max occurrences is None if unbounded
-    :param ngroup: a key used to handle nested sequences
-    :param data_model: the DataModel object it belongs to
+    Args:
+        name: the name of the field holding the relation in the parent table
+        name_chain: a list of field names accounting for elevated fields
+        table: the parent table model in the relation
+        other_table: the other table model in the relation
+        occurs: list of int with two elements: min occurrences and max occurrences. Max occurrences is None if
+            unbounded
+        ngroup: a key used to handle nested sequences
+        data_model: the DataModel object it belongs to
     """
 
     def __init__(
@@ -49,7 +51,8 @@ class DataModelRelation1(DataModelRelation):
     def get_sqlalchemy_column(self, temp: bool = False):
         """Yields SQLAlchemy object representing the foreign key relation
 
-        :param temp: are we targeting temp or target table?
+        Args:
+            temp: are we targeting temp or target table?
         """
         self.field_name = (
             f"{self.name}_fk_{self.other_table.name}"
@@ -70,7 +73,8 @@ class DataModelRelation1(DataModelRelation):
     def get_merge_temp_records_statements(self) -> Iterable[Any]:
         """A SQL statement to update foreign keys values from target table back to temp table after insert
 
-        :return: iterable of SQL statements
+        Returns:
+            an iterable of SQL statements
         """
         yield self.table.temp_table.update().values(
             **{
@@ -181,8 +185,9 @@ class DataModelRelationN(DataModelRelation):
     ) -> None:
         """Create intermediate relationship table
 
-        :param engine: sqlalchemy engine to use
-        :param temp: are we creating temp or target table?
+        Args:
+            engine: sqlalchemy engine to use
+            temp: are we creating temp or target table?
         """
         if temp:
             if self.temp_rel_table is not None:
@@ -197,7 +202,8 @@ class DataModelRelationN(DataModelRelation):
         First, it will update foreign keys in the relationship table to use target tables foreign keys.
         Then, it will insert new relationship records into the target relationship table
 
-        :return: sqlalchemy query statements
+        Returns: 
+            sqlalchemy query statements
         """
         if self.other_table.is_reused:
             rel_tb = self.temp_rel_table

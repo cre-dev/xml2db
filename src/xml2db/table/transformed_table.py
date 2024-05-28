@@ -16,7 +16,8 @@ class DataModelTableTransformed(DataModelTable):
     def _can_choice_transform_table(self) -> bool:
         """Check if the table is of type "choice" and can be transformed to type/value fields.
 
-        :return: True if the table model be converted to type/value choice model, False otherwise
+        Returns:
+            True if the table model be converted to type/value choice model, False otherwise
         """
         if self.model_group == "choice":
             col_types = list(set([col.data_type for col in self.columns.values()]))
@@ -32,7 +33,8 @@ class DataModelTableTransformed(DataModelTable):
 
         We try the choice_transform value provided in config, if any, and otherwise fall back to default value.
 
-        :return: True if choice transform is to be applied, False otherwise.
+        Returns:
+            True if choice transform is to be applied, False otherwise.
         """
         if "choice_transform" in self.config:
             if isinstance(self.config["choice_transform"], bool):
@@ -103,10 +105,13 @@ class DataModelTableTransformed(DataModelTable):
     ) -> bool:
         """Check if a given transformation can be applied to a given field
 
-        :param field_type: the field type ("col", "rel1" or "reln")
-        :param field_name: the field name
-        :param transform: the transform to be tested
-        :return: True is the field can be transformed
+        Args:
+            field_type: the field type ("col", "rel1" or "reln")
+            field_name: the field name
+            transform: the transform to be tested
+
+        Returns:
+            True is the field can be transformed
         """
         if field_type == "col" and transform == "join":
             # check if simple columns with max occurrences > 1 can be joined as string
@@ -122,9 +127,12 @@ class DataModelTableTransformed(DataModelTable):
     ) -> Union[str, None]:
         """Get the transformation that should be applied to this field, taking into account user-provided config
 
-        :param field_type: the field type ("col", "rel1", "reln")
-        :param field_name: the field name
-        :return: the default transformation that should be applied
+        Args:
+            field_type: the field type ("col", "rel1", "reln")
+            field_name: the field name
+
+        Returns:
+            The default transformation that should be applied
         """
         field_config = self.config.get("fields", {}).get(field_name, {})
         if "transform" in field_config:
@@ -239,11 +247,11 @@ class DataModelTableTransformed(DataModelTable):
     def simplify_table(self) -> Tuple[dict, dict]:
         """Simplify table recursively and return a dict of simplifications applied
 
-        Return values are dict which associate xml types and xml field with transform operations. These dicts are used \
-        at parsing stage and should contain all xml types and field names, even if there is no transformation to apply.\
+        Return values are dict which associate xml types and xml field with transform operations. These dicts are used
+        at parsing stage and should contain all xml types and field names, even if there is no transformation to apply.
         Transformations are described by keywords:
            For tables (aka XML complex types):
-              - "choice_transform": transform a choice between 2+ different fields to type / value fields in order to \
+              - "choice_transform": transform a choice between 2+ different fields to type / value fields in order to
               reduce the number of columns.
            For fields:
               - "join": applies to fields with multiple values allowed: append all values in a comma separated string
@@ -251,8 +259,8 @@ class DataModelTableTransformed(DataModelTable):
               - "elevate_wo_prefix": same as "elevate" but keeping only child's fields names (without prefixing)
               - False: prevents any transformation on this field
 
-
-        :return: a tuple of 2 dicts: the first one for type transforms, the second one for fields transforms
+        Returns:
+            a tuple of 2 dicts: the first one for type transforms, the second one for fields transforms
         """
 
         # if the table is already simplified, stop here
