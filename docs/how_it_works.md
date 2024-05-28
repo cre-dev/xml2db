@@ -228,35 +228,3 @@ opposite conversion as [`Document.doc_tree_to_flat_data`](api/document.md#xml2db
 From the document tree, we build an XML file using 
 [`XMLConverter.to_xml`](api/xml_converter.md#xml2db.xml_converter.XMLConverter.to_xml). This conversion is reversible 
 with some caveat, regarding mostly the formatting of numbers and dates.
-
-## High-level API overview
-
-This is a simplified flow of data conversions used to load an XML file into the database, showing the functions used for
-lower level steps:
-
-```mermaid
-flowchart TB
-    subgraph DataModel.parse_xml
-        direction TB
-        A[XML file]-- XMLConverter.parse_xml -->B[Document tree]
-        B-- "Document._compute_records_hashes\nDocument.doc_tree_to_flat_data" -->C[Flat data model]
-    end
-    C -.- D
-    subgraph Document.insert_into_target_tables
-        direction TB
-        D[Flat data model]-- Document.insert_into_temp_tables -->E[Temporary tables]
-        E-- Document.merge_into_target_tables -->F[Target tables]
-    end
-```
-
-And to get it back to XML:
-
-```mermaid
-flowchart TB
-    A[Database]-- DataModel.extract_from_database -->B[Flat data model]
-    subgraph Document.to_xml 
-        direction TB
-        B-- Document.flat_data_to_doc_tree -->C[Document tree]
-        C-- XMLConverter.to_xml -->D[XML file]
-    end
-```

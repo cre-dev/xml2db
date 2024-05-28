@@ -20,7 +20,7 @@ pip install xml2db
 
 Start from an XSD schema file that you will read with `xml2db` to create a [`DataModel`](api/data_model.md) object:
 
-```python
+``` py title="Create a DataModel object" linenums="1"
 from xml2db import DataModel
 
 data_model = DataModel(
@@ -45,7 +45,7 @@ When you start from a new XML schema, we recommend that you first visualize the 
 it needs some tweaking. The simplest solution will be to generate a markdown page which contains a visual representation
 of your schema (`data_model` being the [`DataModel`](api/data_model.md) object previously created):
 
-```python
+``` py title="Write an Entity Relationship Diagram to a file" linenums="1"
 with open(f"target_data_model_erd.md", "w") as f:
    f.write(data_model.get_entity_rel_diagram())
 ```
@@ -60,7 +60,7 @@ GitHub will also natively support those.
 You can also visualize your model in a tree-like text mode. In this format, you can visualize the raw, untouched XML
 schema, as well as the simplified one (we call it "target" model):
 
-```python
+``` py title="Write source tree and target tree to a file" linenums="1"
 with open(f"source_tree.txt", "w") as f:
     f.write(data_model.source_tree)
 
@@ -100,16 +100,15 @@ It is useful to visualize your data model in order to [configure it](configuring
 Once you are happy with the data model created from previous steps, you are now ready to actually process XML files and
 load their content to your database. It goes like this:
 
-```python
+``` py title="Parse a XML file" linenums="1"
 document = data_model.parse_xml(
     xml_file="path/to/file.xml",
 )
 document.insert_into_target_tables()
 ```
 
-By default, the validity of your XML file will be checked against the XML schema used to create your `data_model` object,
-which can be disabled if you are sure that your XML files will be valid or have checked it otherwise, and want to save
-a bit of compute time.
+By default, the validity of your XML file will not be checked against the XML schema used to create your `data_model` 
+object, which can be enabled if you are unsure that your XML files will be valid.
 
 The [`Document.insert_into_target_tables`](api/document.md#xml2db.document.Document.insert_into_target_tables) method is
 then all you need to load your data to the database.
@@ -129,7 +128,7 @@ troubleshooting if need be.
 You can extract the data from the database into XML files. This was implemented primarily to be able to test the package
 using "round trip" tests to and from the database.
 
-```python
+``` py title="Extract data back to XML" linenums="1"
 document = data_model.extract_from_database(
     root_select_where="xml2db_input_file_path='path/to/file.xml'",
 )

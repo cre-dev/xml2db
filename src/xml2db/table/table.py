@@ -17,24 +17,27 @@ logger = logging.getLogger(__name__)
 class DataModelTable:
     """A class representing a database table translated from an XML schema complex type
 
-    :param table_name: the table's name
-    :param type_name: the XSD complex type name
-    :param is_root_table: is this table the root table?
-    :param is_virtual_node: was this table created to store multiple root elements?
-    :param metadata: :class:`sqlalchemy.Metadata` object to build sqlalchemy models into
-    :param config: model's configuration
-    :param db_schema: database schema to use
-    :param temp_prefix: temp prefix to use for naming temp tables
-    :param data_model: the `DataModel` instance
-    :ivar model_group: 'choice' or 'sequence', extracted from the XSD. 'choice' means that only one field \
-    can have a value at the same time
-    :ivar is_root_table: is this table the root table?
-    :ivar fields: a list of tuples describing all table fields, ordered, in the form (type, name, object) where \
-    type can be "col", "rel1" or "reln", name is the name of the column or relation, and object is the column \
-    or relationship object
-    :ivar columns: a dict of all columns (fields with simple values), keyed by field name
-    :ivar relations_1: a dict of 0-1 or 1-1 relations, keyed by field name
-    :ivar relations_n: a dict of 0-n or 1-n relations, keyed by field name
+    Args:
+        table_name: the table's name
+        type_name: the XSD complex type name
+        is_root_table: is this table the root table?
+        is_virtual_node: was this table created to store multiple root elements?
+        metadata: :class:`sqlalchemy.Metadata` object to build sqlalchemy models into
+        config: model's configuration
+        db_schema: database schema to use
+        temp_prefix: temp prefix to use for naming temp tables
+        data_model: the `DataModel` instance
+
+    Attributes:
+        model_group: 'choice' or 'sequence', extracted from the XSD. 'choice' means that only one field can have a
+            value at the same time
+        is_root_table: is this table the root table?
+        fields: a list of tuples describing all table fields, ordered, in the form (type, name, object) where type can
+            be "col", "rel1" or "reln", name is the name of the column or relation, and object is the column
+            or relationship object
+        columns: a dict of all columns (fields with simple values), keyed by field name
+        relations_1: a dict of 0-1 or 1-1 relations, keyed by field name
+        relations_n: a dict of 0-n or 1-n relations, keyed by field name
     """
 
     is_reused = None
@@ -113,15 +116,16 @@ class DataModelTable:
     ) -> None:
         """Helper to add a new column to the model
 
-        :param name: name of the column
-        :param data_type: data type
-        :param occurs: min and max occurrences
-        :param min_length: minimum length
-        :param max_length: maximum length
-        :param is_attr: is XML attribute or element?
-        :param is_content: is content of a mixed type element?
-        :param allow_empty: is nullable?
-        :param ngroup: a string id signaling that the column belongs to a nested sequence
+        Args:
+            name: name of the column
+            data_type: data type
+            occurs: min and max occurrences
+            min_length: minimum length
+            max_length: maximum length
+            is_attr: is XML attribute or element?
+            is_content: is content of a mixed type element?
+            allow_empty: is nullable?
+            ngroup: a string id signaling that the column belongs to a nested sequence
         """
         self.columns[name] = DataModelColumn(
             name,
@@ -148,10 +152,11 @@ class DataModelTable:
     ) -> None:
         """Helper to add a 1-to-1 relationship
 
-        :param name: name of the 1-1 relationship
-        :param other_table: the child table of the relationship
-        :param occurs: min and max occurs for this relationship
-        :param ngroup: a string id signaling that the relation belongs to a nested sequence
+        Args:
+            name: name of the 1-1 relationship
+            other_table: the child table of the relationship
+            occurs: min and max occurs for this relationship
+            ngroup: a string id signaling that the relation belongs to a nested sequence
         """
         if occurs[1] != 1:
             raise ValueError(
@@ -173,10 +178,11 @@ class DataModelTable:
     def add_relation_n(self, name, other_table, occurs, ngroup):
         """Helper to add a 1-to-many relationship
 
-        :param name: name of the 1-1 relationship
-        :param other_table: the child table of the relationship
-        :param occurs: min and max occurs for this relationship
-        :param ngroup: a string id signaling that the relation belongs to a nested sequence
+        Args:
+            name: name of the 1-1 relationship
+            other_table: the child table of the relationship
+            occurs: min and max occurs for this relationship
+            ngroup: a string id signaling that the relation belongs to a nested sequence
         """
         if occurs[1] == 1:
             raise ValueError(
@@ -243,7 +249,8 @@ class DataModelTable:
     def get_create_table_statements(self, temp=False) -> Iterable[CreateTable]:
         """Yield create table statements for the table and the rel tables
 
-        :param temp: if True, yield create table statements for temporary tables (prefixed)
+        Args:
+            temp: if True, yield create table statements for temporary tables (prefixed)
         """
         if temp:
             yield CreateTable(self.temp_table)
@@ -276,8 +283,9 @@ class DataModelTable:
     def create_tables(self, engine: sqlalchemy.engine.base.Engine, temp: bool = False):
         """Create tables, either target tables or temp tables used to import data
 
-        :param engine: a sqlalchemy engine to use
-        :param temp: if True, create temporary (prefixed) tables
+        Args:
+            engine: a sqlalchemy engine to use
+            temp: if True, create temporary (prefixed) tables
         """
         if temp:
             self.temp_table.create(engine, checkfirst=True)
@@ -286,7 +294,7 @@ class DataModelTable:
         for relation in self.relations_n.values():
             relation.create_table(engine, temp)
 
-    def get_insert_temp_records_statements(self, data: dict) -> Iterable[Any]:
+    def get_insert_temp_records_statements(self, data: Union[dict, None]) -> Iterable[Any]:
         """Yield drop table if exists, create table and insert statement for temporary tables"""
         if data is not None and len(data["records"]) > 0:
             yield self.temp_table.insert(), data["records"]
@@ -305,7 +313,8 @@ class DataModelTable:
 
         BE CAUTIOUS, THIS METHOD DROPS TABLES WITHOUT FURTHER NOTICE!
 
-        :param engine: a sqlalchemy engine to use
+        Args:
+            engine: a sqlalchemy engine to use
         """
         for rel in self.relations_n.values():
             if rel.rel_table is not None:
@@ -317,7 +326,8 @@ class DataModelTable:
 
         BE CAUTIOUS, THIS METHOD DROPS TABLES WITHOUT FURTHER NOTICE!
 
-        :param engine: a sqlalchemy engine to use
+        Args:
+            engine: a sqlalchemy engine to use
         """
         for rel in self.relations_n.values():
             if rel.temp_rel_table is not None:
@@ -329,7 +339,8 @@ class DataModelTable:
 
         The string representation is used by mermaid.js to create a visual diagram.
 
-        :return: a list of strings (lines)
+        Returns:
+            a list of strings (lines)
         """
         out = (
             [

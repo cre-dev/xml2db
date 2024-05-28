@@ -23,9 +23,12 @@ logger = logging.getLogger(__name__)
 def types_mapping_default(temp: bool, col: "DataModelColumn") -> Any:
     """Defines the sqlalchemy type to use for given column properties in target tables
 
-    :param temp: are we targeting the temporary tables schema or the final tables?
-    :param col: an object representing a column of a table for which we are determining the SQL type to define
-    :return: a sqlalchemy class representing the data type to be used
+    Args:
+        temp: are we targeting the temporary tables schema or the final tables?
+        col: an object representing a column of a table for which we are determining the SQL type to define
+
+    Returns:
+        a sqlalchemy class representing the data type to be used
     """
     if col.occurs[1] != 1:
         return String(8000)
@@ -65,9 +68,12 @@ def types_mapping_default(temp: bool, col: "DataModelColumn") -> Any:
 def types_mapping_mssql(temp: bool, col: "DataModelColumn") -> Any:
     """Defines the MSSQL type to use for given column properties in target tables
 
-    :param temp: are we targeting the temporary tables schema or the final tables?
-    :param col: an object representing a column of a table for which we are determining the SQL type to define
-    :return: a sqlalchemy class representing the data type to be used
+    Args:
+        temp: are we targeting the temporary tables schema or the final tables?
+        col: an object representing a column of a table for which we are determining the SQL type to define
+
+    Returns:
+        a sqlalchemy class representing the data type to be used
     """
     if col.occurs[1] != 1:
         return mssql.VARCHAR(8000)
@@ -111,9 +117,12 @@ def types_mapping_mssql(temp: bool, col: "DataModelColumn") -> Any:
 def types_mapping_mysql(temp: bool, col: "DataModelColumn") -> Any:
     """Defines the MySQL/sqlalchemy type to use for given column properties in target tables
 
-    :param temp: are we targeting the temporary tables schema or the final tables?
-    :param col: an object representing a column of a table for which we are determining the SQL type to define
-    :return: a sqlalchemy class representing the data type to be used
+    Args:
+        temp: are we targeting the temporary tables schema or the final tables?
+        col: an object representing a column of a table for which we are determining the SQL type to define
+
+    Returns:
+        a sqlalchemy class representing the data type to be used
     """
     if col.occurs[1] != 1:
         return String(4000)
@@ -130,21 +139,23 @@ def types_mapping_mysql(temp: bool, col: "DataModelColumn") -> Any:
 class DataModelColumn:
     """A class representing a column of a table
 
-    :param name: column name
-    :param data_type: column data type
-    :param occurs: min and max occurrences of the field
-    :param min_length: min length
-    :param max_length: max length
-    :param is_attr: does the column value come from an xml attribute?
-    :param is_content: is the column used to store the content value of a mixed complex type?
-    :param allow_empty: is nullable ?
-    :param ngroup: a key used to handle nested sequences
-    :param model_config: data model config, may contain column type information
-    :param data_model: the DataModel object it belongs to
-    :ivar name: the name of the field (i.e. column name)
-    :ivar data_type: the data type, extracted from XSD data type
-    :ivar occurs: list of int with two elements: min occurrences and max occurrences. \
-    Max occurrences is None if unbounded
+    Args:
+        name: column name
+        data_type: column data type
+        occurs: min and max occurrences of the field
+        min_length: min length
+        max_length: max length
+        is_attr: does the column value come from an xml attribute?
+        is_content: is the column used to store the content value of a mixed complex type?
+        allow_empty: is nullable ?
+        ngroup: a key used to handle nested sequences
+        model_config: data model config, may contain column type information
+        data_model: the DataModel object it belongs to
+
+    Attributes:
+        name: the name of the field (i.e. column name)
+        data_type: the data type, extracted from XSD data type
+        occurs: list of int with two elements: min occurrences and max occurrences. Max occurrences is None if unbounded
     """
 
     def __init__(
@@ -190,8 +201,11 @@ class DataModelColumn:
     def can_join_values_as_string(self):
         """Decide whether multiple values can be stored as comma separated values in this column
 
-        :return: True if data type is compatible with comma separated values
-        :raises ValueError: if data type does not allow storage as comma separated values
+        Returns:
+            True if data type is compatible with comma separated values
+
+        Raises:
+            ValueError: if data type does not allow storage as comma separated values
         """
         if self.occurs[1] == 1:
             return True
@@ -212,7 +226,8 @@ class DataModelColumn:
     def get_sqlalchemy_column(self, temp: bool = False) -> Iterable[Column]:
         """Create sqlalchemy Column object
 
-        :param temp: temp table or target table ?
+        Args:
+            temp: temp table or target table ?
         """
         # use type specified in config if exists
         column_type = self.model_config.get("fields", {}).get(self.name, {}).get(

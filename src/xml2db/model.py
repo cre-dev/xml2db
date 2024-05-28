@@ -25,9 +25,11 @@ logger = logging.getLogger(__name__)
 class DataModel:
     """A class to manage a data model based on an XML schema and its database equivalent.
 
+    It is the main entry point for `xml2db`.
+
     This class allows parsing an XSD file to build  a representation of the XML schema, simplify it and convert it into
-    a set of database tables. It also allows parsing XML documents that fit this XML schema and importing their content
-    into a database.
+    a set of database tables. It also allows [parsing XML documents](./#xml2db.model.DataModel.parse_xml) that fit this
+    XML schema and importing their content into a database.
     
     Args:
         xsd_file: A path to a XSD file
@@ -607,8 +609,8 @@ class DataModel:
         """Create tables for the data model, either target tables or temp tables used to import data.
 
         You do not have to call this method explicitly when using
-            [`Document.insert_into_target_tables()`](document.md#xml2db.Document.insert_into_target_tables), which will
-            create tables if they do not exist.
+            [`Document.insert_into_target_tables()`](document.md#xml2db.document.Document.insert_into_target_tables),
+            which will create tables if they do not exist.
 
         Args:
             temp: If `False`, create target tables (unprefixed). If `True`, create temporary (prefixed) tables.
@@ -620,7 +622,7 @@ class DataModel:
         """Create database schema if it does not already exist.
 
         You do not have to call this method explicitly when using
-            [`Document.insert_into_target_tables()`](document.md#xml2db.Document.insert_into_target_tables).
+            [`Document.insert_into_target_tables()`](document.md#xml2db.document.Document.insert_into_target_tables).
         """
         if self.db_schema is not None:
             inspector = inspect(self.engine)

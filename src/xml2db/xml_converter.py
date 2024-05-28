@@ -16,8 +16,9 @@ class XMLConverter:
     def __init__(self, data_model: "DataModel", document_tree: dict = None):
         """A class to convert data from document tree format (nested dict) to and from XML.
 
-        :param data_model: The `DataModel` object
-        :param document_tree: Data in the document tree format (optional, can be built by `parse_xml` function)
+        Args:
+            data_model: The [`DataModel`](./data_model.md#xml2db.model.DataModel) object used to parse XML files
+            document_tree: Data in the document tree format (optional, can be built later by the `parse_xml` method)
         """
         self.model = data_model
         self.document_tree = document_tree
@@ -32,10 +33,13 @@ class XMLConverter:
         DataModel object ("pull" child to upper level, transform a choice model into "type" and "value"
         fields or concatenate children as string).
 
-        :param xml_file: An XML file path or file content to be converted
-        :param file_path: The file path to be printed in logs
-        :param skip_validation: Whether we should validate XML against the schema before parsing
-        :return: The parsed data in the document tree format (nested dict)
+        Args:
+            xml_file: An XML file path or file content to be converted
+            file_path: The file path to be printed in logs
+            skip_validation: Whether we should validate XML against the schema before parsing
+
+        Returns:
+            The parsed data in the document tree format (nested dict)
         """
         logger.info(f"Parsing XML file: {file_path}")
 
@@ -66,9 +70,12 @@ class XMLConverter:
         check the validity of the document regarding the XSD. It expects to
         deal with a valid XML document.
 
-        :param node_type: type of the node
-        :param node: lxml node object
-        :return: a dict representing the node content
+        Args:
+            node_type: type of the node
+            node: lxml node object
+
+        Returns:
+            a dict representing the node content
         """
 
         result = {"type": node_type, "content": {}}
@@ -128,10 +135,13 @@ class XMLConverter:
     ) -> etree.Element:
         """Convert a document tree (nested dict) into an XML file
 
-        :param out_file: If provided, write output to a file.
-        :param nsmap: An optional namespace mapping.
-        :param indent: A string used as indentin XML output.
-        :return: The etree object corresponding to the root XML node.
+        Args:
+            out_file: If provided, write output to a file.
+            nsmap: An optional namespace mapping.
+            indent: A string used as indentin XML output.
+
+        Returns:
+            The etree object corresponding to the root XML node.
         """
         doc = self._make_xml_node(
             self.document_tree,
