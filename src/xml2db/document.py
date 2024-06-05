@@ -41,6 +41,7 @@ class Document:
         xml_file: Union[str, BytesIO],
         xml_file_path: str = None,
         skip_validation: bool = True,
+        recover: bool = False,
     ) -> None:
         """Parse an XML document and apply transformation corresponding to the target data model
 
@@ -54,6 +55,7 @@ class Document:
             xml_file_path: path of the XML file, must be provided if 'xml_file' is provided as a file object
                 (type 'BytesIO'), in order to fill the 'xml2db_input_file_path' column of the root table.
             skip_validation: should we validate the document against the schema first?
+            recover: argument passed to the parser
         """
         if isinstance(xml_file, BytesIO):
             if xml_file_path is None:
@@ -66,7 +68,7 @@ class Document:
         self.xml_file_path = xml_file_path if xml_file_path is not None else xml_file
 
         document_tree = self.model.xml_converter.parse_xml(
-            xml_file, self.xml_file_path, skip_validation
+            xml_file, self.xml_file_path, skip_validation, recover
         )
 
         logger.info(f"Computing records hashes for {self.xml_file_path}")
@@ -457,6 +459,13 @@ class Document:
         """
         try:
             self.model.create_db_schema()
+        except Exception as e:
+            logger.error(
+                f"Error while creating database schema '{self.model.db_schema}'"
+            )
+            logger.error(e)
+            raise
+        try:
             self.insert_into_temp_tables()
         except Exception as e:
             logger.error(

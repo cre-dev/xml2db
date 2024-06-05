@@ -28,6 +28,7 @@ class XMLConverter:
         xml_file: Union[str, BytesIO],
         file_path: str = None,
         skip_validation: bool = False,
+        recover: bool = False,
     ) -> dict:
         """Parse an XML document into a nested dict and performs the simplifications defined in the
         DataModel object ("pull" child to upper level, transform a choice model into "type" and "value"
@@ -37,98 +38,111 @@ class XMLConverter:
             xml_file: An XML file path or file content to be converted
             file_path: The file path to be printed in logs
             skip_validation: Whether we should validate XML against the schema before parsing
+            recover: Try to process malformed XML (lxml option)
 
         Returns:
             The parsed data in the document tree format (nested dict)
         """
-        logger.info(f"Parsing XML file: {file_path}")
 
-        xt = etree.parse(xml_file)
         if skip_validation:
             logger.info("Skipping XML file validation")
         else:
             logger.info("Validating XML file against the schema")
-            if not self.model.xml_schema.is_valid(xt):
+            if not self.model.xml_schema.is_valid(xml_file):
                 logger.error(f"XML file {file_path} does not conform with the schema")
                 raise ValueError(
                     f"XML file {file_path} does not conform with the schema"
                 )
             logger.info("XML file conforms with the schema")
 
-        if self.model.tables[self.model.root_table].is_virtual_node:
-            doc = etree.Element(self.model.root_table)
-            doc.append(xt.getroot())
-        else:
-            doc = xt.getroot()
-        self.document_tree = self._parse_xml_node(self.model.root_table, doc)
-        return self.document_tree
+        nodes_stack = [
+            {
+                "type": (
+                    self.model.root_table
+                    if self.model.tables[self.model.root_table].is_virtual_node
+                    else None
+                ),
+                "content": {},
+            }
+        ]
 
-    def _parse_xml_node(self, node_type: str, node: etree.Element) -> dict:
-        """Parse nodes of an XML document into a dict recursively
-
-        This method is much faster than using xmlschema parse method, but it will not
-        check the validity of the document regarding the XSD. It expects to
-        deal with a valid XML document.
-
-        Args:
-            node_type: type of the node
-            node: lxml node object
-
-        Returns:
-            a dict representing the node content
-        """
-
-        result = {"type": node_type, "content": {}}
-
-        for key, val in node.attrib.items():
-            if (
-                key
-                != "{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation"
-            ):
-                result["content"][key] = [val]
-
-        if node.text and node.text.strip():
-            result["content"]["value"] = [node.text.strip()]
-
-        for element in node.iterchildren():
+        joined_values = False
+        for event, element in etree.iterparse(
+            xml_file, recover=recover, events=["start", "end"]
+        ):
             key = element.tag.split("}")[1] if "}" in element.tag else element.tag
-            node_type_key = (node_type, key)
-            value = None
-            if element.text and element.text.strip():
-                value = element.text
-            if (
-                self.model.fields_transforms.get(node_type_key, (None, "join"))[1]
-                != "join"
-            ):
-                value = self._parse_xml_node(
-                    self.model.fields_transforms[node_type_key][0], element
-                )
+            if event == "start":
+                node_type = None
+                if nodes_stack[-1]["type"]:
+                    node_type_key = (nodes_stack[-1]["type"], key)
+                    joined_values = (
+                        self.model.fields_transforms.get(
+                            node_type_key,
+                            (None, "join"),
+                        )[1]
+                        == "join"
+                    )
+                    if not joined_values:
+                        node_type = self.model.fields_transforms[node_type_key][0]
+                else:
+                    node_type = self.model.root_table
+                if not joined_values:
+                    node = {"type": node_type, "content": {}}
+                    for attrib_key, attrib_val in element.attrib.items():
+                        if (
+                            attrib_key
+                            != "{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation"
+                        ):
+                            node["content"][attrib_key] = [attrib_val]
+                    nodes_stack.append(node)
 
-            if key in result["content"]:
-                result["content"][key].append(value)
-            else:
-                result["content"][key] = [value]
+            elif event == "end":
+                if joined_values:  # joined_values was set with the previous "start" event just before
+                    if element.text and element.text.strip():
+                        if key in nodes_stack[-1]["content"]:
+                            nodes_stack[-1]["content"][key].append(element.text)
+                        else:
+                            nodes_stack[-1]["content"][key] = [element.text]
+                else:
+                    node = nodes_stack.pop()
+                    if element.text and element.text.strip():
+                        node["content"]["value"] = [element.text.strip()]
+                    self._transform_node(node)
+                    if key in nodes_stack[-1]["content"]:
+                        nodes_stack[-1]["content"][key].append(node)
+                    else:
+                        nodes_stack[-1]["content"][key] = [node]
+                joined_values = False
 
-        for key in list(result["content"]):
-            node_type_key = (node_type, key)
+        # return the outer container only if root table is a "virtual" node, else return the XML root node
+        if nodes_stack[0]["type"]:
+            res = nodes_stack[0]
+            self._transform_node(res)
+            self.document_tree = res
+            return res
+        for k, v in nodes_stack[0]["content"].items():
+            self.document_tree = v[0]
+            return self.document_tree
+
+    def _transform_node(self, node):
+        for key in list(node["content"]):
+            node_type_key = (node["type"], key)
             if node_type_key in self.model.fields_transforms:
                 transform = self.model.fields_transforms[node_type_key][1]
                 if transform == "elevate" or transform == "elevate_wo_prefix":
                     prefix = f"{key}_" if transform == "elevate" else ""
-                    child = result["content"][key][0]
+                    child = node["content"][key][0]
                     child_content = child["content"]
-                    del result["content"][key]
+                    del node["content"][key]
                     for child_key, val in child_content.items():
-                        result["content"][f"{prefix}{child_key}"] = val
+                        node["content"][f"{prefix}{child_key}"] = val
 
-        if node_type in self.model.types_transforms:
-            if self.model.types_transforms[node_type] == "choice":
-                result["content"] = [
+        if node["type"] in self.model.types_transforms:
+            if self.model.types_transforms[node["type"]] == "choice":
+                node["content"] = [
                     {"type": [child_key], "value": val}
-                    for child_key, val in result["content"].items()
+                    for child_key, val in node["content"].items()
                 ][0]
-
-        return result
 
     def to_xml(
         self, out_file: str = None, nsmap: dict = None, indent: str = "  "
