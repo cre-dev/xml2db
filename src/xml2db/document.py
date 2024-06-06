@@ -2,7 +2,6 @@ import csv
 import datetime
 import logging
 import multiprocessing
-from hashlib import sha1
 from io import BytesIO
 from typing import Union, TYPE_CHECKING, Dict
 from zoneinfo import ZoneInfo
@@ -71,9 +70,6 @@ class Document:
             xml_file, self.xml_file_path, skip_validation, recover
         )
 
-        logger.info(f"Computing records hashes for {self.xml_file_path}")
-        self._compute_records_hashes(document_tree)
-
         if "document_tree_hook" in self.model.model_config:
             if not callable(self.model.model_config["document_tree_hook"]):
                 raise DataModelConfigError(
@@ -103,36 +99,6 @@ class Document:
         converter = XMLConverter(self.model)
         converter.document_tree = self.flat_data_to_doc_tree()
         return converter.to_xml(out_file=out_file, nsmap=nsmap, indent=indent)
-
-    def _compute_records_hashes(self, node: Dict) -> bytes:
-        """Compute the hash of records recursively, taking into account children, for deduplication purpose.
-
-        Args:
-            node: a node of the parsed document tree
-
-        Returns:
-            the hash string representation of the node
-        """
-        if node is None:
-            return b""
-        h = sha1()
-        table = self.model.tables[node["type"]]
-        for field_type, name, _ in table.fields:
-            if field_type == "col":
-                h.update(str(node["content"].get(name, None)).encode("utf-8"))
-            elif field_type == "rel1":
-                h.update(
-                    self._compute_records_hashes(node["content"].get(name, [None])[0])
-                )
-            elif field_type == "reln":
-                h_children = [
-                    self._compute_records_hashes(v)
-                    for v in node["content"].get(name, [])
-                ]
-                for h_child in sorted(h_children):
-                    h.update(h_child)
-        node["record_hash"] = h.digest()
-        return node["record_hash"]
 
     def doc_tree_to_flat_data(self, document_tree: dict) -> dict:
         """Convert document tree (nested dict) to flat tables data model to prepare database import

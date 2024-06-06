@@ -3,7 +3,7 @@ import pytest
 from lxml import etree
 
 from xml2db import DataModel
-from xml2db.xml_converter import XMLConverter
+from xml2db.xml_converter import XMLConverter, remove_record_hash
 
 from .sample_models import models
 
@@ -32,6 +32,7 @@ def test_document_tree_to_flat_data(test_config):
     # parse XML to document tree
     converter.parse_xml(file_path, file_path)
     exp_doc_tree = converter.document_tree
+    remove_record_hash(exp_doc_tree)
 
     # parse XML to document tree and then flat data model
     doc = model.parse_xml(file_path)

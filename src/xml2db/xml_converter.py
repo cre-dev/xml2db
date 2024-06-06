@@ -1,15 +1,34 @@
 import typing
 from datetime import datetime
-from typing import Union
+from typing import Union, Tuple
 import logging
 from lxml import etree
 from io import BytesIO
 from itertools import zip_longest
+from hashlib import sha1
+
+from xml2db.exceptions import DataModelConfigError
+
 
 if typing.TYPE_CHECKING:
     from xml2db.model import DataModel
 
 logger = logging.getLogger(__name__)
+
+
+def remove_record_hash(node) -> None:
+    """Remove hash data recursively from document tree. Only used for tests, in order to compare document trees
+
+    Args:
+        node: a node from the document tree
+    """
+    if "record_hash" in node:
+        del node["record_hash"]
+    if "content" in node:
+        for _, val in node["content"].items():
+            for child in val:
+                if isinstance(child, dict):
+                    remove_record_hash(child)
 
 
 class XMLConverter:
@@ -65,6 +84,7 @@ class XMLConverter:
                 "content": {},
             }
         ]
+        hash_maps = {}
 
         joined_values = False
         for event, element in etree.iterparse(
@@ -72,20 +92,8 @@ class XMLConverter:
         ):
             key = element.tag.split("}")[1] if "}" in element.tag else element.tag
             if event == "start":
-                node_type = None
-                if nodes_stack[-1]["type"]:
-                    node_type_key = (nodes_stack[-1]["type"], key)
-                    joined_values = (
-                        self.model.fields_transforms.get(
-                            node_type_key,
-                            (None, "join"),
-                        )[1]
-                        == "join"
-                    )
-                    if not joined_values:
-                        node_type = self.model.fields_transforms[node_type_key][0]
-                else:
-                    node_type = self.model.root_table
+                node_type, transform = self._get_node_type_transform(nodes_stack, key)
+                joined_values = transform == "join"
                 if not joined_values:
                     node = {"type": node_type, "content": {}}
                     for attrib_key, attrib_val in element.attrib.items():
@@ -97,7 +105,8 @@ class XMLConverter:
                     nodes_stack.append(node)
 
             elif event == "end":
-                if joined_values:  # joined_values was set with the previous "start" event just before
+                # joined_values was set with the previous "start" event just before
+                if joined_values:
                     if element.text and element.text.strip():
                         if key in nodes_stack[-1]["content"]:
                             nodes_stack[-1]["content"][key].append(element.text)
@@ -105,19 +114,42 @@ class XMLConverter:
                             nodes_stack[-1]["content"][key] = [element.text]
                 else:
                     node = nodes_stack.pop()
+                    node_type, transform = self._get_node_type_transform(
+                        nodes_stack, key
+                    )
                     if element.text and element.text.strip():
                         node["content"]["value"] = [element.text.strip()]
                     self._transform_node(node)
-                    if key in nodes_stack[-1]["content"]:
-                        nodes_stack[-1]["content"][key].append(node)
-                    else:
-                        nodes_stack[-1]["content"][key] = [node]
+                    if transform not in ["elevate", "elevate_wo_prefix"]:
+                        node["record_hash"] = self._compute_node_hash(node)
+                        if node_type not in hash_maps:
+                            hash_maps[node_type] = {}
+                        if node["record_hash"] in hash_maps[node_type]:
+                            node = hash_maps[node_type][node["record_hash"]]
+                        else:
+                            if "document_tree_node_hook" in self.model.model_config:
+                                if not callable(
+                                    self.model.model_config["document_tree_node_hook"]
+                                ):
+                                    raise DataModelConfigError(
+                                        "document_tree_node_hook provided in config must be callable"
+                                    )
+                                node = self.model.model_config[
+                                    "document_tree_node_hook"
+                                ](node)
+                            hash_maps[node_type][node["record_hash"]] = node
+                    if node:
+                        if key in nodes_stack[-1]["content"]:
+                            nodes_stack[-1]["content"][key].append(node)
+                        else:
+                            nodes_stack[-1]["content"][key] = [node]
                 joined_values = False
 
         # return the outer container only if root table is a "virtual" node, else return the XML root node
         if nodes_stack[0]["type"]:
             res = nodes_stack[0]
             self._transform_node(res)
+            res["record_hash"] = self._compute_node_hash(res)
             self.document_tree = res
             return res
         for k, v in nodes_stack[0]["content"].items():
@@ -143,6 +175,39 @@ class XMLConverter:
                     {"type": [child_key], "value": val}
                     for child_key, val in node["content"].items()
                 ][0]
+
+    def _get_node_type_transform(self, nodes_stack, key) -> Tuple:
+        if nodes_stack[-1]["type"]:
+            node_type_key = (nodes_stack[-1]["type"], key)
+            return self.model.fields_transforms.get(node_type_key, (None, "join"))
+        return self.model.root_table, None
+
+    def _compute_node_hash(self, node: dict) -> bytes:
+        """
+        A function to compute hash for a document tree node dict
+
+        Args:
+            node: a document tree node dict
+
+        Returns:
+            The hash digest
+        """
+        h = sha1()
+        table = self.model.tables[node["type"]]
+        for field_type, name, _ in table.fields:
+            if field_type == "col":
+                h.update(str(node["content"].get(name, None)).encode("utf-8"))
+            elif field_type == "rel1":
+                h.update(
+                    node["content"][name][0]["record_hash"]
+                    if name in node["content"]
+                    else b""
+                )
+            elif field_type == "reln":
+                h_children = [v["record_hash"] for v in node["content"].get(name, [])]
+                for h_child in sorted(h_children):
+                    h.update(h_child)
+        return h.digest()
 
     def to_xml(
         self, out_file: str = None, nsmap: dict = None, indent: str = "  "
