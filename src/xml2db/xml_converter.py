@@ -144,6 +144,7 @@ class XMLConverter:
                         else:
                             nodes_stack[-1]["content"][key] = [node]
                 joined_values = False
+                element.clear(keep_tail=True)
 
         # return the outer container only if root table is a "virtual" node, else return the XML root node
         if nodes_stack[0]["type"]:
