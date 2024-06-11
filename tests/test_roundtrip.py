@@ -1,7 +1,7 @@
 import os
 import pytest
 from lxml import etree
-from xml2db.xml_converter import XMLConverter, remove_record_hash
+from xml2db.xml_converter import XMLConverter
 
 from .fixtures import setup_db_model, conn_string
 from .sample_models import models
@@ -24,11 +24,11 @@ def test_database_xml_roundtrip(setup_db_model, model_config):
     for file in xml_files:
         # do parse and insert into the database
         doc = model.parse_xml(file)
-        doc.insert_into_target_tables()
+        doc.insert_into_target_tables(metadata={"input_file_path": file})
 
     for file in xml_files:
         doc = model.extract_from_database(
-            f"xml2db_input_file_path='{file}'", force_tz="Europe/Paris"
+            f"input_file_path='{file}'", force_tz="Europe/Paris"
         )
 
         with open(file, "rt") as f:
@@ -66,17 +66,17 @@ def test_database_document_tree_roundtrip(setup_db_model, model_config):
     for file in xml_files:
         # do parse and insert into the database
         doc = model.parse_xml(file)
-        doc.insert_into_target_tables()
+        doc.insert_into_target_tables(metadata={"input_file_path": file})
 
     for file in xml_files:
         doc = model.extract_from_database(
-            f"xml2db_input_file_path='{file}'", force_tz="Europe/Paris"
+            f"input_file_path='{file}'", force_tz="Europe/Paris"
         )
 
         # parse file to doctree for reference
         converter = XMLConverter(model)
         converter.parse_xml(file, file)
-        remove_record_hash(converter.document_tree)
+        converter._remove_record_hash(converter.document_tree)
 
         assert doc.flat_data_to_doc_tree() == converter.document_tree
 
@@ -99,15 +99,15 @@ def test_database_single_document_tree_roundtrip(setup_db_model, model_config):
 
     # do parse and insert into the database
     doc = model.parse_xml(file_path)
-    doc.insert_into_target_tables()
+    doc.insert_into_target_tables(metadata={"input_file_path": file_path})
 
     doc = model.extract_from_database(
-        f"xml2db_input_file_path='{file_path}'", force_tz="Europe/Paris"
+        f"input_file_path='{file_path}'", force_tz="Europe/Paris"
     )
 
     # parse file to doctree for reference
     converter = XMLConverter(model)
     converter.parse_xml(file_path, file_path)
-    remove_record_hash(converter.document_tree)
+    converter._remove_record_hash(converter.document_tree)
 
     assert doc.flat_data_to_doc_tree() == converter.document_tree

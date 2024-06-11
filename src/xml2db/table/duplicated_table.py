@@ -13,15 +13,15 @@ from sqlalchemy import (
     and_,
 )
 
-from xml2db.table.transformed_table import DataModelTableTransformed
+from .transformed_table import DataModelTableTransformed
 
 
 class DataModelTableDuplicated(DataModelTableTransformed):
     """A table data model which allows duplicated records in the database.
 
-    This table model is only allowed if this node type is used only once in the schema, in a 1-n relationship with 
-    its parent node. The 1-n relationship is represented with a foreign key relation from this node to its parent node, 
-    without intermediate relationship table. As such, it is a simpler schema, with the drawback of having duplicates 
+    This table model is only allowed if this node type is used only once in the schema, in a 1-n relationship with
+    its parent node. The 1-n relationship is represented with a foreign key relation from this node to its parent node,
+    without intermediate relationship table. As such, it is a simpler schema, with the drawback of having duplicates
     records.
     """
 
@@ -30,11 +30,11 @@ class DataModelTableDuplicated(DataModelTableTransformed):
     def build_sqlalchemy_tables(self) -> None:
         """Build sqlalchemy table objects.
 
-        Build the sqlalchemy table objet based on table attributes for the main table, and relation tables to store n-n 
-        relationships with children nodes, for target and temp tables (so it builds at least 2 tables if there is no 
+        Build the sqlalchemy table objet based on table attributes for the main table, and relation tables to store n-n
+        relationships with children nodes, for target and temp tables (so it builds at least 2 tables if there is no
         relations).
-        
-        This method is intended to be called only once (if it called more than once it will return immediately) and 
+
+        This method is intended to be called only once (if it called more than once it will return immediately) and
         further changes to the table will not be updated.
         """
 
@@ -79,12 +79,6 @@ class DataModelTableDuplicated(DataModelTableTransformed):
             for field_type, key, field in self.fields:
                 if field_type == "col" or field_type == "rel1":
                     yield from field.get_sqlalchemy_column(temp)
-            # root table is given additional integration metadata columns
-            if self.is_root_table:
-                yield Column("xml2db_input_file_path", String(256), nullable=False)
-                yield Column(
-                    "xml2db_processed_at", DateTime(timezone=True), nullable=False
-                )
 
         # build target table
         self.table = Table(

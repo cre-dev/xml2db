@@ -4,9 +4,9 @@ CREATE TABLE error (
 	type VARCHAR(1000) NULL, 
 	message VARCHAR(1000) NULL, 
 	value VARCHAR(1000) NULL, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_error PRIMARY KEY CLUSTERED (pk_error), 
-	CONSTRAINT error_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT error_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -15,9 +15,9 @@ CREATE TABLE failure (
 	type VARCHAR(1000) NULL, 
 	message VARCHAR(1000) NULL, 
 	value VARCHAR(1000) NULL, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_failure PRIMARY KEY CLUSTERED (pk_failure), 
-	CONSTRAINT failure_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT failure_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -25,9 +25,9 @@ CREATE TABLE property (
 	pk_property INTEGER NOT NULL IDENTITY, 
 	name VARCHAR(1000) NULL, 
 	value VARCHAR(1000) NULL, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_property PRIMARY KEY CLUSTERED (pk_property), 
-	CONSTRAINT property_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT property_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -39,9 +39,9 @@ CREATE TABLE [flakyError] (
 	[system-out] VARCHAR(1000) NULL, 
 	[system-err] VARCHAR(1000) NULL, 
 	value VARCHAR(1000) NULL, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT [cx_pk_flakyError] PRIMARY KEY CLUSTERED ([pk_flakyError]), 
-	CONSTRAINT [flakyError_xml2db_record_hash] UNIQUE (record_hash)
+	CONSTRAINT [flakyError_xml2db_record_hash] UNIQUE (xml2db_record_hash)
 )
 
 
@@ -50,17 +50,17 @@ CREATE TABLE skipped (
 	type VARCHAR(1000) NULL, 
 	message VARCHAR(1000) NULL, 
 	value VARCHAR(1000) NULL, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_skipped PRIMARY KEY CLUSTERED (pk_skipped), 
-	CONSTRAINT skipped_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT skipped_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
 CREATE TABLE properties (
 	pk_properties INTEGER NOT NULL IDENTITY, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_properties PRIMARY KEY CLUSTERED (pk_properties), 
-	CONSTRAINT properties_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT properties_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -80,9 +80,9 @@ CREATE TABLE testcase (
 	[group] VARCHAR(1000) NULL, 
 	[system-out] VARCHAR(8000) NULL, 
 	[system-err] VARCHAR(8000) NULL, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_testcase PRIMARY KEY CLUSTERED (pk_testcase), 
-	CONSTRAINT testcase_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT testcase_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -161,9 +161,9 @@ CREATE TABLE testsuite (
 	version VARCHAR(1000) NULL, 
 	[system-out] VARCHAR(8000) NULL, 
 	[system-err] VARCHAR(8000) NULL, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_testsuite PRIMARY KEY CLUSTERED (pk_testsuite), 
-	CONSTRAINT testsuite_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT testsuite_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -203,11 +203,10 @@ CREATE TABLE junit10 (
 	testsuites_tests VARCHAR(1000) NULL, 
 	testsuites_failures VARCHAR(1000) NULL, 
 	testsuites_errors VARCHAR(1000) NULL, 
-	xml2db_input_file_path VARCHAR(256) NOT NULL, 
-	xml2db_processed_at DATETIMEOFFSET NULL, 
-	record_hash BINARY(20) NULL, 
+	input_file_path VARCHAR(256) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_junit10 PRIMARY KEY CLUSTERED (pk_junit10), 
-	CONSTRAINT junit10_xml2db_record_hash UNIQUE (record_hash), 
+	CONSTRAINT junit10_xml2db_record_hash UNIQUE (xml2db_record_hash), 
 	FOREIGN KEY(fk_error) REFERENCES error (pk_error), 
 	FOREIGN KEY(fk_failure) REFERENCES failure (pk_failure), 
 	FOREIGN KEY([fk_flakyError]) REFERENCES [flakyError] ([pk_flakyError]), 

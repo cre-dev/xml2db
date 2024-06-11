@@ -4,9 +4,9 @@ CREATE TABLE "contractTradingHours" (
 	"startTime" VARCHAR(18), 
 	"endTime" VARCHAR(18), 
 	date VARCHAR(16), 
-	record_hash BYTEA, 
+	xml2db_record_hash BYTEA, 
 	CONSTRAINT "cx_pk_contractTradingHours" PRIMARY KEY ("pk_contractTradingHours"), 
-	CONSTRAINT "contractTradingHours_xml2db_record_hash" UNIQUE (record_hash)
+	CONSTRAINT "contractTradingHours_xml2db_record_hash" UNIQUE (xml2db_record_hash)
 )
 
 
@@ -17,9 +17,9 @@ CREATE TABLE "deliveryProfile" (
 	"daysOfTheWeek" VARCHAR(8000), 
 	"loadDeliveryStartTime" VARCHAR(8000), 
 	"loadDeliveryEndTime" VARCHAR(8000), 
-	record_hash BYTEA, 
+	xml2db_record_hash BYTEA, 
 	CONSTRAINT "cx_pk_deliveryProfile" PRIMARY KEY ("pk_deliveryProfile"), 
-	CONSTRAINT "deliveryProfile_xml2db_record_hash" UNIQUE (record_hash)
+	CONSTRAINT "deliveryProfile_xml2db_record_hash" UNIQUE (xml2db_record_hash)
 )
 
 
@@ -27,9 +27,9 @@ CREATE TABLE "fixingIndex" (
 	"pk_fixingIndex" SERIAL NOT NULL, 
 	"indexName" VARCHAR(150), 
 	"indexValue" DOUBLE PRECISION, 
-	record_hash BYTEA, 
+	xml2db_record_hash BYTEA, 
 	CONSTRAINT "cx_pk_fixingIndex" PRIMARY KEY ("pk_fixingIndex"), 
-	CONSTRAINT "fixingIndex_xml2db_record_hash" UNIQUE (record_hash)
+	CONSTRAINT "fixingIndex_xml2db_record_hash" UNIQUE (xml2db_record_hash)
 )
 
 
@@ -40,9 +40,9 @@ CREATE TABLE "optionDetails" (
 	"optionExerciseDate" VARCHAR(8000), 
 	"optionStrikePrice_value" DOUBLE PRECISION, 
 	"optionStrikePrice_currency" VARCHAR(3), 
-	record_hash BYTEA, 
+	xml2db_record_hash BYTEA, 
 	CONSTRAINT "cx_pk_optionDetails" PRIMARY KEY ("pk_optionDetails"), 
-	CONSTRAINT "optionDetails_xml2db_record_hash" UNIQUE (record_hash)
+	CONSTRAINT "optionDetails_xml2db_record_hash" UNIQUE (xml2db_record_hash)
 )
 
 
@@ -57,9 +57,9 @@ CREATE TABLE "priceIntervalQuantityDetails" (
 	unit VARCHAR(8), 
 	"priceTimeIntervalQuantity_value" DOUBLE PRECISION, 
 	"priceTimeIntervalQuantity_currency" VARCHAR(3), 
-	record_hash BYTEA, 
+	xml2db_record_hash BYTEA, 
 	CONSTRAINT "cx_pk_priceIntervalQuantityDetails" PRIMARY KEY ("pk_priceIntervalQuantityDetails"), 
-	CONSTRAINT "priceIntervalQuantityDetails_xml2db_record_hash" UNIQUE (record_hash)
+	CONSTRAINT "priceIntervalQuantityDetails_xml2db_record_hash" UNIQUE (xml2db_record_hash)
 )
 
 
@@ -77,9 +77,9 @@ CREATE TABLE "clickAndTradeDetails" (
 	"undisclosedVolume_unit" VARCHAR(8), 
 	"orderDuration_duration" VARCHAR(3), 
 	"orderDuration_expirationDateTime" TIMESTAMP WITH TIME ZONE, 
-	record_hash BYTEA, 
+	xml2db_record_hash BYTEA, 
 	CONSTRAINT "cx_pk_clickAndTradeDetails" PRIMARY KEY ("pk_clickAndTradeDetails"), 
-	CONSTRAINT "clickAndTradeDetails_xml2db_record_hash" UNIQUE (record_hash)
+	CONSTRAINT "clickAndTradeDetails_xml2db_record_hash" UNIQUE (xml2db_record_hash)
 )
 
 
@@ -99,9 +99,9 @@ CREATE TABLE contract (
 	"deliveryEndDate" VARCHAR(16), 
 	duration VARCHAR(1), 
 	"loadType" VARCHAR(2), 
-	record_hash BYTEA, 
+	xml2db_record_hash BYTEA, 
 	CONSTRAINT cx_pk_contract PRIMARY KEY (pk_contract), 
-	CONSTRAINT contract_xml2db_record_hash UNIQUE (record_hash), 
+	CONSTRAINT contract_xml2db_record_hash UNIQUE (xml2db_record_hash), 
 	FOREIGN KEY("fk_optionDetails") REFERENCES "optionDetails" ("pk_optionDetails")
 )
 
@@ -137,11 +137,11 @@ CREATE TABLE "REMITTable1" (
 	"pk_REMITTable1" SERIAL NOT NULL, 
 	"reportingEntityID_type" VARCHAR(3), 
 	"reportingEntityID_value" VARCHAR(20), 
-	xml2db_input_file_path VARCHAR(256) NOT NULL, 
 	xml2db_processed_at TIMESTAMP WITH TIME ZONE, 
-	record_hash BYTEA, 
+	input_file_path VARCHAR(256), 
+	xml2db_record_hash BYTEA, 
 	CONSTRAINT "cx_pk_REMITTable1" PRIMARY KEY ("pk_REMITTable1"), 
-	CONSTRAINT "REMITTable1_xml2db_record_hash" UNIQUE (record_hash)
+	CONSTRAINT "REMITTable1_xml2db_record_hash" UNIQUE (xml2db_record_hash)
 )
 
 

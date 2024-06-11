@@ -46,26 +46,23 @@ class DataModelTableReused(DataModelTableTransformed):
                 if field_type == "col" or field_type == "rel1":
                     yield from field.get_sqlalchemy_column(temp)
             # Root table is given additional integration metadata columns
-            if self.is_root_table:
-                yield Column("xml2db_input_file_path", String(256), nullable=False)
-                # Use DataModelColumn to create record hash column in order to get the right data type
-                processed_at_col = DataModelColumn(
-                    "xml2db_processed_at",
-                    [],
-                    "dateTime",
-                    [1, 1],
-                    0,
-                    None,
-                    False,
-                    False,
-                    False,
-                    None,
-                    self.config,
-                    self.data_model,
-                )
-                yield from processed_at_col.get_sqlalchemy_column(temp)
+            if (
+                self.is_root_table
+                and "metadata_columns" in self.data_model.model_config
+            ):
+                for metadata_col in self.data_model.model_config["metadata_columns"]:
+                    yield Column(
+                        metadata_col["name"],
+                        metadata_col["type"],
+                        **{
+                            k: v
+                            for k, v in metadata_col.items()
+                            if k not in ["name", "type"]
+                        },
+                    )
+            # Use DataModelColumn to create record hash column in order to get the right data type
             hash_col = DataModelColumn(
-                "record_hash",
+                self.data_model.record_hash_column_name,
                 [],
                 "binary",
                 [1, 1],
@@ -80,7 +77,7 @@ class DataModelTableReused(DataModelTableTransformed):
             )
             yield from hash_col.get_sqlalchemy_column(temp)
             yield UniqueConstraint(
-                "record_hash",
+                self.data_model.record_hash_column_name,
                 name=f"{prefix if temp else ''}{self.name}_xml2db_record_hash",
             )
 
@@ -140,8 +137,10 @@ class DataModelTableReused(DataModelTableTransformed):
 
         # find matching records hash in target table
         yield self.temp_table.update().values(temp_exists=True).where(
-            getattr(self.temp_table.c, "record_hash")  # noqa: Linter puzzled by ==
-            == getattr(self.table.c, "record_hash")
+            getattr(
+                self.temp_table.c, self.data_model.record_hash_column_name
+            )  # noqa: Linter puzzled by ==
+            == getattr(self.table.c, self.data_model.record_hash_column_name)
         )
 
         # update foreign keys for n-1 relations tables
@@ -164,8 +163,10 @@ class DataModelTableReused(DataModelTableTransformed):
         yield self.temp_table.update().values(
             **{f"pk_{self.name}": getattr(self.table.c, f"pk_{self.name}")}
         ).where(
-            getattr(self.temp_table.c, "record_hash")  # noqa: Linter puzzled by ==
-            == getattr(self.table.c, "record_hash")
+            getattr(
+                self.temp_table.c, self.data_model.record_hash_column_name
+            )  # noqa: Linter puzzled by ==
+            == getattr(self.table.c, self.data_model.record_hash_column_name)
         )
 
         # update primary keys for n-n relations tables

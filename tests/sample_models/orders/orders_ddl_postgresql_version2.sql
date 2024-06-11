@@ -2,11 +2,10 @@
 CREATE TABLE orders (
 	pk_orders SERIAL NOT NULL, 
 	batch_id VARCHAR(1000), 
-	xml2db_input_file_path VARCHAR(256) NOT NULL, 
-	xml2db_processed_at TIMESTAMP WITH TIME ZONE, 
-	record_hash BYTEA, 
+	input_file_path VARCHAR(256), 
+	xml2db_record_hash BYTEA, 
 	CONSTRAINT cx_pk_orders PRIMARY KEY (pk_orders), 
-	CONSTRAINT orders_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT orders_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -21,9 +20,9 @@ CREATE TABLE orderperson (
 	"phoneNumber" VARCHAR(8000), 
 	"companyId_type" VARCHAR(3), 
 	"companyId_value" VARCHAR(1000), 
-	record_hash BYTEA, 
+	xml2db_record_hash BYTEA, 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY (pk_orderperson), 
-	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -31,9 +30,9 @@ CREATE TABLE product (
 	pk_product SERIAL NOT NULL, 
 	name VARCHAR(1000), 
 	version VARCHAR(1000), 
-	record_hash BYTEA, 
+	xml2db_record_hash BYTEA, 
 	CONSTRAINT cx_pk_product PRIMARY KEY (pk_product), 
-	CONSTRAINT product_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT product_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -43,9 +42,9 @@ CREATE TABLE item (
 	note VARCHAR(1000), 
 	quantity INTEGER, 
 	price DOUBLE PRECISION, 
-	record_hash BYTEA, 
+	xml2db_record_hash BYTEA, 
 	CONSTRAINT cx_pk_item PRIMARY KEY (pk_item), 
-	CONSTRAINT item_xml2db_record_hash UNIQUE (record_hash), 
+	CONSTRAINT item_xml2db_record_hash UNIQUE (xml2db_record_hash), 
 	FOREIGN KEY(fk_product) REFERENCES product (pk_product)
 )
 

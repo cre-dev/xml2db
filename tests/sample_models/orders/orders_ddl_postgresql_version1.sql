@@ -34,8 +34,8 @@ CREATE TABLE shiporder (
 CREATE TABLE orders (
 	pk_orders SERIAL NOT NULL, 
 	batch_id VARCHAR(1000), 
-	xml2db_input_file_path VARCHAR(256) NOT NULL, 
 	xml2db_processed_at TIMESTAMP WITH TIME ZONE, 
+	input_file_path VARCHAR(256), 
 	record_hash BYTEA, 
 	CONSTRAINT cx_pk_orders PRIMARY KEY (pk_orders), 
 	CONSTRAINT orders_xml2db_record_hash UNIQUE (record_hash)

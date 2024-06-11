@@ -7,28 +7,13 @@ from io import BytesIO
 from itertools import zip_longest
 from hashlib import sha1
 
-from xml2db.exceptions import DataModelConfigError
+from .exceptions import DataModelConfigError
 
 
 if typing.TYPE_CHECKING:
-    from xml2db.model import DataModel
+    from .model import DataModel
 
 logger = logging.getLogger(__name__)
-
-
-def remove_record_hash(node) -> None:
-    """Remove hash data recursively from document tree. Only used for tests, in order to compare document trees
-
-    Args:
-        node: a node from the document tree
-    """
-    if "record_hash" in node:
-        del node["record_hash"]
-    if "content" in node:
-        for _, val in node["content"].items():
-            for child in val:
-                if isinstance(child, dict):
-                    remove_record_hash(child)
 
 
 class XMLConverter:
@@ -121,11 +106,18 @@ class XMLConverter:
                         node["content"]["value"] = [element.text.strip()]
                     self._transform_node(node)
                     if transform not in ["elevate", "elevate_wo_prefix"]:
-                        node["record_hash"] = self._compute_node_hash(node)
+                        node[self.model.record_hash_column_name] = (
+                            self._compute_node_hash(node)
+                        )
                         if node_type not in hash_maps:
                             hash_maps[node_type] = {}
-                        if node["record_hash"] in hash_maps[node_type]:
-                            node = hash_maps[node_type][node["record_hash"]]
+                        if (
+                            node[self.model.record_hash_column_name]
+                            in hash_maps[node_type]
+                        ):
+                            node = hash_maps[node_type][
+                                node[self.model.record_hash_column_name]
+                            ]
                         else:
                             if "document_tree_node_hook" in self.model.model_config:
                                 if not callable(
@@ -137,7 +129,9 @@ class XMLConverter:
                                 node = self.model.model_config[
                                     "document_tree_node_hook"
                                 ](node)
-                            hash_maps[node_type][node["record_hash"]] = node
+                            hash_maps[node_type][
+                                node[self.model.record_hash_column_name]
+                            ] = node
                     if node:
                         if key in nodes_stack[-1]["content"]:
                             nodes_stack[-1]["content"][key].append(node)
@@ -150,7 +144,7 @@ class XMLConverter:
         if nodes_stack[0]["type"]:
             res = nodes_stack[0]
             self._transform_node(res)
-            res["record_hash"] = self._compute_node_hash(res)
+            res[self.model.record_hash_column_name] = self._compute_node_hash(res)
             self.document_tree = res
             return res
         for k, v in nodes_stack[0]["content"].items():
@@ -200,15 +194,32 @@ class XMLConverter:
                 h.update(str(node["content"].get(name, None)).encode("utf-8"))
             elif field_type == "rel1":
                 h.update(
-                    node["content"][name][0]["record_hash"]
+                    node["content"][name][0][self.model.record_hash_column_name]
                     if name in node["content"]
                     else b""
                 )
             elif field_type == "reln":
-                h_children = [v["record_hash"] for v in node["content"].get(name, [])]
+                h_children = [
+                    v[self.model.record_hash_column_name]
+                    for v in node["content"].get(name, [])
+                ]
                 for h_child in sorted(h_children):
                     h.update(h_child)
         return h.digest()
+
+    def _remove_record_hash(self, node) -> None:
+        """Remove hash data recursively from document tree. Only used for tests, in order to compare document trees
+
+        Args:
+            node: a node from the document tree
+        """
+        if self.model.record_hash_column_name in node:
+            del node[self.model.record_hash_column_name]
+        if "content" in node:
+            for _, val in node["content"].items():
+                for child in val:
+                    if isinstance(child, dict):
+                        self._remove_record_hash(child)
 
     def to_xml(
         self, out_file: str = None, nsmap: dict = None, indent: str = "  "

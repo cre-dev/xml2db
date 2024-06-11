@@ -11,13 +11,13 @@ from sqlalchemy import MetaData, create_engine, inspect
 from sqlalchemy.sql.ddl import CreateIndex, CreateTable
 from graphlib import TopologicalSorter
 
-from xml2db import document
-from xml2db.exceptions import DataModelConfigError
-from xml2db.table import (
+from .document import Document
+from .exceptions import DataModelConfigError
+from .table import (
     DataModelTableReused,
     DataModelTableDuplicated,
 )
-from xml2db.xml_converter import XMLConverter
+from .xml_converter import XMLConverter
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ class DataModel:
     This class allows parsing an XSD file to build  a representation of the XML schema, simplify it and convert it into
     a set of database tables. It also allows [parsing XML documents](./#xml2db.model.DataModel.parse_xml) that fit this
     XML schema and importing their content into a database.
-    
+
     Args:
         xsd_file: A path to a XSD file
         short_name: A short name for the schema
@@ -43,7 +43,7 @@ class DataModel:
             `connection_string`, if provided
         db_schema: A schema name to use in the database
         temp_prefix: A prefix to use for temporary tables (if `None`, will be generated randomly)
-    
+
     Attributes:
         xml_schema: The `xmlschema.XMLSchema` object associated with this data model
         data_flow_name: A short identifier used for the data model (`short_name` argument value)
@@ -135,9 +135,13 @@ class DataModel:
         self.tables = {}
         self.names_types_map = {}
         self.root_table = None
+        self.record_hash_column_name = self.model_config.get(
+            "record_hash_column_name", "xml2db_record_hash"
+        )
         self.types_transforms = {}
         self.fields_transforms = {}
         self.ordered_tables_keys = []
+        self.transaction_groups = []
         self.source_tree = ""
         self.target_tree = ""
         self.metadata = MetaData()
@@ -242,6 +246,18 @@ class DataModel:
             {key: sorted(tb.dependencies) for key, tb in self.tables.items()}
         )
         self.ordered_tables_keys = list(ts.static_order())
+        # build a dict of transaction groups, i.e. set of tables for which merge queries must be done within
+        # a transaction (we compute it whether it is used or not for the sake of debugging
+        tr_groups_index = {}
+        for key in self.ordered_tables_keys:
+            tb = self.tables[key]
+            if tb.is_reused:
+                tr_groups_index[key] = len(self.transaction_groups)
+                self.transaction_groups.append([tb])
+            else:
+                idx = tr_groups_index[tb.parent.type_name]
+                tr_groups_index[key] = idx
+                self.transaction_groups[idx].append(tb)
         # build the ordered table in the sqlalchemy Metadata object (cannot be done before simplification because
         # it will fail if we attempt to recreate tables that already exist in the sqlalchemy metadata
         for tb in self.fk_ordered_tables:
@@ -590,7 +606,9 @@ class DataModel:
             )
         return "\n".join(out)
 
-    def get_all_create_table_statements(self, temp: bool = False) -> Iterable[CreateTable]:
+    def get_all_create_table_statements(
+        self, temp: bool = False
+    ) -> Iterable[CreateTable]:
         """Yield sqlalchemy `create table` statements for all tables
 
         Args:
@@ -653,31 +671,30 @@ class DataModel:
     def parse_xml(
         self,
         xml_file: Union[str, BytesIO],
-        xml_file_path: str = None,
         skip_validation: bool = True,
-    ) -> document.Document:
+        recover: bool = False,
+    ) -> Document:
         """Parse an XML document based on this data model
 
         This method is just a wrapper around the parse_xml method of the Document class.
 
         Args:
             xml_file: The path or the file object of an XML file to parse
-            xml_file_path: The path of the XML file, mandatory if xml_file is file object in order to fill the
-                'xml2db_input_file_path' column of the root table.
             skip_validation: Should we validate the documents against the schema first?
+            recover: Should we try to parse incorrect XML? (argument passed to lxml parser)
 
         Returns:
             A parsed [`Document`](document.md) object
         """
-        doc = document.Document(self)
-        doc.parse_xml(xml_file, xml_file_path, skip_validation)
+        doc = Document(self)
+        doc.parse_xml(xml_file, skip_validation, recover)
         return doc
 
     def extract_from_database(
         self,
         root_select_where: str,
         force_tz: Union[str, None] = None,
-    ) -> document.Document:
+    ) -> Document:
         """Extract a document from the database, based on a where clause applied to the root table. For instance, you
             can use the column `xml2db_input_file_path` to filter the data loaded from a specific file.
 
@@ -698,6 +715,6 @@ class DataModel:
         Examples:
 
         """
-        doc = document.Document(self)
+        doc = Document(self)
         doc.extract_from_database(self.root_table, root_select_where, force_tz=force_tz)
         return doc

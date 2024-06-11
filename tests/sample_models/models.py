@@ -1,4 +1,5 @@
 import os.path
+import sqlalchemy
 
 models = [
     {
@@ -12,7 +13,14 @@ models = [
                 "config": {
                     "tables": {
                         "shiporder": {"fields": {"orderperson": {"transform": False}}}
-                    }
+                    },
+                    "record_hash_column_name": "record_hash",
+                    "metadata_columns": [
+                        {
+                            "name": "input_file_path",
+                            "type": sqlalchemy.String(256),
+                        }
+                    ],
                 }
             },
             {
@@ -23,6 +31,18 @@ models = [
                         "shiporder": {"fields": {"orderperson": {"transform": False}}},
                         "companyId": {"choice_transform": False},
                     },
+                    "record_hash_column_name": "record_hash",
+                    "metadata_columns": [
+                        {
+                            "name": "xml2db_processed_at",
+                            "type": sqlalchemy.DateTime(timezone=True),
+                            "nullable": True,
+                        },
+                        {
+                            "name": "input_file_path",
+                            "type": sqlalchemy.String(256),
+                        },
+                    ],
                 },
             },
             {
@@ -30,7 +50,13 @@ models = [
                     "tables": {
                         "shiporder": {"reuse": False},
                         "item": {"fields": {"product": {"transform": False}}},
-                    }
+                    },
+                    "metadata_columns": [
+                        {
+                            "name": "input_file_path",
+                            "type": sqlalchemy.String(256),
+                        }
+                    ],
                 }
             },
         ],
@@ -43,20 +69,42 @@ models = [
         "xsd_path": "tests/sample_models/table1/Table1_V2.xsd",
         "xml_path": "tests/sample_models/table1/xml",
         "versions": [
-            {"config": {}},
+            {
+                "config": {
+                    "metadata_columns": [
+                        {
+                            "name": "input_file_path",
+                            "type": sqlalchemy.String(256),
+                        }
+                    ],
+                }
+            },
             {
                 "config": {
                     "row_numbers": True,
                     "as_columnstore": True,
                     "tables": {
                         "REMITTable1": {
-                            "fields": {"contractList": {"transform": "elevate_wo_prefix"}}
+                            "fields": {
+                                "contractList": {"transform": "elevate_wo_prefix"}
+                            }
                         },
                         "TradeReport": {"reuse": False},
                         "OrderReport": {"reuse": False},
                         "legContract": {"reuse": False},
                         "legContractId": {"reuse": False},
                     },
+                    "metadata_columns": [
+                        {
+                            "name": "xml2db_processed_at",
+                            "type": sqlalchemy.DateTime(timezone=True),
+                            "nullable": True,
+                        },
+                        {
+                            "name": "input_file_path",
+                            "type": sqlalchemy.String(256),
+                        },
+                    ],
                 }
             },
         ],
@@ -71,7 +119,16 @@ models = [
         "xsd_path": "tests/sample_models/junit10/junit-10.xsd",
         "xml_path": "tests/sample_models/junit10/xml",
         "versions": [
-            {"config": {}},
+            {
+                "config": {
+                    "metadata_columns": [
+                        {
+                            "name": "input_file_path",
+                            "type": sqlalchemy.String(256),
+                        }
+                    ],
+                }
+            },
             {
                 "config": {
                     "tables": {
@@ -83,6 +140,12 @@ models = [
                             }
                         }
                     },
+                    "metadata_columns": [
+                        {
+                            "name": "input_file_path",
+                            "type": sqlalchemy.String(256),
+                        }
+                    ],
                 }
             },
         ],

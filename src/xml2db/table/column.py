@@ -15,7 +15,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects import mssql, mysql
 
 if TYPE_CHECKING:
-    from xml2db.model import DataModel
+    from ..model import DataModel
 
 logger = logging.getLogger(__name__)
 

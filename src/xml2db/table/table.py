@@ -4,12 +4,12 @@ import sqlalchemy
 from sqlalchemy import Table
 from sqlalchemy.schema import CreateTable, CreateIndex
 
-from xml2db.table.column import DataModelColumn
-from xml2db.table.relations import DataModelRelation1, DataModelRelationN
-from xml2db.exceptions import DataModelConfigError
+from .column import DataModelColumn
+from .relations import DataModelRelation1, DataModelRelationN
+from ..exceptions import DataModelConfigError
 
 if TYPE_CHECKING:
-    from xml2db.model import DataModel
+    from ..model import DataModel
 
 logger = logging.getLogger(__name__)
 
@@ -294,7 +294,9 @@ class DataModelTable:
         for relation in self.relations_n.values():
             relation.create_table(engine, temp)
 
-    def get_insert_temp_records_statements(self, data: Union[dict, None]) -> Iterable[Any]:
+    def get_insert_temp_records_statements(
+        self, data: Union[dict, None]
+    ) -> Iterable[Any]:
         """Yield drop table if exists, create table and insert statement for temporary tables"""
         if data is not None and len(data["records"]) > 0:
             yield self.temp_table.insert(), data["records"]

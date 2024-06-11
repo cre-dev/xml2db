@@ -34,8 +34,8 @@ CREATE TABLE shiporder (
 CREATE TABLE orders (
 	pk_orders INTEGER NOT NULL AUTO_INCREMENT, 
 	batch_id VARCHAR(255), 
-	xml2db_input_file_path VARCHAR(256) NOT NULL, 
 	xml2db_processed_at DATETIME, 
+	input_file_path VARCHAR(256), 
 	record_hash BINARY(20), 
 	CONSTRAINT cx_pk_orders PRIMARY KEY (pk_orders), 
 	CONSTRAINT orders_xml2db_record_hash UNIQUE (record_hash)

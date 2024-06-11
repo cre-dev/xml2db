@@ -13,8 +13,8 @@ from lxml import etree
 if TYPE_CHECKING:
     from .model import DataModel
 
-from xml2db.exceptions import DataModelConfigError
-from xml2db.xml_converter import XMLConverter
+from .exceptions import DataModelConfigError
+from .xml_converter import XMLConverter
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,6 @@ class Document:
     def parse_xml(
         self,
         xml_file: Union[str, BytesIO],
-        xml_file_path: str = None,
         skip_validation: bool = True,
         recover: bool = False,
     ) -> None:
@@ -51,23 +50,13 @@ class Document:
 
         Args:
             xml_file: the path or the file object of an XML file to parse
-            xml_file_path: path of the XML file, must be provided if 'xml_file' is provided as a file object
-                (type 'BytesIO'), in order to fill the 'xml2db_input_file_path' column of the root table.
             skip_validation: should we validate the document against the schema first?
-            recover: argument passed to the parser
+            recover: should we try to parse incorrect XML? (argument passed to lxml parser)
         """
-        if isinstance(xml_file, BytesIO):
-            if xml_file_path is None:
-                error_message = (
-                    "If 'xml_file' is provided as a file object (type 'BytesIO') then 'xml_file_path' must be provided "
-                    "too in order to fill the 'xml2db_input_file_path' column of the root table."
-                )
-                logger.error(error_message)
-                raise ValueError(error_message)
-        self.xml_file_path = xml_file_path if xml_file_path is not None else xml_file
+        self.xml_file_path = xml_file[:255] if isinstance(xml_file, str) else "<stream>"
 
         document_tree = self.model.xml_converter.parse_xml(
-            xml_file, self.xml_file_path, skip_validation, recover
+            xml_file, skip_validation, recover
         )
 
         if "document_tree_hook" in self.model.model_config:
@@ -145,7 +134,7 @@ class Document:
                     }
             data = data_model[node["type"]]
 
-            hex_hash = str(node["record_hash"])
+            hex_hash = str(node[self.model.record_hash_column_name])
 
             # if node is reused and a record with identical hash is already inserted, return its pk
             if model_table.is_reused:
@@ -208,7 +197,9 @@ class Document:
                     else:
                         record[f"temp_{rel.field_name}"] = None
 
-            record["record_hash"] = bytes(node["record_hash"])
+            record[self.model.record_hash_column_name] = bytes(
+                node[self.model.record_hash_column_name]
+            )
 
             # add integration meta data if root table
             if model_table.type_name == self.model.root_table:
@@ -365,10 +356,16 @@ class Document:
             int(list(data_index[self.model.root_table]["records"].keys())[0]),
         )
 
-    def insert_into_temp_tables(self) -> None:
+    def insert_into_temp_tables(
+        self, max_lines: int = -1, metadata: dict = None
+    ) -> None:
         """Insert data into temporary tables
 
         (Re)creates temp tables before inserting data.
+
+        Args:
+            max_lines: the maximum number of lines to insert in a single statement
+            metadata: a dict of metadata values to add to the root table
         """
         logger.info(f"Dropping temp tables if exist for {self.xml_file_path}")
         self.model.drop_all_temp_tables()
@@ -377,31 +374,50 @@ class Document:
         self.model.create_all_tables(temp=True)
 
         logger.info(f"Inserting data into temporary tables from {self.xml_file_path}")
+        # write metadata into the root table data
+        root_data = self.data[self.model.root_table]["records"][0]
+        for meta_col in self.model.model_config.get("metadata_columns", []):
+            if meta_col["name"] in metadata:
+                root_data[meta_col["name"]] = metadata[meta_col["name"]]
+        # insert data (order does not really matter)
         for tb in self.model.fk_ordered_tables:
             for query, data in tb.get_insert_temp_records_statements(
                 self.data.get(tb.type_name, None)
             ):
-                with self.model.engine.begin() as conn:
-                    conn.execute(query, data)
+                if max_lines is None or max_lines < 0:
+                    max_lines = len(data)
+                start_idx = 0
+                while start_idx < len(data):
+                    with self.model.engine.begin() as conn:
+                        conn.execute(query, data[start_idx : (start_idx + max_lines)])
+                    start_idx = start_idx + max_lines
 
-    def merge_into_target_tables(self) -> int:
+    def merge_into_target_tables(self, single_transaction: bool = True) -> int:
         """Merge data into target data model
 
-        Execute all update and insert statements needed to merge temporary tables content into target tables, within
-        a single transaction.
+        Execute all update and insert statements needed to merge temporary tables content into target tables.
+
+        Args:
+            single_transaction: should we run all queries in a single transaction, or isolate queries at the minimum
+                scope required to ensure database consistency?
 
         Returns:
             The number of inserted rows
         """
         inserted_rows_count = 0
-        with self.model.engine.begin() as conn:
-            for tb in self.model.fk_ordered_tables:
-                for query in tb.get_merge_temp_records_statements():
-                    result = conn.execute(query)
-                    if query.is_insert:
-                        inserted_rows_count += result.rowcount
+        for tables in (
+            [self.model.fk_ordered_tables]
+            if single_transaction
+            else self.model.transaction_groups
+        ):
+            with self.model.engine.begin() as conn:
+                for tb in tables:
+                    for query in tb.get_merge_temp_records_statements():
+                        result = conn.execute(query)
+                        if query.is_insert:
+                            inserted_rows_count += result.rowcount
         if inserted_rows_count == 0:
-            logger.warning("No rows were inserted!")
+            logger.info("No rows were inserted!")
         else:
             logger.info(f"Inserted rows: {inserted_rows_count}")
 
@@ -410,15 +426,22 @@ class Document:
     def insert_into_target_tables(
         self,
         db_semaphore: multiprocessing.Semaphore = None,
+        single_transaction: bool = True,
+        max_lines: int = -1,
+        metadata: dict = None,
     ) -> int:
         """Insert and merge data into the database
 
         Insert data into temporary tables and then merge temporary tables into target tables.
 
         Args:
-            db_semaphore: An optional semaphore to restrict concurrent insert into the database. When provided, it will
+            db_semaphore: an optional semaphore to restrict concurrent insert into the database. When provided, it will
                 ensure that only one insert operation at a time is performed. It will not limit the write operations to
                 temporary data models, but only the insert from the temporary model to the target model.
+            single_transaction: should we run all queries in a single transaction, or isolate queries at the minimum
+                scope required to ensure database consistency?
+            max_lines: the maximum number of lines to insert in a single statement
+            metadata: a dict of metadata values to add to the root table
 
         Returns:
             The number of inserted rows
@@ -432,7 +455,7 @@ class Document:
             logger.error(e)
             raise
         try:
-            self.insert_into_temp_tables()
+            self.insert_into_temp_tables(max_lines, metadata)
         except Exception as e:
             logger.error(
                 f"Error while importing into temporary tables from {self.xml_file_path}"
@@ -447,7 +470,7 @@ class Document:
                 db_semaphore.acquire()
             try:
                 self.model.create_all_tables()  # Create target tables if not exist
-                inserted_rows = self.merge_into_target_tables()
+                inserted_rows = self.merge_into_target_tables(single_transaction)
             except Exception as e:
                 logger.error(
                     f"Error while merging temporary tables into target tables for {self.xml_file_path}"

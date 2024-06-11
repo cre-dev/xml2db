@@ -3,8 +3,8 @@ from sqlalchemy import Table, Column, ForeignKey, Integer, Index, select
 from typing import TYPE_CHECKING, List, Iterable, Any, Union
 
 if TYPE_CHECKING:
-    from xml2db.table.table import DataModelTable
-    from xml2db.model import DataModel
+    from .table import DataModelTable
+    from .. import DataModel
 
 
 class DataModelRelation:
@@ -202,7 +202,7 @@ class DataModelRelationN(DataModelRelation):
         First, it will update foreign keys in the relationship table to use target tables foreign keys.
         Then, it will insert new relationship records into the target relationship table
 
-        Returns: 
+        Returns:
             sqlalchemy query statements
         """
         if self.other_table.is_reused:

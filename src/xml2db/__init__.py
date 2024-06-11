@@ -1,6 +1,6 @@
-from xml2db.model import DataModel
-from xml2db.document import Document
-from xml2db.table import (
+from .model import DataModel
+from .document import Document
+from .table import (
     DataModelTable,
     DataModelTableReused,
     DataModelTableDuplicated,
