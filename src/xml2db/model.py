@@ -672,6 +672,7 @@ class DataModel:
         self,
         xml_file: Union[str, BytesIO],
         skip_validation: bool = True,
+        iterparse: bool = True,
         recover: bool = False,
     ) -> Document:
         """Parse an XML document based on this data model
@@ -681,13 +682,19 @@ class DataModel:
         Args:
             xml_file: The path or the file object of an XML file to parse
             skip_validation: Should we validate the documents against the schema first?
+            iterparse: Parse XML using iterative parsing, which is a bit slower but uses less memory
             recover: Should we try to parse incorrect XML? (argument passed to lxml parser)
 
         Returns:
             A parsed [`Document`](document.md) object
         """
         doc = Document(self)
-        doc.parse_xml(xml_file, skip_validation, recover)
+        doc.parse_xml(
+            xml_file=xml_file,
+            skip_validation=skip_validation,
+            iterparse=iterparse,
+            recover=recover,
+        )
         return doc
 
     def extract_from_database(

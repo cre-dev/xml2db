@@ -36,7 +36,7 @@ flowchart TB
     subgraph "<a href='../data_model/#xml2db.model.DataModel.parse_xml' style='color:var(--md-code-fg-color)'>DataModel.parse_xml</a>"
         direction TB
         A[XML file]-- "<a href='../xml_converter/#xml2db.xml_converter.XMLConverter.parse_xml' style='color:var(--md-code-fg-color)'>XMLConverter.parse_xml</a>" -->B[Document tree]
-        B-- "Document._compute_records_hashes\n<a href='../document/#xml2db.document.Document.doc_tree_to_flat_data' style='color:var(--md-code-fg-color)'>Document.doc_tree_to_flat_data</a>" -->C[Flat data model]
+        B-- "<a href='../document/#xml2db.document.Document.doc_tree_to_flat_data' style='color:var(--md-code-fg-color)'>Document.doc_tree_to_flat_data</a>" -->C[Flat data model]
     end
     C -.- D
     subgraph "<a href='../document/#xml2db.document.Document.insert_into_target_tables' style='color:var(--md-code-fg-color)'>Document.insert_into_target_tables</a>"

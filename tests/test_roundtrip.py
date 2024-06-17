@@ -1,7 +1,7 @@
 import os
 import pytest
 from lxml import etree
-from xml2db.xml_converter import XMLConverter
+from xml2db.xml_converter import XMLConverter, remove_record_hash
 
 from .fixtures import setup_db_model, conn_string
 from .sample_models import models
@@ -76,7 +76,7 @@ def test_database_document_tree_roundtrip(setup_db_model, model_config):
         # parse file to doctree for reference
         converter = XMLConverter(model)
         converter.parse_xml(file, file)
-        converter._remove_record_hash(converter.document_tree)
+        remove_record_hash(converter.document_tree)
 
         assert doc.flat_data_to_doc_tree() == converter.document_tree
 
@@ -108,6 +108,6 @@ def test_database_single_document_tree_roundtrip(setup_db_model, model_config):
     # parse file to doctree for reference
     converter = XMLConverter(model)
     converter.parse_xml(file_path, file_path)
-    converter._remove_record_hash(converter.document_tree)
+    remove_record_hash(converter.document_tree)
 
     assert doc.flat_data_to_doc_tree() == converter.document_tree

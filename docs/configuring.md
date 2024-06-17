@@ -16,9 +16,56 @@ The column types can also be configured to override the default type mapping, us
     diagram (see the [Getting started](getting_started.md) page for directions on how to visualize data models) and 
     then adapt the configuration if need be.
 
-Configuration options are described below.  
+Configuration options are described below. Some options can be set at the model level, others at the table level and
+others at the field level. The general structure of the configuration dict is the following:
 
-## Field level config
+```py title="Model config general structure" linenums="1" 
+{
+    "document_tree_hook": None,
+    "document_tree_node_hook": None,
+    "row_numbers": False,
+    "as_columnstore": False,
+    "metadata_columns": None,
+    "tables": {
+        "table1": {
+            "reuse": True,
+            "choice_transform": False,
+            "fields": {
+                "my_column": {
+                    "type": None #default type
+                } 
+            }
+        }
+    }
+}
+```
+
+## Model configuration
+
+The following options can be passed as a top-level keys of the model configuration `dict`:
+
+* `document_tree_hook` (`Callable`): sets a hook function which can modify the data extracted from the XML. It gives direct
+access to the underlying tree data structure just before it is extracted to be loaded to the database. This can be used,
+for instance, to prune or modify some parts of the document tree before loading it into the database. The document tree
+should of course stay compatible with the data model.
+* `document_tree_node_hook` (`Callable`): sets a hook function which can modify the data extracted from the XML. It is
+similar with `document_tree_hook`, but it is call as soon as a node is completed, not waiting for the entire parsing to
+finish. It is especially useful if you intend to filter out some nodes and reduce memory footprint while parsing.
+* `row_numbers` (`bool`): adds `xml2db_row_number` columns either to `n-n` relationships tables, or directly to data tables when 
+deduplication of rows is opted out. This allows recording the original order of elements in the source XML, which is not
+always respected otherwise. It was implemented primarily for round-trip tests, but could serve other purposes. The 
+default value is `False` (disabled).
+* `as_columnstore` (`bool`): for MS SQL Server, create clustered columnstore indexes on all tables. This can be also set up at
+the table level for each table. However, for `n-n` relationships tables, this option is the only way to configure the
+clustered columnstore indexes. The default value is `False` (disabled).
+* `metadata_columns` (`list`): a list of extra columns that you want to add to the root table of your model. This is
+useful for instance to add the name of the file which has been parsed, or a timestamp, etc. Columns should be specified
+as dicts, the only required keys are `name` and `type` (a SQLAlchemy type object); other keys will be passed directly
+as keyword arguments to `sqlalchemy.Column`. Actual values need to be passed to 
+[`Document.insert_into_target_tables`](api/document.md#xml2db.document.Document.insert_into_target_tables) for each 
+parsed documents, as a `dict`, using the `metadata` argument.
+
+## Fields configuration
 
 These configuration options are defined for a specific field of a specific table. A "field" refers to a column in the
 table, or a child table.
@@ -140,7 +187,7 @@ timeInterval_end[1, 1]: string
     }
     ```
 
-## Table level config
+## Tables configuration
 
 ### Simplify "choice groups"
 
@@ -227,19 +274,3 @@ on tables. However, for `n-n` relationships tables, this option needs to be set 
 is `False` (disabled).
 
 Configuration: `"as_columnstore":` `False` (default) or `True`
-
-## Global options
-
-These options can be passed as a top-level keys of the model configuration `dict`:
-
-* `document_tree_hook` (`Callable`): sets a hook function which can modify the data extracted from the XML. It gives direct
-access to the underlying tree data structure just before it is extracted to be loaded to the database. This can be used,
-for instance, to prune or modify some parts of the document tree before loading it into the database. The document tree
-should of course stay compatible with the data model.
-* `row_numbers` (`bool`): adds `xml2db_row_number` columns either to `n-n` relationships tables, or directly to data tables when 
-deduplication of rows is opted out. This allows recording the original order of elements in the source XML, which is not
-always respected otherwise. It was implemented primarily for round-trip tests, but could serve other purposes. The 
-default value is `False` (disabled).
-* `as_columnstore` (`bool`): for MS SQL Server, create clustered columnstore indexes on all tables. This can be also set up at
-the table level for each table. However, for `n-n` relationships tables, this option is the only way to configure the
-clustered columnstore indexes. The default value is `False` (disabled).

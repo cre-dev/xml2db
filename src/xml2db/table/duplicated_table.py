@@ -7,8 +7,6 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     Index,
     Boolean,
-    DateTime,
-    String,
     select,
     and_,
 )

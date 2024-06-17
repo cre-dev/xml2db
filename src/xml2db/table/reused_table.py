@@ -6,7 +6,6 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     UniqueConstraint,
     Boolean,
-    String,
     select,
 )
 

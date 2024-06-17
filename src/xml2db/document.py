@@ -39,6 +39,7 @@ class Document:
         self,
         xml_file: Union[str, BytesIO],
         skip_validation: bool = True,
+        iterparse: bool = True,
         recover: bool = False,
     ) -> None:
         """Parse an XML document and apply transformation corresponding to the target data model
@@ -49,14 +50,19 @@ class Document:
         be inserted in the database.
 
         Args:
-            xml_file: the path or the file object of an XML file to parse
-            skip_validation: should we validate the document against the schema first?
-            recover: should we try to parse incorrect XML? (argument passed to lxml parser)
+            xml_file: The path or the file object of an XML file to parse
+            skip_validation: Should we validate the document against the schema first?
+            iterparse: Parse XML using iterative parsing, which is a bit slower but uses less memory
+            recover: Should we try to parse incorrect XML? (argument passed to lxml parser)
         """
         self.xml_file_path = xml_file[:255] if isinstance(xml_file, str) else "<stream>"
 
         document_tree = self.model.xml_converter.parse_xml(
-            xml_file, skip_validation, recover
+            xml_file=xml_file,
+            file_path=self.xml_file_path,
+            skip_validation=skip_validation,
+            recover=recover,
+            iterparse=iterparse,
         )
 
         if "document_tree_hook" in self.model.model_config:
@@ -134,7 +140,7 @@ class Document:
                     }
             data = data_model[node["type"]]
 
-            hex_hash = str(node[self.model.record_hash_column_name])
+            hex_hash = str(node["record_hash"])
 
             # if node is reused and a record with identical hash is already inserted, return its pk
             if model_table.is_reused:
@@ -197,9 +203,7 @@ class Document:
                     else:
                         record[f"temp_{rel.field_name}"] = None
 
-            record[self.model.record_hash_column_name] = bytes(
-                node[self.model.record_hash_column_name]
-            )
+            record[self.model.record_hash_column_name] = bytes(node["record_hash"])
 
             # add integration meta data if root table
             if model_table.type_name == self.model.root_table:
@@ -364,8 +368,9 @@ class Document:
         (Re)creates temp tables before inserting data.
 
         Args:
-            max_lines: the maximum number of lines to insert in a single statement
-            metadata: a dict of metadata values to add to the root table
+            max_lines: The maximum number of lines to insert in a single statement
+            metadata: A dict of metadata values to add to the root table (a value for each key defined in
+                `metadata_columns` passed to model config)
         """
         logger.info(f"Dropping temp tables if exist for {self.xml_file_path}")
         self.model.drop_all_temp_tables()
@@ -398,7 +403,7 @@ class Document:
         Execute all update and insert statements needed to merge temporary tables content into target tables.
 
         Args:
-            single_transaction: should we run all queries in a single transaction, or isolate queries at the minimum
+            single_transaction: Should we run all queries in a single transaction, or isolate queries at the minimum
                 scope required to ensure database consistency?
 
         Returns:
@@ -435,13 +440,15 @@ class Document:
         Insert data into temporary tables and then merge temporary tables into target tables.
 
         Args:
-            db_semaphore: an optional semaphore to restrict concurrent insert into the database. When provided, it will
+            db_semaphore: An optional semaphore to restrict concurrent insert into the database. When provided, it will
                 ensure that only one insert operation at a time is performed. It will not limit the write operations to
                 temporary data models, but only the insert from the temporary model to the target model.
-            single_transaction: should we run all queries in a single transaction, or isolate queries at the minimum
+            single_transaction: Should we run all queries in a single transaction, or isolate queries at the minimum
                 scope required to ensure database consistency?
-            max_lines: the maximum number of lines to insert in a single statement
-            metadata: a dict of metadata values to add to the root table
+            max_lines: The maximum number of lines to insert in a single statement when loading data to the temporary
+                tables
+            metadata: A dict of metadata values to add to the root table (a value for each key defined in
+                `metadata_columns` passed to model config)
 
         Returns:
             The number of inserted rows
@@ -674,7 +681,7 @@ class Document:
         return flat_tables
 
     def __repr__(self) -> str:
-        """Output a repr string for the current document with records count"""
+        """Output a repr string for the current document with records count for each table"""
         settings = (
             f"temp_prefix: {self.model.temp_prefix}, db_schema: {self.model.db_schema}"
         )

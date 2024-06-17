@@ -16,6 +16,22 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def remove_record_hash(node) -> None:
+    """Remove hash data recursively from document tree. Only used for tests, in order to compare document trees with
+    data extracted from the database (which does not always store record hash).
+
+    Args:
+        node: a node from the document tree
+    """
+    if "record_hash" in node:
+        del node["record_hash"]
+    if "content" in node:
+        for _, val in node["content"].items():
+            for child in val:
+                if isinstance(child, dict):
+                    remove_record_hash(child)
+
+
 class XMLConverter:
     def __init__(self, data_model: "DataModel", document_tree: dict = None):
         """A class to convert data from document tree format (nested dict) to and from XML.
@@ -33,6 +49,7 @@ class XMLConverter:
         file_path: str = None,
         skip_validation: bool = False,
         recover: bool = False,
+        iterparse: bool = True,
     ) -> dict:
         """Parse an XML document into a nested dict and performs the simplifications defined in the
         DataModel object ("pull" child to upper level, transform a choice model into "type" and "value"
@@ -43,22 +60,123 @@ class XMLConverter:
             file_path: The file path to be printed in logs
             skip_validation: Whether we should validate XML against the schema before parsing
             recover: Try to process malformed XML (lxml option)
+            iterparse: Parse XML using iterative parsing, which is a bit slower but uses less memory
 
         Returns:
             The parsed data in the document tree format (nested dict)
         """
 
+        xt = None
+        if not iterparse:
+            logger.info("Parsing XML file")
+            xt = etree.parse(xml_file)
+
         if skip_validation:
             logger.info("Skipping XML file validation")
         else:
             logger.info("Validating XML file against the schema")
-            if not self.model.xml_schema.is_valid(xml_file):
+            if not self.model.xml_schema.is_valid(xt if xt else xml_file):
                 logger.error(f"XML file {file_path} does not conform with the schema")
                 raise ValueError(
                     f"XML file {file_path} does not conform with the schema"
                 )
             logger.info("XML file conforms with the schema")
 
+        if iterparse:
+            self.document_tree = self._parse_iterative(xml_file, recover)
+        else:
+            self.document_tree = self._parse_element_tree(xt)
+
+        return self.document_tree
+
+    def _parse_element_tree(self, xt: etree.ElementTree) -> dict:
+        """Parse an etree.ElementTree recursively
+
+        Args:
+            xt: an XML ElementTree object
+
+        Returns:
+            The parsed document tree (nested dict)
+        """
+        if self.model.tables[self.model.root_table].is_virtual_node:
+            doc = etree.Element(self.model.root_table)
+            doc.append(xt.getroot())
+        else:
+            doc = xt.getroot()
+        hash_maps = {}
+
+        return self._parse_xml_node(self.model.root_table, doc, True, hash_maps)
+
+    def _parse_xml_node(
+        self, node_type: str, node: etree.Element, compute_hash: bool, hash_maps: dict
+    ) -> dict:
+        """Parse nodes of an XML document into a dict recursively
+
+        Args:
+            node_type: type of the node to parse
+            node: lxml node object
+            compute_hash: should we compute hash and deduplicate?
+            hash_maps: a dict referencing nodes based on their hash
+
+        Returns:
+            a dict representing the node content
+        """
+
+        result = {"type": node_type, "content": {}}
+
+        for key, val in node.attrib.items():
+            if (
+                key
+                != "{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation"
+            ):
+                result["content"][key] = [val]
+
+        if node.text and node.text.strip():
+            result["content"]["value"] = [node.text.strip()]
+
+        for element in node.iterchildren():
+            key = element.tag.split("}")[1] if "}" in element.tag else element.tag
+            node_type_key = (node_type, key)
+            value = None
+            if element.text and element.text.strip():
+                value = element.text
+            transform = self.model.fields_transforms.get(node_type_key, (None, "join"))[
+                1
+            ]
+            if transform != "join":
+                value = self._parse_xml_node(
+                    self.model.fields_transforms[node_type_key][0],
+                    element,
+                    transform not in ["elevate", "elevate_wo_prefix"],
+                    hash_maps,
+                )
+            if key in result["content"]:
+                result["content"][key].append(value)
+            else:
+                result["content"][key] = [value]
+
+        self._transform_node(result)
+
+        if compute_hash:
+            return self._compute_hash_deduplicate(result, hash_maps)
+
+        return result
+
+    def _parse_iterative(
+        self, xml_file: Union[str, BytesIO], recover: bool = False
+    ) -> dict:
+        """Parse an XML file into a document tree (nested dict) in an iterative fashion.
+
+        This method uses etree.iterparse and does not load the entire XML document in memory.
+        It saves memory, especially if you decide to filter out nodes using 'document_tree_node_hook' hook.
+
+        Args:
+            xml_file: an XML file to parse
+            recover: should we try to parse incorrect XML?
+
+        Returns:
+            A document tree (nested dict)
+        """
         nodes_stack = [
             {
                 "type": (
@@ -106,32 +224,7 @@ class XMLConverter:
                         node["content"]["value"] = [element.text.strip()]
                     self._transform_node(node)
                     if transform not in ["elevate", "elevate_wo_prefix"]:
-                        node[self.model.record_hash_column_name] = (
-                            self._compute_node_hash(node)
-                        )
-                        if node_type not in hash_maps:
-                            hash_maps[node_type] = {}
-                        if (
-                            node[self.model.record_hash_column_name]
-                            in hash_maps[node_type]
-                        ):
-                            node = hash_maps[node_type][
-                                node[self.model.record_hash_column_name]
-                            ]
-                        else:
-                            if "document_tree_node_hook" in self.model.model_config:
-                                if not callable(
-                                    self.model.model_config["document_tree_node_hook"]
-                                ):
-                                    raise DataModelConfigError(
-                                        "document_tree_node_hook provided in config must be callable"
-                                    )
-                                node = self.model.model_config[
-                                    "document_tree_node_hook"
-                                ](node)
-                            hash_maps[node_type][
-                                node[self.model.record_hash_column_name]
-                            ] = node
+                        node = self._compute_hash_deduplicate(node, hash_maps)
                     if node:
                         if key in nodes_stack[-1]["content"]:
                             nodes_stack[-1]["content"][key].append(node)
@@ -144,14 +237,16 @@ class XMLConverter:
         if nodes_stack[0]["type"]:
             res = nodes_stack[0]
             self._transform_node(res)
-            res[self.model.record_hash_column_name] = self._compute_node_hash(res)
-            self.document_tree = res
-            return res
+            return self._compute_hash_deduplicate(res, hash_maps)
         for k, v in nodes_stack[0]["content"].items():
-            self.document_tree = v[0]
-            return self.document_tree
+            return v[0]
 
-    def _transform_node(self, node):
+    def _transform_node(self, node: dict):
+        """Apply transformations to a given node, in place
+
+        Args:
+            node: the node to transform
+        """
         for key in list(node["content"]):
             node_type_key = (node["type"], key)
             if node_type_key in self.model.fields_transforms:
@@ -177,7 +272,7 @@ class XMLConverter:
             return self.model.fields_transforms.get(node_type_key, (None, "join"))
         return self.model.root_table, None
 
-    def _compute_node_hash(self, node: dict) -> bytes:
+    def _compute_hash_deduplicate(self, node: dict, hash_maps: dict) -> dict:
         """
         A function to compute hash for a document tree node dict
 
@@ -185,7 +280,7 @@ class XMLConverter:
             node: a document tree node dict
 
         Returns:
-            The hash digest
+            a node after deduplication
         """
         h = sha1()
         table = self.model.tables[node["type"]]
@@ -194,32 +289,32 @@ class XMLConverter:
                 h.update(str(node["content"].get(name, None)).encode("utf-8"))
             elif field_type == "rel1":
                 h.update(
-                    node["content"][name][0][self.model.record_hash_column_name]
+                    node["content"][name][0]["record_hash"]
                     if name in node["content"]
                     else b""
                 )
             elif field_type == "reln":
-                h_children = [
-                    v[self.model.record_hash_column_name]
-                    for v in node["content"].get(name, [])
-                ]
+                h_children = [v["record_hash"] for v in node["content"].get(name, [])]
                 for h_child in sorted(h_children):
                     h.update(h_child)
-        return h.digest()
+        node_hash = h.digest()
+        node["record_hash"] = node_hash
 
-    def _remove_record_hash(self, node) -> None:
-        """Remove hash data recursively from document tree. Only used for tests, in order to compare document trees
+        node_type = node["type"]
+        if node_type not in hash_maps:
+            hash_maps[node_type] = {}
+        if node_hash in hash_maps[node_type]:
+            node = hash_maps[node_type][node_hash]
+        else:
+            if "document_tree_node_hook" in self.model.model_config:
+                if not callable(self.model.model_config["document_tree_node_hook"]):
+                    raise DataModelConfigError(
+                        "document_tree_node_hook provided in config must be callable"
+                    )
+                node = self.model.model_config["document_tree_node_hook"](node)
+            hash_maps[node_type][node_hash] = node
 
-        Args:
-            node: a node from the document tree
-        """
-        if self.model.record_hash_column_name in node:
-            del node[self.model.record_hash_column_name]
-        if "content" in node:
-            for _, val in node["content"].items():
-                for child in val:
-                    if isinstance(child, dict):
-                        self._remove_record_hash(child)
+        return node
 
     def to_xml(
         self, out_file: str = None, nsmap: dict = None, indent: str = "  "
