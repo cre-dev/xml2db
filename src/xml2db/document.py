@@ -1,7 +1,6 @@
 import csv
 import datetime
 import logging
-import multiprocessing
 from io import BytesIO
 from typing import Union, TYPE_CHECKING, Dict
 from zoneinfo import ZoneInfo
@@ -430,7 +429,6 @@ class Document:
 
     def insert_into_target_tables(
         self,
-        db_semaphore: multiprocessing.Semaphore = None,
         single_transaction: bool = True,
         max_lines: int = -1,
         metadata: dict = None,
@@ -440,9 +438,6 @@ class Document:
         Insert data into temporary tables and then merge temporary tables into target tables.
 
         Args:
-            db_semaphore: An optional semaphore to restrict concurrent insert into the database. When provided, it will
-                ensure that only one insert operation at a time is performed. It will not limit the write operations to
-                temporary data models, but only the insert from the temporary model to the target model.
             single_transaction: Should we run all queries in a single transaction, or isolate queries at the minimum
                 scope required to ensure database consistency?
             max_lines: The maximum number of lines to insert in a single statement when loading data to the temporary
@@ -473,8 +468,6 @@ class Document:
             logger.info(
                 f"Merging temporary tables into target tables for {self.xml_file_path}"
             )
-            if db_semaphore is not None:
-                db_semaphore.acquire()
             try:
                 self.model.create_all_tables()  # Create target tables if not exist
                 inserted_rows = self.merge_into_target_tables(single_transaction)
@@ -484,9 +477,6 @@ class Document:
                 )
                 logger.error(e)
                 raise
-            finally:
-                if db_semaphore is not None:
-                    db_semaphore.release()
         finally:
             logger.info(f"Dropping temporary tables for {self.xml_file_path}")
             self.model.drop_all_temp_tables()

@@ -67,9 +67,9 @@ class XMLConverter:
         """
 
         xt = None
-        if not iterparse:
+        if not iterparse or (not skip_validation and recover):
             logger.info("Parsing XML file")
-            xt = etree.parse(xml_file)
+            xt = etree.parse(xml_file, parser=etree.XMLParser(recover=recover))
 
         if skip_validation:
             logger.info("Skipping XML file validation")

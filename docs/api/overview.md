@@ -28,8 +28,15 @@
 ## *Advanced use:* loading data into the database
 
 The flow chart below presents data conversions used to load an XML file into the database, showing the functions used 
-for lower level steps. It can be useful for advanced use case if you want for instance to transform the data in 
-intermediate steps.
+for lower level steps. It can be useful for advanced use cases, for instance:
+
+* transforming the data in intermediate steps,
+* adding logging,
+* limiting concurrent access to the database within a multiprocess setup, etc.
+
+For those scenarios you can easily reimplement 
+[`Document.insert_into_target_tables`](document.md/#xml2db.document.Document.insert_into_target_tables) to suit your 
+needs, using lower level functions.
 
 ```mermaid
 flowchart TB
@@ -49,8 +56,7 @@ flowchart TB
 ## *Advanced use:* get data from the database back to XML
 
 The flow chart below presents data conversions used to get back data from the database into XML, showing the functions 
-used for lower level steps. It can be useful for advanced use case if you want for instance to transform the data in 
-intermediate steps.
+used for lower level steps.
 
 ```mermaid
 flowchart TB
