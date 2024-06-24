@@ -1,5 +1,6 @@
 import os.path
 import sqlalchemy
+import hashlib
 
 models = [
     {
@@ -32,6 +33,8 @@ models = [
                         "companyId": {"choice_transform": False},
                     },
                     "record_hash_column_name": "record_hash",
+                    "record_hash_constructor": hashlib.md5,
+                    "record_hash_size": 16,
                     "metadata_columns": [
                         {
                             "name": "xml2db_processed_at",

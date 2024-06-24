@@ -4,6 +4,7 @@ from datetime import datetime
 from io import BytesIO
 from typing import Iterable, Union
 from uuid import uuid4
+import hashlib
 
 import xmlschema
 import sqlalchemy
@@ -138,6 +139,10 @@ class DataModel:
         self.record_hash_column_name = self.model_config.get(
             "record_hash_column_name", "xml2db_record_hash"
         )
+        self.record_hash_constructor = self.model_config.get(
+            "record_hash_constructor", hashlib.sha1
+        )
+        self.record_hash_size = self.model_config.get("record_hash_size", 20)
         self.types_transforms = {}
         self.fields_transforms = {}
         self.ordered_tables_keys = []

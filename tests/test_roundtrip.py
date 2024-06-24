@@ -76,9 +76,8 @@ def test_database_document_tree_roundtrip(setup_db_model, model_config):
         # parse file to doctree for reference
         converter = XMLConverter(model)
         converter.parse_xml(file, file)
-        remove_record_hash(converter.document_tree)
 
-        assert doc.flat_data_to_doc_tree() == converter.document_tree
+        assert doc.flat_data_to_doc_tree() == remove_record_hash(converter.document_tree)
 
 
 @pytest.mark.skip
@@ -108,6 +107,5 @@ def test_database_single_document_tree_roundtrip(setup_db_model, model_config):
     # parse file to doctree for reference
     converter = XMLConverter(model)
     converter.parse_xml(file_path, file_path)
-    remove_record_hash(converter.document_tree)
 
-    assert doc.flat_data_to_doc_tree() == converter.document_tree
+    assert doc.flat_data_to_doc_tree() == remove_record_hash(converter.document_tree)

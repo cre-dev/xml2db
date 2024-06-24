@@ -64,6 +64,10 @@ as dicts, the only required keys are `name` and `type` (a SQLAlchemy type object
 as keyword arguments to `sqlalchemy.Column`. Actual values need to be passed to 
 [`Document.insert_into_target_tables`](api/document.md#xml2db.document.Document.insert_into_target_tables) for each 
 parsed documents, as a `dict`, using the `metadata` argument.
+* `record_hash_column_name`: the column name to use to store records hash data (defaults to `xml2db_record_hash`).
+* `record_hash_constructor`: a function used to build a hash, with a signature similar to `hashlib` constructor 
+functions (defaults to `hashlib.sha1`).
+* `record_hash_size`: the byte size of the record hash (defaults to 20, which is the size of a `sha-1` hash).
 
 ## Fields configuration
 

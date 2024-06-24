@@ -94,57 +94,57 @@ class Document:
         converter.document_tree = self.flat_data_to_doc_tree()
         return converter.to_xml(out_file=out_file, nsmap=nsmap, indent=indent)
 
-    def doc_tree_to_flat_data(self, document_tree: dict) -> dict:
+    def doc_tree_to_flat_data(self, document_tree: tuple) -> dict:
         """Convert document tree (nested dict) to flat tables data model to prepare database import
 
         Args:
-            document_tree: A nested dict which represents an XML document
+            document_tree: A tuple (node_type, content, hash) containing the document tree
 
         Returns:
             A dict containing flat tables
         """
 
         def _extract_node(
-            node: Dict, pk_parent_node: int, row_number: int, data_model: dict
+            node: tuple, pk_parent_node: int, row_number: int, data_model: dict
         ) -> int:
             """Extract nodes recursively
 
             Args:
-                node: a dict containing a node of the document tree
-                pk_parent_node: the primary key of its parent node
-                data_model: the dict to write output to
+                node: A tuple (node_type, content, hash) containing a node of the document tree
+                pk_parent_node: The primary key of its parent node
+                data_model: The dict to write output to
 
             Returns:
-                the primary key given to this node
+                The primary key given to this node
             """
 
+            node_type, content, node_hash = node
+
             # get the corresponding table model
-            model_table = self.model.tables[node["type"]]
+            model_table = self.model.tables[node[0]]
 
             # initialize data structure
-            if node["type"] not in data_model:
-                data_model[node["type"]] = {"next_pk": 1, "records": []}
+            if node_type not in data_model:
+                data_model[node_type] = {"next_pk": 1, "records": []}
                 if model_table.is_reused:
-                    data_model[node["type"]]["hashmap"] = {}
+                    data_model[node_type]["hashmap"] = {}
                 if any(
                     [
                         rel.other_table.is_reused
                         for rel in model_table.relations_n.values()
                     ]
                 ):
-                    data_model[node["type"]]["relations_n"] = {
+                    data_model[node_type]["relations_n"] = {
                         rel.rel_table_name: {"next_pk": 1, "records": []}
                         for rel in model_table.relations_n.values()
                         if rel.other_table.is_reused
                     }
-            data = data_model[node["type"]]
-
-            hex_hash = str(node["record_hash"])
+            data = data_model[node_type]
 
             # if node is reused and a record with identical hash is already inserted, return its pk
             if model_table.is_reused:
-                if hex_hash in data["hashmap"]:
-                    return data["hashmap"][hex_hash]
+                if node_hash in data["hashmap"]:
+                    return data["hashmap"][node_hash]
 
             record = {}
 
@@ -162,17 +162,15 @@ class Document:
             # build record from fields for columns and n-1 relations
             for field_type, key, _ in model_table.fields:
                 if field_type == "col":
-                    if key in node["content"]:
+                    if key in content:
                         if model_table.columns[key].data_type in ["decimal", "float"]:
-                            val = [float(v) for v in node["content"][key]]
+                            val = [float(v) for v in content[key]]
                         elif model_table.columns[key].data_type == "integer":
-                            val = [int(v) for v in node["content"][key]]
+                            val = [int(v) for v in content[key]]
                         elif model_table.columns[key].data_type == "boolean":
-                            val = [
-                                v == "true" or v == "1" for v in node["content"][key]
-                            ]
+                            val = [v == "true" or v == "1" for v in content[key]]
                         else:
-                            val = node["content"][key]
+                            val = content[key]
 
                         if len(val) == 1:
                             record[key] = val[0]
@@ -192,9 +190,9 @@ class Document:
 
                 elif field_type == "rel1":
                     rel = model_table.relations_1[key]
-                    if key in node["content"]:
+                    if key in content:
                         record[f"temp_{rel.field_name}"] = _extract_node(
-                            node["content"][key][0],
+                            content[key][0],
                             record_pk,
                             0,
                             data_model,
@@ -202,20 +200,15 @@ class Document:
                     else:
                         record[f"temp_{rel.field_name}"] = None
 
-            record[self.model.record_hash_column_name] = bytes(node["record_hash"])
-
-            # add integration meta data if root table
-            if model_table.type_name == self.model.root_table:
-                record["xml2db_input_file_path"] = self.xml_file_path
-                record["xml2db_processed_at"] = self.model.processed_at
+            record[self.model.record_hash_column_name] = node_hash
 
             # add n-n relationship data for reused children nodes
             for rel in model_table.relations_n.values():
-                if rel.name in node["content"]:
+                if rel.name in content:
                     if rel.other_table.is_reused:
                         rel_data = data["relations_n"][rel.rel_table_name]
                         i = 1
-                        for rel_child in node["content"][rel.name]:
+                        for rel_child in content[rel.name]:
                             rel_row = {
                                 f"temp_fk_{model_table.name}": record_pk,
                                 f"temp_fk_{rel.other_table.name}": _extract_node(
@@ -231,14 +224,14 @@ class Document:
                             i += 1
                     else:
                         i = 1
-                        for rel_child in node["content"][rel.name]:
+                        for rel_child in content[rel.name]:
                             _extract_node(rel_child, record_pk, i, data_model)
                             i += 1
 
             data["records"].append(record)
 
             if model_table.is_reused:
-                data["hashmap"][hex_hash] = record_pk
+                data["hashmap"][node_hash] = record_pk
 
             return record_pk
 
@@ -247,11 +240,11 @@ class Document:
 
         return flat_tables
 
-    def flat_data_to_doc_tree(self) -> dict:
-        """Convert the data stored in flat tables into a document tree (nested dict)
+    def flat_data_to_doc_tree(self) -> tuple:
+        """Convert the data stored in flat tables into a document tree
 
         Returns:
-            The document tree (nested dict)
+            A tuple (node_type, content, hash) containing the document tree
         """
         data_index = {}
 
@@ -294,7 +287,7 @@ class Document:
                             )
                 data_index[tb.type_name]["relations_n"][rel.rel_table_name] = index
 
-        def _build_node(node_type: str, node_pk: int) -> dict:
+        def _build_node(node_type: str, node_pk: int) -> tuple:
             """Build a dict node recursively
 
             Args:
@@ -302,13 +295,11 @@ class Document:
                 node_pk: The node primary key
 
             Returns:
-                A node as a dict
+                A node as a tuple (node_type, content, hash)
             """
             tb = self.model.tables[node_type]
-            node = {
-                "type": node_type,
-                "content": {},
-            }
+            content = {}
+
             record = data_index[node_type]["records"][node_pk]
             for field_type, rel_name, rel in tb.fields:
                 if field_type == "col" and record[rel_name] is not None:
@@ -316,16 +307,16 @@ class Document:
                         "decimal",
                         "float",
                     ]:  # remove trailing ".0" for decimal and float
-                        node["content"][rel_name] = [
+                        content[rel_name] = [
                             value.rstrip("0").rstrip(".") if "." in value else value
                             for value in str(record[rel_name]).split(",")
                         ]
                     elif isinstance(record[rel_name], datetime.datetime):
-                        node["content"][rel_name] = [
+                        content[rel_name] = [
                             record[rel_name].isoformat(timespec="milliseconds")
                         ]
                     else:
-                        node["content"][rel_name] = (
+                        content[rel_name] = (
                             list(csv.reader([str(record[rel_name])], escapechar="\\"))[
                                 0
                             ]
@@ -336,7 +327,7 @@ class Document:
                     field_type == "rel1"
                     and record[f"{temp}{rel.field_name}"] is not None
                 ):
-                    node["content"][rel_name] = [
+                    content[rel_name] = [
                         _build_node(
                             rel.other_table.type_name, record[f"{temp}{rel.field_name}"]
                         )
@@ -346,13 +337,13 @@ class Document:
                     and node_pk
                     in data_index[tb.type_name]["relations_n"][rel.rel_table_name]
                 ):
-                    node["content"][rel_name] = [
+                    content[rel_name] = [
                         _build_node(rel.other_table.type_name, pk)
                         for pk in data_index[tb.type_name]["relations_n"][
                             rel.rel_table_name
                         ][node_pk]
                     ]
-            return node
+            return node_type, content
 
         return _build_node(
             self.model.root_table,

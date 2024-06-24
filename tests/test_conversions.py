@@ -60,8 +60,7 @@ def test_document_tree_to_flat_data(test_config):
 
     # parse XML to document tree
     converter.parse_xml(file_path, file_path)
-    exp_doc_tree = converter.document_tree
-    remove_record_hash(exp_doc_tree)
+    exp_doc_tree = remove_record_hash(converter.document_tree)
 
     # parse XML to document tree and then flat data model
     doc = model.parse_xml(file_path)
