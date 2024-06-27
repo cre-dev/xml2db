@@ -3,8 +3,8 @@ from sqlalchemy import Table, Column, ForeignKey, Integer, Index, select
 from typing import TYPE_CHECKING, List, Iterable, Any, Union
 
 if TYPE_CHECKING:
-    from xml2db.table.table import DataModelTable
-    from xml2db.model import DataModel
+    from .table import DataModelTable
+    from .. import DataModel
 
 
 class DataModelRelation:
@@ -67,7 +67,6 @@ class DataModelRelation1(DataModelRelation):
                 self.field_name,
                 Integer,
                 ForeignKey(f"{self.other_table.name}.pk_{self.other_table.name}"),
-                index=True,
             )
 
     def get_merge_temp_records_statements(self) -> Iterable[Any]:
@@ -121,17 +120,14 @@ class DataModelRelationN(DataModelRelation):
                     else ()
                 ),
             )
-            cl_index = ()
-            if (
-                self.data_model.engine
-                and self.data_model.engine.dialect.name == "mssql"
-                and not self.data_model.model_config["as_columnstore"]
-            ):
+            cl_index = tuple()
+            if self.data_model.db_type == "mssql":
                 # n-n relation tables don't have a primary key, so we define a clustered index on the first FK
                 cl_index = (
                     Index(
                         f"ix_fk_{self.rel_table_name}",
                         f"fk_{self.table.name}",
+                        f"fk_{self.other_table.name}",
                         mssql_clustered=True,
                     ),
                 )
@@ -144,6 +140,7 @@ class DataModelRelationN(DataModelRelation):
                     Integer,
                     ForeignKey(f"{self.table.name}.pk_{self.table.name}"),
                     nullable=False,
+                    index=(cl_index == tuple()),
                 ),
                 Column(
                     f"fk_{self.other_table.name}",
@@ -165,16 +162,6 @@ class DataModelRelationN(DataModelRelation):
                 ),
                 *cl_index,
             )
-
-            # set columnstore index
-            if self.data_model.model_config["as_columnstore"]:
-                self.rel_table.append_constraint(
-                    Index(
-                        f"idx_{self.rel_table.name}_columnstore",
-                        mssql_clustered=True,
-                        mssql_columnstore=True,
-                    )
-                )
 
             if self.table.db_schema is not None:
                 self.rel_table.schema = self.table.db_schema
@@ -202,7 +189,7 @@ class DataModelRelationN(DataModelRelation):
         First, it will update foreign keys in the relationship table to use target tables foreign keys.
         Then, it will insert new relationship records into the target relationship table
 
-        Returns: 
+        Returns:
             sqlalchemy query statements
         """
         if self.other_table.is_reused:

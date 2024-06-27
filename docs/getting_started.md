@@ -117,11 +117,9 @@ Please read the [How it works](how_it_works.md) page to learn more about the pro
 troubleshooting if need be.
 
 !!! note
-    `xml2db` saves metadata for all loaded XML files. These are currently not configurable and create two additional
-    columns in the root table:
-    
-    * `xml2db_input_file_path`: the file path provided to `DataModel.parse_xml`,
-    * `xml2db_processed_at`: the timestamp at which `DataModel.parse_xml` was called.
+    `xml2db` can save metadata for each loaded XML file. These can be configured using the 
+    [`metadata_columns` option](configuring.md#model-configuration) and create additional columns in the root table.
+    It can be used for instance to save file name or loading timestamp.
 
 ## Getting back the data into XML
 

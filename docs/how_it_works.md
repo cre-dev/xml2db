@@ -151,8 +151,8 @@ in memory makes the processing way simpler and faster. We handle files with a si
 
 ### Computing hashes
 
-We compute tree hashes (`sha-1`) recursively by adding to each node's hash the hashes of its children element, be it 
-simple types, attributes or complex types. Children are processed in the specific order they appeared in the XSD schema, 
+We compute tree hashes  recursively by adding to each node's hash the hashes of its children element, be it simple 
+types, attributes or complex types. Children are processed in the specific order they appeared in the XSD schema, 
 so that hashing is really deterministic.
 
 Right after this step, a hook function is called if provided in the configuration (top-level `document_tree_hook` option
@@ -187,7 +187,9 @@ We keep the primary keys from the flat data model created at the previous stage,
 The last step is to merge the temporary tables data into the target tables, while enforcing deduplication, keeping 
 relationships, etc.
 
-This is done by issuing a sequence of `update` and `insert` SQL statements using `sqlalchemy`, in a single transaction.
+This is done by issuing a sequence of `update` and `insert` SQL statements using `sqlalchemy`, in a single transaction
+(default) or in multiple transactions.
+
 The process boils down to:
 
 * inserting missing records into the target tables, 

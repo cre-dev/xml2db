@@ -4,9 +4,9 @@ CREATE TABLE error (
 	type VARCHAR(1000) NULL, 
 	message VARCHAR(1000) NULL, 
 	value VARCHAR(1000) NULL, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_error PRIMARY KEY CLUSTERED (pk_error), 
-	CONSTRAINT error_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT error_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -15,9 +15,9 @@ CREATE TABLE failure (
 	type VARCHAR(1000) NULL, 
 	message VARCHAR(1000) NULL, 
 	value VARCHAR(1000) NULL, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_failure PRIMARY KEY CLUSTERED (pk_failure), 
-	CONSTRAINT failure_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT failure_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -25,9 +25,9 @@ CREATE TABLE property (
 	pk_property INTEGER NOT NULL IDENTITY, 
 	name VARCHAR(1000) NULL, 
 	value VARCHAR(1000) NULL, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_property PRIMARY KEY CLUSTERED (pk_property), 
-	CONSTRAINT property_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT property_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -39,9 +39,9 @@ CREATE TABLE [flakyError] (
 	[system-out] VARCHAR(1000) NULL, 
 	[system-err] VARCHAR(1000) NULL, 
 	value VARCHAR(1000) NULL, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT [cx_pk_flakyError] PRIMARY KEY CLUSTERED ([pk_flakyError]), 
-	CONSTRAINT [flakyError_xml2db_record_hash] UNIQUE (record_hash)
+	CONSTRAINT [flakyError_xml2db_record_hash] UNIQUE (xml2db_record_hash)
 )
 
 
@@ -50,17 +50,17 @@ CREATE TABLE skipped (
 	type VARCHAR(1000) NULL, 
 	message VARCHAR(1000) NULL, 
 	value VARCHAR(1000) NULL, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_skipped PRIMARY KEY CLUSTERED (pk_skipped), 
-	CONSTRAINT skipped_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT skipped_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
 CREATE TABLE properties (
 	pk_properties INTEGER NOT NULL IDENTITY, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_properties PRIMARY KEY CLUSTERED (pk_properties), 
-	CONSTRAINT properties_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT properties_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -80,9 +80,9 @@ CREATE TABLE testcase (
 	[group] VARCHAR(1000) NULL, 
 	[system-out] VARCHAR(8000) NULL, 
 	[system-err] VARCHAR(8000) NULL, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_testcase PRIMARY KEY CLUSTERED (pk_testcase), 
-	CONSTRAINT testcase_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT testcase_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -161,9 +161,9 @@ CREATE TABLE testsuite (
 	version VARCHAR(1000) NULL, 
 	[system-out] VARCHAR(8000) NULL, 
 	[system-err] VARCHAR(8000) NULL, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_testsuite PRIMARY KEY CLUSTERED (pk_testsuite), 
-	CONSTRAINT testsuite_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT testsuite_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -190,9 +190,9 @@ CREATE TABLE testsuites (
 	tests VARCHAR(1000) NULL, 
 	failures VARCHAR(1000) NULL, 
 	errors VARCHAR(1000) NULL, 
-	record_hash BINARY(20) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_testsuites PRIMARY KEY CLUSTERED (pk_testsuites), 
-	CONSTRAINT testsuites_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT testsuites_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -220,11 +220,10 @@ CREATE TABLE junit10 (
 	fk_testcase INTEGER NULL, 
 	fk_testsuite INTEGER NULL, 
 	fk_testsuites INTEGER NULL, 
-	xml2db_input_file_path VARCHAR(256) NOT NULL, 
-	xml2db_processed_at DATETIMEOFFSET NULL, 
-	record_hash BINARY(20) NULL, 
+	input_file_path VARCHAR(256) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_junit10 PRIMARY KEY CLUSTERED (pk_junit10), 
-	CONSTRAINT junit10_xml2db_record_hash UNIQUE (record_hash), 
+	CONSTRAINT junit10_xml2db_record_hash UNIQUE (xml2db_record_hash), 
 	FOREIGN KEY(fk_error) REFERENCES error (pk_error), 
 	FOREIGN KEY(fk_failure) REFERENCES failure (pk_failure), 
 	FOREIGN KEY([fk_flakyError]) REFERENCES [flakyError] ([pk_flakyError]), 
@@ -239,49 +238,47 @@ CREATE TABLE junit10 (
 	FOREIGN KEY(fk_testsuites) REFERENCES testsuites (pk_testsuites)
 )
 
+CREATE CLUSTERED INDEX ix_fk_properties_property ON properties_property (fk_properties, fk_property)
+
 CREATE INDEX ix_properties_property_fk_property ON properties_property (fk_property)
+
+CREATE CLUSTERED INDEX ix_fk_testcase_skipped ON testcase_skipped (fk_testcase, fk_skipped)
 
 CREATE INDEX ix_testcase_skipped_fk_skipped ON testcase_skipped (fk_skipped)
 
+CREATE CLUSTERED INDEX ix_fk_testcase_error ON testcase_error (fk_testcase, fk_error)
+
 CREATE INDEX ix_testcase_error_fk_error ON testcase_error (fk_error)
+
+CREATE CLUSTERED INDEX ix_fk_testcase_failure ON testcase_failure (fk_testcase, fk_failure)
 
 CREATE INDEX ix_testcase_failure_fk_failure ON testcase_failure (fk_failure)
 
+CREATE CLUSTERED INDEX [ix_fk_testcase_rerunFailure_flakyError] ON [testcase_rerunFailure_flakyError] (fk_testcase, [fk_flakyError])
+
 CREATE INDEX [ix_testcase_rerunFailure_flakyError_fk_flakyError] ON [testcase_rerunFailure_flakyError] ([fk_flakyError])
+
+CREATE CLUSTERED INDEX [ix_fk_testcase_rerunError_flakyError] ON [testcase_rerunError_flakyError] (fk_testcase, [fk_flakyError])
 
 CREATE INDEX [ix_testcase_rerunError_flakyError_fk_flakyError] ON [testcase_rerunError_flakyError] ([fk_flakyError])
 
+CREATE CLUSTERED INDEX [ix_fk_testcase_flakyFailure_flakyError] ON [testcase_flakyFailure_flakyError] (fk_testcase, [fk_flakyError])
+
 CREATE INDEX [ix_testcase_flakyFailure_flakyError_fk_flakyError] ON [testcase_flakyFailure_flakyError] ([fk_flakyError])
+
+CREATE CLUSTERED INDEX [ix_fk_testcase_flakyError] ON [testcase_flakyError] (fk_testcase, [fk_flakyError])
 
 CREATE INDEX [ix_testcase_flakyError_fk_flakyError] ON [testcase_flakyError] ([fk_flakyError])
 
+CREATE CLUSTERED INDEX ix_fk_testsuite_properties ON testsuite_properties (fk_testsuite, fk_properties)
+
 CREATE INDEX ix_testsuite_properties_fk_properties ON testsuite_properties (fk_properties)
+
+CREATE CLUSTERED INDEX ix_fk_testsuite_testcase ON testsuite_testcase (fk_testsuite, fk_testcase)
 
 CREATE INDEX ix_testsuite_testcase_fk_testcase ON testsuite_testcase (fk_testcase)
 
+CREATE CLUSTERED INDEX ix_fk_testsuites_testsuite ON testsuites_testsuite (fk_testsuites, fk_testsuite)
+
 CREATE INDEX ix_testsuites_testsuite_fk_testsuite ON testsuites_testsuite (fk_testsuite)
-
-CREATE INDEX ix_junit10_fk_error ON junit10 (fk_error)
-
-CREATE INDEX ix_junit10_fk_failure ON junit10 (fk_failure)
-
-CREATE INDEX [ix_junit10_fk_flakyError] ON junit10 ([fk_flakyError])
-
-CREATE INDEX ix_junit10_fk_properties ON junit10 (fk_properties)
-
-CREATE INDEX ix_junit10_fk_property ON junit10 (fk_property)
-
-CREATE INDEX ix_junit10_fk_skipped ON junit10 (fk_skipped)
-
-CREATE INDEX ix_junit10_fk_testcase ON junit10 (fk_testcase)
-
-CREATE INDEX ix_junit10_fk_testsuite ON junit10 (fk_testsuite)
-
-CREATE INDEX ix_junit10_fk_testsuites ON junit10 (fk_testsuites)
-
-CREATE INDEX [ix_junit10_flakyFailure_fk_flakyError] ON junit10 ([flakyFailure_fk_flakyError])
-
-CREATE INDEX [ix_junit10_rerunError_fk_flakyError] ON junit10 ([rerunError_fk_flakyError])
-
-CREATE INDEX [ix_junit10_rerunFailure_fk_flakyError] ON junit10 ([rerunFailure_fk_flakyError])
 

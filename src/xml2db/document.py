@@ -1,8 +1,6 @@
 import csv
 import datetime
 import logging
-import multiprocessing
-from hashlib import sha1
 from io import BytesIO
 from typing import Union, TYPE_CHECKING, Dict
 from zoneinfo import ZoneInfo
@@ -14,8 +12,8 @@ from lxml import etree
 if TYPE_CHECKING:
     from .model import DataModel
 
-from xml2db.exceptions import DataModelConfigError
-from xml2db.xml_converter import XMLConverter
+from .exceptions import DataModelConfigError
+from .xml_converter import XMLConverter
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +37,9 @@ class Document:
     def parse_xml(
         self,
         xml_file: Union[str, BytesIO],
-        xml_file_path: str = None,
         skip_validation: bool = True,
+        iterparse: bool = True,
+        recover: bool = False,
     ) -> None:
         """Parse an XML document and apply transformation corresponding to the target data model
 
@@ -50,33 +49,22 @@ class Document:
         be inserted in the database.
 
         Args:
-            xml_file: the path or the file object of an XML file to parse
-            xml_file_path: path of the XML file, must be provided if 'xml_file' is provided as a file object
-                (type 'BytesIO'), in order to fill the 'xml2db_input_file_path' column of the root table.
-            skip_validation: should we validate the document against the schema first?
+            xml_file: The path or the file object of an XML file to parse
+            skip_validation: Should we validate the document against the schema first?
+            iterparse: Parse XML using iterative parsing, which is a bit slower but uses less memory
+            recover: Should we try to parse incorrect XML? (argument passed to lxml parser)
         """
-        if isinstance(xml_file, BytesIO):
-            if xml_file_path is None:
-                error_message = (
-                    "If 'xml_file' is provided as a file object (type 'BytesIO') then 'xml_file_path' must be provided "
-                    "too in order to fill the 'xml2db_input_file_path' column of the root table."
-                )
-                logger.error(error_message)
-                raise ValueError(error_message)
-        self.xml_file_path = xml_file_path if xml_file_path is not None else xml_file
+        self.xml_file_path = xml_file[:255] if isinstance(xml_file, str) else "<stream>"
 
         document_tree = self.model.xml_converter.parse_xml(
-            xml_file, self.xml_file_path, skip_validation
+            xml_file=xml_file,
+            file_path=self.xml_file_path,
+            skip_validation=skip_validation,
+            recover=recover,
+            iterparse=iterparse,
         )
 
-        logger.info(f"Computing records hashes for {self.xml_file_path}")
-        self._compute_records_hashes(document_tree)
-
-        if "document_tree_hook" in self.model.model_config:
-            if not callable(self.model.model_config["document_tree_hook"]):
-                raise DataModelConfigError(
-                    "document_tree_hook provided in config must be callable"
-                )
+        if self.model.model_config["document_tree_hook"] is not None:
             logger.info(f"Running document_tree_hook function for {self.xml_file_path}")
             document_tree = self.model.model_config["document_tree_hook"](document_tree)
 
@@ -102,87 +90,57 @@ class Document:
         converter.document_tree = self.flat_data_to_doc_tree()
         return converter.to_xml(out_file=out_file, nsmap=nsmap, indent=indent)
 
-    def _compute_records_hashes(self, node: Dict) -> bytes:
-        """Compute the hash of records recursively, taking into account children, for deduplication purpose.
-
-        Args:
-            node: a node of the parsed document tree
-
-        Returns:
-            the hash string representation of the node
-        """
-        if node is None:
-            return b""
-        h = sha1()
-        table = self.model.tables[node["type"]]
-        for field_type, name, _ in table.fields:
-            if field_type == "col":
-                h.update(str(node["content"].get(name, None)).encode("utf-8"))
-            elif field_type == "rel1":
-                h.update(
-                    self._compute_records_hashes(node["content"].get(name, [None])[0])
-                )
-            elif field_type == "reln":
-                h_children = [
-                    self._compute_records_hashes(v)
-                    for v in node["content"].get(name, [])
-                ]
-                for h_child in sorted(h_children):
-                    h.update(h_child)
-        node["record_hash"] = h.digest()
-        return node["record_hash"]
-
-    def doc_tree_to_flat_data(self, document_tree: dict) -> dict:
+    def doc_tree_to_flat_data(self, document_tree: tuple) -> dict:
         """Convert document tree (nested dict) to flat tables data model to prepare database import
 
         Args:
-            document_tree: A nested dict which represents an XML document
+            document_tree: A tuple (node_type, content, hash) containing the document tree
 
         Returns:
             A dict containing flat tables
         """
 
         def _extract_node(
-            node: Dict, pk_parent_node: int, row_number: int, data_model: dict
+            node: tuple, pk_parent_node: int, row_number: int, data_model: dict
         ) -> int:
             """Extract nodes recursively
 
             Args:
-                node: a dict containing a node of the document tree
-                pk_parent_node: the primary key of its parent node
-                data_model: the dict to write output to
+                node: A tuple (node_type, content, hash) containing a node of the document tree
+                pk_parent_node: The primary key of its parent node
+                data_model: The dict to write output to
 
             Returns:
-                the primary key given to this node
+                The primary key given to this node
             """
 
+            node_type, content, node_hash = node
+
             # get the corresponding table model
-            model_table = self.model.tables[node["type"]]
+            model_table = self.model.tables[node[0]]
 
             # initialize data structure
-            if node["type"] not in data_model:
-                data_model[node["type"]] = {"next_pk": 1, "records": []}
+            if node_type not in data_model:
+                data_model[node_type] = {"next_pk": 1, "records": []}
                 if model_table.is_reused:
-                    data_model[node["type"]]["hashmap"] = {}
+                    data_model[node_type]["hashmap"] = {}
                 if any(
                     [
                         rel.other_table.is_reused
                         for rel in model_table.relations_n.values()
                     ]
                 ):
-                    data_model[node["type"]]["relations_n"] = {
+                    data_model[node_type]["relations_n"] = {
                         rel.rel_table_name: {"next_pk": 1, "records": []}
                         for rel in model_table.relations_n.values()
                         if rel.other_table.is_reused
                     }
-            data = data_model[node["type"]]
-
-            hex_hash = str(node["record_hash"])
+            data = data_model[node_type]
 
             # if node is reused and a record with identical hash is already inserted, return its pk
             if model_table.is_reused:
-                if hex_hash in data["hashmap"]:
-                    return data["hashmap"][hex_hash]
+                if node_hash in data["hashmap"]:
+                    return data["hashmap"][node_hash]
 
             record = {}
 
@@ -200,17 +158,15 @@ class Document:
             # build record from fields for columns and n-1 relations
             for field_type, key, _ in model_table.fields:
                 if field_type == "col":
-                    if key in node["content"]:
+                    if key in content:
                         if model_table.columns[key].data_type in ["decimal", "float"]:
-                            val = [float(v) for v in node["content"][key]]
+                            val = [float(v) for v in content[key]]
                         elif model_table.columns[key].data_type == "integer":
-                            val = [int(v) for v in node["content"][key]]
+                            val = [int(v) for v in content[key]]
                         elif model_table.columns[key].data_type == "boolean":
-                            val = [
-                                v == "true" or v == "1" for v in node["content"][key]
-                            ]
+                            val = [v == "true" or v == "1" for v in content[key]]
                         else:
-                            val = node["content"][key]
+                            val = content[key]
 
                         if len(val) == 1:
                             record[key] = val[0]
@@ -230,9 +186,9 @@ class Document:
 
                 elif field_type == "rel1":
                     rel = model_table.relations_1[key]
-                    if key in node["content"]:
+                    if key in content:
                         record[f"temp_{rel.field_name}"] = _extract_node(
-                            node["content"][key][0],
+                            content[key][0],
                             record_pk,
                             0,
                             data_model,
@@ -240,20 +196,15 @@ class Document:
                     else:
                         record[f"temp_{rel.field_name}"] = None
 
-            record["record_hash"] = bytes(node["record_hash"])
-
-            # add integration meta data if root table
-            if model_table.type_name == self.model.root_table:
-                record["xml2db_input_file_path"] = self.xml_file_path
-                record["xml2db_processed_at"] = self.model.processed_at
+            record[self.model.model_config["record_hash_column_name"]] = node_hash
 
             # add n-n relationship data for reused children nodes
             for rel in model_table.relations_n.values():
-                if rel.name in node["content"]:
+                if rel.name in content:
                     if rel.other_table.is_reused:
                         rel_data = data["relations_n"][rel.rel_table_name]
                         i = 1
-                        for rel_child in node["content"][rel.name]:
+                        for rel_child in content[rel.name]:
                             rel_row = {
                                 f"temp_fk_{model_table.name}": record_pk,
                                 f"temp_fk_{rel.other_table.name}": _extract_node(
@@ -269,14 +220,14 @@ class Document:
                             i += 1
                     else:
                         i = 1
-                        for rel_child in node["content"][rel.name]:
+                        for rel_child in content[rel.name]:
                             _extract_node(rel_child, record_pk, i, data_model)
                             i += 1
 
             data["records"].append(record)
 
             if model_table.is_reused:
-                data["hashmap"][hex_hash] = record_pk
+                data["hashmap"][node_hash] = record_pk
 
             return record_pk
 
@@ -285,11 +236,11 @@ class Document:
 
         return flat_tables
 
-    def flat_data_to_doc_tree(self) -> dict:
-        """Convert the data stored in flat tables into a document tree (nested dict)
+    def flat_data_to_doc_tree(self) -> tuple:
+        """Convert the data stored in flat tables into a document tree
 
         Returns:
-            The document tree (nested dict)
+            A tuple (node_type, content, hash) containing the document tree
         """
         data_index = {}
 
@@ -332,7 +283,7 @@ class Document:
                             )
                 data_index[tb.type_name]["relations_n"][rel.rel_table_name] = index
 
-        def _build_node(node_type: str, node_pk: int) -> dict:
+        def _build_node(node_type: str, node_pk: int) -> tuple:
             """Build a dict node recursively
 
             Args:
@@ -340,13 +291,11 @@ class Document:
                 node_pk: The node primary key
 
             Returns:
-                A node as a dict
+                A node as a tuple (node_type, content, hash)
             """
             tb = self.model.tables[node_type]
-            node = {
-                "type": node_type,
-                "content": {},
-            }
+            content = {}
+
             record = data_index[node_type]["records"][node_pk]
             for field_type, rel_name, rel in tb.fields:
                 if field_type == "col" and record[rel_name] is not None:
@@ -354,16 +303,16 @@ class Document:
                         "decimal",
                         "float",
                     ]:  # remove trailing ".0" for decimal and float
-                        node["content"][rel_name] = [
+                        content[rel_name] = [
                             value.rstrip("0").rstrip(".") if "." in value else value
                             for value in str(record[rel_name]).split(",")
                         ]
                     elif isinstance(record[rel_name], datetime.datetime):
-                        node["content"][rel_name] = [
+                        content[rel_name] = [
                             record[rel_name].isoformat(timespec="milliseconds")
                         ]
                     else:
-                        node["content"][rel_name] = (
+                        content[rel_name] = (
                             list(csv.reader([str(record[rel_name])], escapechar="\\"))[
                                 0
                             ]
@@ -374,7 +323,7 @@ class Document:
                     field_type == "rel1"
                     and record[f"{temp}{rel.field_name}"] is not None
                 ):
-                    node["content"][rel_name] = [
+                    content[rel_name] = [
                         _build_node(
                             rel.other_table.type_name, record[f"{temp}{rel.field_name}"]
                         )
@@ -384,23 +333,30 @@ class Document:
                     and node_pk
                     in data_index[tb.type_name]["relations_n"][rel.rel_table_name]
                 ):
-                    node["content"][rel_name] = [
+                    content[rel_name] = [
                         _build_node(rel.other_table.type_name, pk)
                         for pk in data_index[tb.type_name]["relations_n"][
                             rel.rel_table_name
                         ][node_pk]
                     ]
-            return node
+            return node_type, content
 
         return _build_node(
             self.model.root_table,
             int(list(data_index[self.model.root_table]["records"].keys())[0]),
         )
 
-    def insert_into_temp_tables(self) -> None:
+    def insert_into_temp_tables(
+        self, max_lines: int = -1, metadata: dict = None
+    ) -> None:
         """Insert data into temporary tables
 
         (Re)creates temp tables before inserting data.
+
+        Args:
+            max_lines: The maximum number of lines to insert in a single statement
+            metadata: A dict of metadata values to add to the root table (a value for each key defined in
+                `metadata_columns` passed to model config)
         """
         logger.info(f"Dropping temp tables if exist for {self.xml_file_path}")
         self.model.drop_all_temp_tables()
@@ -409,31 +365,50 @@ class Document:
         self.model.create_all_tables(temp=True)
 
         logger.info(f"Inserting data into temporary tables from {self.xml_file_path}")
+        # write metadata into the root table data
+        root_data = self.data[self.model.root_table]["records"][0]
+        for meta_col in self.model.model_config.get("metadata_columns", []):
+            if meta_col["name"] in metadata:
+                root_data[meta_col["name"]] = metadata[meta_col["name"]]
+        # insert data (order does not really matter)
         for tb in self.model.fk_ordered_tables:
             for query, data in tb.get_insert_temp_records_statements(
                 self.data.get(tb.type_name, None)
             ):
-                with self.model.engine.begin() as conn:
-                    conn.execute(query, data)
+                if max_lines is None or max_lines < 0:
+                    max_lines = len(data)
+                start_idx = 0
+                while start_idx < len(data):
+                    with self.model.engine.begin() as conn:
+                        conn.execute(query, data[start_idx : (start_idx + max_lines)])
+                    start_idx = start_idx + max_lines
 
-    def merge_into_target_tables(self) -> int:
+    def merge_into_target_tables(self, single_transaction: bool = True) -> int:
         """Merge data into target data model
 
-        Execute all update and insert statements needed to merge temporary tables content into target tables, within
-        a single transaction.
+        Execute all update and insert statements needed to merge temporary tables content into target tables.
+
+        Args:
+            single_transaction: Should we run all queries in a single transaction, or isolate queries at the minimum
+                scope required to ensure database consistency?
 
         Returns:
             The number of inserted rows
         """
         inserted_rows_count = 0
-        with self.model.engine.begin() as conn:
-            for tb in self.model.fk_ordered_tables:
-                for query in tb.get_merge_temp_records_statements():
-                    result = conn.execute(query)
-                    if query.is_insert:
-                        inserted_rows_count += result.rowcount
+        for tables in (
+            [self.model.fk_ordered_tables]
+            if single_transaction
+            else self.model.transaction_groups
+        ):
+            with self.model.engine.begin() as conn:
+                for tb in tables:
+                    for query in tb.get_merge_temp_records_statements():
+                        result = conn.execute(query)
+                        if query.is_insert:
+                            inserted_rows_count += result.rowcount
         if inserted_rows_count == 0:
-            logger.warning("No rows were inserted!")
+            logger.info("No rows were inserted!")
         else:
             logger.info(f"Inserted rows: {inserted_rows_count}")
 
@@ -441,23 +416,35 @@ class Document:
 
     def insert_into_target_tables(
         self,
-        db_semaphore: multiprocessing.Semaphore = None,
+        single_transaction: bool = True,
+        max_lines: int = -1,
+        metadata: dict = None,
     ) -> int:
         """Insert and merge data into the database
 
         Insert data into temporary tables and then merge temporary tables into target tables.
 
         Args:
-            db_semaphore: An optional semaphore to restrict concurrent insert into the database. When provided, it will
-                ensure that only one insert operation at a time is performed. It will not limit the write operations to
-                temporary data models, but only the insert from the temporary model to the target model.
+            single_transaction: Should we run all queries in a single transaction, or isolate queries at the minimum
+                scope required to ensure database consistency?
+            max_lines: The maximum number of lines to insert in a single statement when loading data to the temporary
+                tables
+            metadata: A dict of metadata values to add to the root table (a value for each key defined in
+                `metadata_columns` passed to model config)
 
         Returns:
             The number of inserted rows
         """
         try:
             self.model.create_db_schema()
-            self.insert_into_temp_tables()
+        except Exception as e:
+            logger.error(
+                f"Error while creating database schema '{self.model.db_schema}'"
+            )
+            logger.error(e)
+            raise
+        try:
+            self.insert_into_temp_tables(max_lines, metadata)
         except Exception as e:
             logger.error(
                 f"Error while importing into temporary tables from {self.xml_file_path}"
@@ -468,20 +455,15 @@ class Document:
             logger.info(
                 f"Merging temporary tables into target tables for {self.xml_file_path}"
             )
-            if db_semaphore is not None:
-                db_semaphore.acquire()
             try:
                 self.model.create_all_tables()  # Create target tables if not exist
-                inserted_rows = self.merge_into_target_tables()
+                inserted_rows = self.merge_into_target_tables(single_transaction)
             except Exception as e:
                 logger.error(
                     f"Error while merging temporary tables into target tables for {self.xml_file_path}"
                 )
                 logger.error(e)
                 raise
-            finally:
-                if db_semaphore is not None:
-                    db_semaphore.release()
         finally:
             logger.info(f"Dropping temporary tables for {self.xml_file_path}")
             self.model.drop_all_temp_tables()
@@ -676,7 +658,7 @@ class Document:
         return flat_tables
 
     def __repr__(self) -> str:
-        """Output a repr string for the current document with records count"""
+        """Output a repr string for the current document with records count for each table"""
         settings = (
             f"temp_prefix: {self.model.temp_prefix}, db_schema: {self.model.db_schema}"
         )

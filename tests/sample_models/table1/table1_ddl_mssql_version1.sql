@@ -4,9 +4,9 @@ CREATE TABLE [contractTradingHours] (
 	[startTime] VARCHAR(18) NULL, 
 	[endTime] VARCHAR(18) NULL, 
 	date VARCHAR(16) NULL, 
-	record_hash BINARY(20) NULL, 
-	CONSTRAINT [cx_pk_contractTradingHours] PRIMARY KEY NONCLUSTERED ([pk_contractTradingHours]), 
-	CONSTRAINT [contractTradingHours_xml2db_record_hash] UNIQUE (record_hash)
+	xml2db_record_hash BINARY(20) NULL, 
+	CONSTRAINT [cx_pk_contractTradingHours] PRIMARY KEY CLUSTERED ([pk_contractTradingHours]), 
+	CONSTRAINT [contractTradingHours_xml2db_record_hash] UNIQUE (xml2db_record_hash)
 )
 
 
@@ -17,9 +17,9 @@ CREATE TABLE [deliveryProfile] (
 	[daysOfTheWeek] VARCHAR(8000) NULL, 
 	[loadDeliveryStartTime] VARCHAR(8000) NULL, 
 	[loadDeliveryEndTime] VARCHAR(8000) NULL, 
-	record_hash BINARY(20) NULL, 
-	CONSTRAINT [cx_pk_deliveryProfile] PRIMARY KEY NONCLUSTERED ([pk_deliveryProfile]), 
-	CONSTRAINT [deliveryProfile_xml2db_record_hash] UNIQUE (record_hash)
+	xml2db_record_hash BINARY(20) NULL, 
+	CONSTRAINT [cx_pk_deliveryProfile] PRIMARY KEY CLUSTERED ([pk_deliveryProfile]), 
+	CONSTRAINT [deliveryProfile_xml2db_record_hash] UNIQUE (xml2db_record_hash)
 )
 
 
@@ -27,9 +27,9 @@ CREATE TABLE [fixingIndex] (
 	[pk_fixingIndex] INTEGER NOT NULL IDENTITY, 
 	[indexName] VARCHAR(150) NULL, 
 	[indexValue] DOUBLE PRECISION NULL, 
-	record_hash BINARY(20) NULL, 
-	CONSTRAINT [cx_pk_fixingIndex] PRIMARY KEY NONCLUSTERED ([pk_fixingIndex]), 
-	CONSTRAINT [fixingIndex_xml2db_record_hash] UNIQUE (record_hash)
+	xml2db_record_hash BINARY(20) NULL, 
+	CONSTRAINT [cx_pk_fixingIndex] PRIMARY KEY CLUSTERED ([pk_fixingIndex]), 
+	CONSTRAINT [fixingIndex_xml2db_record_hash] UNIQUE (xml2db_record_hash)
 )
 
 
@@ -40,9 +40,9 @@ CREATE TABLE [optionDetails] (
 	[optionExerciseDate] VARCHAR(8000) NULL, 
 	[optionStrikePrice_value] DOUBLE PRECISION NULL, 
 	[optionStrikePrice_currency] CHAR(3) NULL, 
-	record_hash BINARY(20) NULL, 
-	CONSTRAINT [cx_pk_optionDetails] PRIMARY KEY NONCLUSTERED ([pk_optionDetails]), 
-	CONSTRAINT [optionDetails_xml2db_record_hash] UNIQUE (record_hash)
+	xml2db_record_hash BINARY(20) NULL, 
+	CONSTRAINT [cx_pk_optionDetails] PRIMARY KEY CLUSTERED ([pk_optionDetails]), 
+	CONSTRAINT [optionDetails_xml2db_record_hash] UNIQUE (xml2db_record_hash)
 )
 
 
@@ -57,9 +57,9 @@ CREATE TABLE [priceIntervalQuantityDetails] (
 	unit VARCHAR(8) NULL, 
 	[priceTimeIntervalQuantity_value] DOUBLE PRECISION NULL, 
 	[priceTimeIntervalQuantity_currency] CHAR(3) NULL, 
-	record_hash BINARY(20) NULL, 
-	CONSTRAINT [cx_pk_priceIntervalQuantityDetails] PRIMARY KEY NONCLUSTERED ([pk_priceIntervalQuantityDetails]), 
-	CONSTRAINT [priceIntervalQuantityDetails_xml2db_record_hash] UNIQUE (record_hash)
+	xml2db_record_hash BINARY(20) NULL, 
+	CONSTRAINT [cx_pk_priceIntervalQuantityDetails] PRIMARY KEY CLUSTERED ([pk_priceIntervalQuantityDetails]), 
+	CONSTRAINT [priceIntervalQuantityDetails_xml2db_record_hash] UNIQUE (xml2db_record_hash)
 )
 
 
@@ -77,9 +77,9 @@ CREATE TABLE [clickAndTradeDetails] (
 	[undisclosedVolume_unit] VARCHAR(8) NULL, 
 	[orderDuration_duration] CHAR(3) NULL, 
 	[orderDuration_expirationDateTime] DATETIMEOFFSET NULL, 
-	record_hash BINARY(20) NULL, 
-	CONSTRAINT [cx_pk_clickAndTradeDetails] PRIMARY KEY NONCLUSTERED ([pk_clickAndTradeDetails]), 
-	CONSTRAINT [clickAndTradeDetails_xml2db_record_hash] UNIQUE (record_hash)
+	xml2db_record_hash BINARY(20) NULL, 
+	CONSTRAINT [cx_pk_clickAndTradeDetails] PRIMARY KEY CLUSTERED ([pk_clickAndTradeDetails]), 
+	CONSTRAINT [clickAndTradeDetails_xml2db_record_hash] UNIQUE (xml2db_record_hash)
 )
 
 
@@ -99,9 +99,9 @@ CREATE TABLE contract (
 	[deliveryEndDate] VARCHAR(16) NULL, 
 	duration CHAR(1) NULL, 
 	[loadType] CHAR(2) NULL, 
-	record_hash BINARY(20) NULL, 
-	CONSTRAINT cx_pk_contract PRIMARY KEY NONCLUSTERED (pk_contract), 
-	CONSTRAINT contract_xml2db_record_hash UNIQUE (record_hash), 
+	xml2db_record_hash BINARY(20) NULL, 
+	CONSTRAINT cx_pk_contract PRIMARY KEY CLUSTERED (pk_contract), 
+	CONSTRAINT contract_xml2db_record_hash UNIQUE (xml2db_record_hash), 
 	FOREIGN KEY([fk_optionDetails]) REFERENCES [optionDetails] ([pk_optionDetails])
 )
 
@@ -137,11 +137,11 @@ CREATE TABLE [REMITTable1] (
 	[pk_REMITTable1] INTEGER NOT NULL IDENTITY, 
 	[reportingEntityID_type] CHAR(3) NULL, 
 	[reportingEntityID_value] VARCHAR(20) NULL, 
-	xml2db_input_file_path VARCHAR(256) NOT NULL, 
 	xml2db_processed_at DATETIMEOFFSET NULL, 
-	record_hash BINARY(20) NULL, 
-	CONSTRAINT [cx_pk_REMITTable1] PRIMARY KEY NONCLUSTERED ([pk_REMITTable1]), 
-	CONSTRAINT [REMITTable1_xml2db_record_hash] UNIQUE (record_hash)
+	input_file_path VARCHAR(256) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
+	CONSTRAINT [cx_pk_REMITTable1] PRIMARY KEY CLUSTERED ([pk_REMITTable1]), 
+	CONSTRAINT [REMITTable1_xml2db_record_hash] UNIQUE (xml2db_record_hash)
 )
 
 
@@ -276,7 +276,7 @@ CREATE TABLE [legContractId] (
 	xml2db_row_number INTEGER NOT NULL, 
 	[contractId] VARCHAR(50) NULL, 
 	[buySellIndicator] CHAR(1) NULL, 
-	CONSTRAINT [cx_pk_legContractId] PRIMARY KEY NONCLUSTERED ([pk_legContractId]), 
+	CONSTRAINT [cx_pk_legContractId] PRIMARY KEY CLUSTERED ([pk_legContractId]), 
 	FOREIGN KEY([fk_parent_OrderReport]) REFERENCES [OrderReport] ([pk_OrderReport])
 )
 
@@ -287,74 +287,40 @@ CREATE TABLE [legContract] (
 	xml2db_row_number INTEGER NOT NULL, 
 	fk_contract INTEGER NULL, 
 	[buySellIndicator] CHAR(1) NULL, 
-	CONSTRAINT [cx_pk_legContract] PRIMARY KEY NONCLUSTERED ([pk_legContract]), 
+	CONSTRAINT [cx_pk_legContract] PRIMARY KEY CLUSTERED ([pk_legContract]), 
 	FOREIGN KEY([fk_parent_OrderReport]) REFERENCES [OrderReport] ([pk_OrderReport]), 
 	FOREIGN KEY(fk_contract) REFERENCES contract (pk_contract)
 )
 
-CREATE CLUSTERED COLUMNSTORE INDEX [idx_contractTradingHours_columnstore] ON [contractTradingHours]
-
-CREATE CLUSTERED COLUMNSTORE INDEX [idx_deliveryProfile_columnstore] ON [deliveryProfile]
-
-CREATE CLUSTERED COLUMNSTORE INDEX [idx_fixingIndex_columnstore] ON [fixingIndex]
-
-CREATE CLUSTERED COLUMNSTORE INDEX [idx_optionDetails_columnstore] ON [optionDetails]
-
-CREATE CLUSTERED COLUMNSTORE INDEX [idx_priceIntervalQuantityDetails_columnstore] ON [priceIntervalQuantityDetails]
-
-CREATE CLUSTERED COLUMNSTORE INDEX [idx_clickAndTradeDetails_columnstore] ON [clickAndTradeDetails]
-
-CREATE CLUSTERED COLUMNSTORE INDEX idx_contract_columnstore ON contract
-
-CREATE INDEX [ix_contract_fk_optionDetails] ON contract ([fk_optionDetails])
-
-CREATE CLUSTERED COLUMNSTORE INDEX [idx_contract_fixingIndex_columnstore] ON [contract_fixingIndex]
-
 CREATE INDEX [ix_contract_fixingIndex_fk_fixingIndex] ON [contract_fixingIndex] ([fk_fixingIndex])
 
-CREATE CLUSTERED COLUMNSTORE INDEX [idx_contract_contractTradingHours_columnstore] ON [contract_contractTradingHours]
+CREATE CLUSTERED INDEX [ix_fk_contract_fixingIndex] ON [contract_fixingIndex] (fk_contract, [fk_fixingIndex])
 
 CREATE INDEX [ix_contract_contractTradingHours_fk_contractTradingHours] ON [contract_contractTradingHours] ([fk_contractTradingHours])
 
-CREATE CLUSTERED COLUMNSTORE INDEX [idx_contract_deliveryProfile_columnstore] ON [contract_deliveryProfile]
+CREATE CLUSTERED INDEX [ix_fk_contract_contractTradingHours] ON [contract_contractTradingHours] (fk_contract, [fk_contractTradingHours])
 
 CREATE INDEX [ix_contract_deliveryProfile_fk_deliveryProfile] ON [contract_deliveryProfile] ([fk_deliveryProfile])
 
-CREATE CLUSTERED COLUMNSTORE INDEX [idx_REMITTable1_columnstore] ON [REMITTable1]
-
-CREATE CLUSTERED COLUMNSTORE INDEX [idx_REMITTable1_contract_columnstore] ON [REMITTable1_contract]
+CREATE CLUSTERED INDEX [ix_fk_contract_deliveryProfile] ON [contract_deliveryProfile] (fk_contract, [fk_deliveryProfile])
 
 CREATE INDEX [ix_REMITTable1_contract_fk_contract] ON [REMITTable1_contract] (fk_contract)
 
+CREATE CLUSTERED INDEX [ix_fk_REMITTable1_contract] ON [REMITTable1_contract] ([fk_REMITTable1], fk_contract)
+
+CREATE INDEX [OrderReport_fk_parent_REMITTable1_idx] ON [OrderReport] ([fk_parent_REMITTable1])
+
 CREATE CLUSTERED COLUMNSTORE INDEX [idx_OrderReport_columnstore] ON [OrderReport]
-
-CREATE INDEX [ix_OrderReport_fk_contractInfo_contract] ON [OrderReport] ([fk_contractInfo_contract])
-
-CREATE INDEX [ix_OrderReport_fk_parent_REMITTable1] ON [OrderReport] ([fk_parent_REMITTable1])
-
-CREATE CLUSTERED COLUMNSTORE INDEX [idx_OrderReport_priceIntervalQuantityDetails_columnstore] ON [OrderReport_priceIntervalQuantityDetails]
 
 CREATE INDEX [ix_OrderReport_priceIntervalQuantityDetails_fk_priceIntervalQuantityDetails] ON [OrderReport_priceIntervalQuantityDetails] ([fk_priceIntervalQuantityDetails])
 
+CREATE CLUSTERED INDEX [ix_fk_OrderReport_priceIntervalQuantityDetails] ON [OrderReport_priceIntervalQuantityDetails] ([fk_OrderReport], [fk_priceIntervalQuantityDetails])
+
+CREATE INDEX [TradeReport_fk_parent_REMITTable1_idx] ON [TradeReport] ([fk_parent_REMITTable1])
+
 CREATE CLUSTERED COLUMNSTORE INDEX [idx_TradeReport_columnstore] ON [TradeReport]
-
-CREATE INDEX [ix_TradeReport_fk_clickAndTradeDetails] ON [TradeReport] ([fk_clickAndTradeDetails])
-
-CREATE INDEX [ix_TradeReport_fk_contractInfo_contract] ON [TradeReport] ([fk_contractInfo_contract])
-
-CREATE INDEX [ix_TradeReport_fk_parent_REMITTable1] ON [TradeReport] ([fk_parent_REMITTable1])
-
-CREATE CLUSTERED COLUMNSTORE INDEX [idx_TradeReport_priceIntervalQuantityDetails_columnstore] ON [TradeReport_priceIntervalQuantityDetails]
 
 CREATE INDEX [ix_TradeReport_priceIntervalQuantityDetails_fk_priceIntervalQuantityDetails] ON [TradeReport_priceIntervalQuantityDetails] ([fk_priceIntervalQuantityDetails])
 
-CREATE CLUSTERED COLUMNSTORE INDEX [idx_legContractId_columnstore] ON [legContractId]
-
-CREATE INDEX [ix_legContractId_fk_parent_OrderReport] ON [legContractId] ([fk_parent_OrderReport])
-
-CREATE CLUSTERED COLUMNSTORE INDEX [idx_legContract_columnstore] ON [legContract]
-
-CREATE INDEX [ix_legContract_fk_contract] ON [legContract] (fk_contract)
-
-CREATE INDEX [ix_legContract_fk_parent_OrderReport] ON [legContract] ([fk_parent_OrderReport])
+CREATE CLUSTERED INDEX [ix_fk_TradeReport_priceIntervalQuantityDetails] ON [TradeReport_priceIntervalQuantityDetails] ([fk_TradeReport], [fk_priceIntervalQuantityDetails])
 

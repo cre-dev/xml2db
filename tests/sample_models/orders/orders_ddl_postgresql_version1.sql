@@ -34,8 +34,8 @@ CREATE TABLE shiporder (
 CREATE TABLE orders (
 	pk_orders SERIAL NOT NULL, 
 	batch_id VARCHAR(1000), 
-	xml2db_input_file_path VARCHAR(256) NOT NULL, 
 	xml2db_processed_at TIMESTAMP WITH TIME ZONE, 
+	input_file_path VARCHAR(256), 
 	record_hash BYTEA, 
 	CONSTRAINT cx_pk_orders PRIMARY KEY (pk_orders), 
 	CONSTRAINT orders_xml2db_record_hash UNIQUE (record_hash)
@@ -64,11 +64,7 @@ CREATE TABLE item (
 	FOREIGN KEY(fk_parent_shiporder) REFERENCES shiporder (pk_shiporder)
 )
 
-CREATE INDEX ix_shiporder_fk_orderperson ON shiporder (fk_orderperson)
-
-CREATE INDEX ix_shiporder_shipto_fk_orderperson ON shiporder (shipto_fk_orderperson)
+CREATE INDEX ix_orders_shiporder_fk_orders ON orders_shiporder (fk_orders)
 
 CREATE INDEX ix_orders_shiporder_fk_shiporder ON orders_shiporder (fk_shiporder)
-
-CREATE INDEX ix_item_fk_parent_shiporder ON item (fk_parent_shiporder)
 

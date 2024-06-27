@@ -4,9 +4,9 @@ CREATE TABLE `contractTradingHours` (
 	`startTime` VARCHAR(18), 
 	`endTime` VARCHAR(18), 
 	date VARCHAR(16), 
-	record_hash BINARY(20), 
+	xml2db_record_hash BINARY(20), 
 	CONSTRAINT `cx_pk_contractTradingHours` PRIMARY KEY (`pk_contractTradingHours`), 
-	CONSTRAINT `contractTradingHours_xml2db_record_hash` UNIQUE (record_hash)
+	CONSTRAINT `contractTradingHours_xml2db_record_hash` UNIQUE (xml2db_record_hash)
 )
 
 
@@ -17,9 +17,9 @@ CREATE TABLE `deliveryProfile` (
 	`daysOfTheWeek` VARCHAR(4000), 
 	`loadDeliveryStartTime` VARCHAR(4000), 
 	`loadDeliveryEndTime` VARCHAR(4000), 
-	record_hash BINARY(20), 
+	xml2db_record_hash BINARY(20), 
 	CONSTRAINT `cx_pk_deliveryProfile` PRIMARY KEY (`pk_deliveryProfile`), 
-	CONSTRAINT `deliveryProfile_xml2db_record_hash` UNIQUE (record_hash)
+	CONSTRAINT `deliveryProfile_xml2db_record_hash` UNIQUE (xml2db_record_hash)
 )
 
 
@@ -27,9 +27,9 @@ CREATE TABLE `fixingIndex` (
 	`pk_fixingIndex` INTEGER NOT NULL AUTO_INCREMENT, 
 	`indexName` VARCHAR(150), 
 	`indexValue` DOUBLE, 
-	record_hash BINARY(20), 
+	xml2db_record_hash BINARY(20), 
 	CONSTRAINT `cx_pk_fixingIndex` PRIMARY KEY (`pk_fixingIndex`), 
-	CONSTRAINT `fixingIndex_xml2db_record_hash` UNIQUE (record_hash)
+	CONSTRAINT `fixingIndex_xml2db_record_hash` UNIQUE (xml2db_record_hash)
 )
 
 
@@ -40,9 +40,9 @@ CREATE TABLE `optionDetails` (
 	`optionExerciseDate` VARCHAR(4000), 
 	`optionStrikePrice_value` DOUBLE, 
 	`optionStrikePrice_currency` VARCHAR(3), 
-	record_hash BINARY(20), 
+	xml2db_record_hash BINARY(20), 
 	CONSTRAINT `cx_pk_optionDetails` PRIMARY KEY (`pk_optionDetails`), 
-	CONSTRAINT `optionDetails_xml2db_record_hash` UNIQUE (record_hash)
+	CONSTRAINT `optionDetails_xml2db_record_hash` UNIQUE (xml2db_record_hash)
 )
 
 
@@ -50,9 +50,9 @@ CREATE TABLE `legContractId` (
 	`pk_legContractId` INTEGER NOT NULL AUTO_INCREMENT, 
 	`contractId` VARCHAR(50), 
 	`buySellIndicator` VARCHAR(1), 
-	record_hash BINARY(20), 
+	xml2db_record_hash BINARY(20), 
 	CONSTRAINT `cx_pk_legContractId` PRIMARY KEY (`pk_legContractId`), 
-	CONSTRAINT `legContractId_xml2db_record_hash` UNIQUE (record_hash)
+	CONSTRAINT `legContractId_xml2db_record_hash` UNIQUE (xml2db_record_hash)
 )
 
 
@@ -67,9 +67,9 @@ CREATE TABLE `priceIntervalQuantityDetails` (
 	unit VARCHAR(8), 
 	`priceTimeIntervalQuantity_value` DOUBLE, 
 	`priceTimeIntervalQuantity_currency` VARCHAR(3), 
-	record_hash BINARY(20), 
+	xml2db_record_hash BINARY(20), 
 	CONSTRAINT `cx_pk_priceIntervalQuantityDetails` PRIMARY KEY (`pk_priceIntervalQuantityDetails`), 
-	CONSTRAINT `priceIntervalQuantityDetails_xml2db_record_hash` UNIQUE (record_hash)
+	CONSTRAINT `priceIntervalQuantityDetails_xml2db_record_hash` UNIQUE (xml2db_record_hash)
 )
 
 
@@ -87,9 +87,9 @@ CREATE TABLE `clickAndTradeDetails` (
 	`undisclosedVolume_unit` VARCHAR(8), 
 	`orderDuration_duration` VARCHAR(3), 
 	`orderDuration_expirationDateTime` DATETIME, 
-	record_hash BINARY(20), 
+	xml2db_record_hash BINARY(20), 
 	CONSTRAINT `cx_pk_clickAndTradeDetails` PRIMARY KEY (`pk_clickAndTradeDetails`), 
-	CONSTRAINT `clickAndTradeDetails_xml2db_record_hash` UNIQUE (record_hash)
+	CONSTRAINT `clickAndTradeDetails_xml2db_record_hash` UNIQUE (xml2db_record_hash)
 )
 
 
@@ -109,9 +109,9 @@ CREATE TABLE contract (
 	`deliveryEndDate` VARCHAR(16), 
 	duration VARCHAR(1), 
 	`loadType` VARCHAR(2), 
-	record_hash BINARY(20), 
+	xml2db_record_hash BINARY(20), 
 	CONSTRAINT cx_pk_contract PRIMARY KEY (pk_contract), 
-	CONSTRAINT contract_xml2db_record_hash UNIQUE (record_hash), 
+	CONSTRAINT contract_xml2db_record_hash UNIQUE (xml2db_record_hash), 
 	FOREIGN KEY(`fk_optionDetails`) REFERENCES `optionDetails` (`pk_optionDetails`)
 )
 
@@ -144,9 +144,9 @@ CREATE TABLE `legContract` (
 	`pk_legContract` INTEGER NOT NULL AUTO_INCREMENT, 
 	fk_contract INTEGER, 
 	`buySellIndicator` VARCHAR(1), 
-	record_hash BINARY(20), 
+	xml2db_record_hash BINARY(20), 
 	CONSTRAINT `cx_pk_legContract` PRIMARY KEY (`pk_legContract`), 
-	CONSTRAINT `legContract_xml2db_record_hash` UNIQUE (record_hash), 
+	CONSTRAINT `legContract_xml2db_record_hash` UNIQUE (xml2db_record_hash), 
 	FOREIGN KEY(fk_contract) REFERENCES contract (pk_contract)
 )
 
@@ -188,9 +188,9 @@ CREATE TABLE `TradeReport` (
 	`terminationDate` DATETIME, 
 	`actionType` VARCHAR(1), 
 	`Extra` VARCHAR(1000), 
-	record_hash BINARY(20), 
+	xml2db_record_hash BINARY(20), 
 	CONSTRAINT `cx_pk_TradeReport` PRIMARY KEY (`pk_TradeReport`), 
-	CONSTRAINT `TradeReport_xml2db_record_hash` UNIQUE (record_hash), 
+	CONSTRAINT `TradeReport_xml2db_record_hash` UNIQUE (xml2db_record_hash), 
 	FOREIGN KEY(`fk_clickAndTradeDetails`) REFERENCES `clickAndTradeDetails` (`pk_clickAndTradeDetails`), 
 	FOREIGN KEY(`fk_contractInfo_contract`) REFERENCES contract (pk_contract)
 )
@@ -246,9 +246,9 @@ CREATE TABLE `OrderReport` (
 	`totalNotionalContractQuantity_unit` VARCHAR(6), 
 	`actionType` VARCHAR(1), 
 	`Extra` VARCHAR(1000), 
-	record_hash BINARY(20), 
+	xml2db_record_hash BINARY(20), 
 	CONSTRAINT `cx_pk_OrderReport` PRIMARY KEY (`pk_OrderReport`), 
-	CONSTRAINT `OrderReport_xml2db_record_hash` UNIQUE (record_hash), 
+	CONSTRAINT `OrderReport_xml2db_record_hash` UNIQUE (xml2db_record_hash), 
 	FOREIGN KEY(`fk_contractInfo_contract`) REFERENCES contract (pk_contract)
 )
 
@@ -281,11 +281,10 @@ CREATE TABLE `REMITTable1` (
 	`pk_REMITTable1` INTEGER NOT NULL AUTO_INCREMENT, 
 	`reportingEntityID_type` VARCHAR(3), 
 	`reportingEntityID_value` VARCHAR(20), 
-	xml2db_input_file_path VARCHAR(256) NOT NULL, 
-	xml2db_processed_at DATETIME, 
-	record_hash BINARY(20), 
+	input_file_path VARCHAR(256), 
+	xml2db_record_hash BINARY(20), 
 	CONSTRAINT `cx_pk_REMITTable1` PRIMARY KEY (`pk_REMITTable1`), 
-	CONSTRAINT `REMITTable1_xml2db_record_hash` UNIQUE (record_hash)
+	CONSTRAINT `REMITTable1_xml2db_record_hash` UNIQUE (xml2db_record_hash)
 )
 
 
@@ -312,33 +311,43 @@ CREATE TABLE `REMITTable1_TradeList_TradeReport` (
 	FOREIGN KEY(`fk_TradeReport`) REFERENCES `TradeReport` (`pk_TradeReport`)
 )
 
-CREATE INDEX `ix_contract_fk_optionDetails` ON contract (`fk_optionDetails`)
+CREATE INDEX `ix_contract_fixingIndex_fk_contract` ON `contract_fixingIndex` (fk_contract)
 
 CREATE INDEX `ix_contract_fixingIndex_fk_fixingIndex` ON `contract_fixingIndex` (`fk_fixingIndex`)
 
+CREATE INDEX `ix_contract_contractTradingHours_fk_contract` ON `contract_contractTradingHours` (fk_contract)
+
 CREATE INDEX `ix_contract_contractTradingHours_fk_contractTradingHours` ON `contract_contractTradingHours` (`fk_contractTradingHours`)
+
+CREATE INDEX `ix_contract_deliveryProfile_fk_contract` ON `contract_deliveryProfile` (fk_contract)
 
 CREATE INDEX `ix_contract_deliveryProfile_fk_deliveryProfile` ON `contract_deliveryProfile` (`fk_deliveryProfile`)
 
-CREATE INDEX `ix_legContract_fk_contract` ON `legContract` (fk_contract)
-
-CREATE INDEX `ix_TradeReport_fk_clickAndTradeDetails` ON `TradeReport` (`fk_clickAndTradeDetails`)
-
-CREATE INDEX `ix_TradeReport_fk_contractInfo_contract` ON `TradeReport` (`fk_contractInfo_contract`)
+CREATE INDEX `ix_TradeReport_priceIntervalQuantityDetails_fk_TradeReport` ON `TradeReport_priceIntervalQuantityDetails` (`fk_TradeReport`)
 
 CREATE INDEX `ix_TradeReport_priceIntervalQuantityDetails_fk_priceInte_38b7` ON `TradeReport_priceIntervalQuantityDetails` (`fk_priceIntervalQuantityDetails`)
 
-CREATE INDEX `ix_OrderReport_fk_contractInfo_contract` ON `OrderReport` (`fk_contractInfo_contract`)
+CREATE INDEX `ix_OrderReport_priceIntervalQuantityDetails_fk_OrderReport` ON `OrderReport_priceIntervalQuantityDetails` (`fk_OrderReport`)
 
 CREATE INDEX `ix_OrderReport_priceIntervalQuantityDetails_fk_priceInte_5eb5` ON `OrderReport_priceIntervalQuantityDetails` (`fk_priceIntervalQuantityDetails`)
 
+CREATE INDEX `ix_OrderReport_contractInfo_legContractId_fk_OrderReport` ON `OrderReport_contractInfo_legContractId` (`fk_OrderReport`)
+
 CREATE INDEX `ix_OrderReport_contractInfo_legContractId_fk_legContractId` ON `OrderReport_contractInfo_legContractId` (`fk_legContractId`)
 
+CREATE INDEX `ix_OrderReport_contractInfo_legContract_fk_OrderReport` ON `OrderReport_contractInfo_legContract` (`fk_OrderReport`)
+
 CREATE INDEX `ix_OrderReport_contractInfo_legContract_fk_legContract` ON `OrderReport_contractInfo_legContract` (`fk_legContract`)
+
+CREATE INDEX `ix_REMITTable1_contractList_contract_fk_REMITTable1` ON `REMITTable1_contractList_contract` (`fk_REMITTable1`)
 
 CREATE INDEX `ix_REMITTable1_contractList_contract_fk_contract` ON `REMITTable1_contractList_contract` (fk_contract)
 
 CREATE INDEX `ix_REMITTable1_OrderList_OrderReport_fk_OrderReport` ON `REMITTable1_OrderList_OrderReport` (`fk_OrderReport`)
+
+CREATE INDEX `ix_REMITTable1_OrderList_OrderReport_fk_REMITTable1` ON `REMITTable1_OrderList_OrderReport` (`fk_REMITTable1`)
+
+CREATE INDEX `ix_REMITTable1_TradeList_TradeReport_fk_REMITTable1` ON `REMITTable1_TradeList_TradeReport` (`fk_REMITTable1`)
 
 CREATE INDEX `ix_REMITTable1_TradeList_TradeReport_fk_TradeReport` ON `REMITTable1_TradeList_TradeReport` (`fk_TradeReport`)
 

@@ -11,7 +11,7 @@ CREATE TABLE orderperson (
 	[companyId_ace] VARCHAR(1000) NULL, 
 	[companyId_bic] VARCHAR(1000) NULL, 
 	[companyId_lei] VARCHAR(1000) NULL, 
-	record_hash BINARY(20) NULL, 
+	record_hash BINARY(16) NULL, 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY CLUSTERED (pk_orderperson), 
 	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (record_hash)
 )
@@ -23,7 +23,7 @@ CREATE TABLE shiporder (
 	processed_at DATETIMEOFFSET NULL, 
 	fk_orderperson INTEGER NULL, 
 	shipto_fk_orderperson INTEGER NULL, 
-	record_hash BINARY(20) NULL, 
+	record_hash BINARY(16) NULL, 
 	CONSTRAINT cx_pk_shiporder PRIMARY KEY CLUSTERED (pk_shiporder), 
 	CONSTRAINT shiporder_xml2db_record_hash UNIQUE (record_hash), 
 	FOREIGN KEY(fk_orderperson) REFERENCES orderperson (pk_orderperson), 
@@ -34,9 +34,9 @@ CREATE TABLE shiporder (
 CREATE TABLE orders (
 	pk_orders INTEGER NOT NULL IDENTITY, 
 	batch_id VARCHAR(1000) NULL, 
-	xml2db_input_file_path VARCHAR(256) NOT NULL, 
 	xml2db_processed_at DATETIMEOFFSET NULL, 
-	record_hash BINARY(20) NULL, 
+	input_file_path VARCHAR(256) NULL, 
+	record_hash BINARY(16) NULL, 
 	CONSTRAINT cx_pk_orders PRIMARY KEY CLUSTERED (pk_orders), 
 	CONSTRAINT orders_xml2db_record_hash UNIQUE (record_hash)
 )
@@ -64,11 +64,7 @@ CREATE TABLE item (
 	FOREIGN KEY(fk_parent_shiporder) REFERENCES shiporder (pk_shiporder)
 )
 
-CREATE INDEX ix_shiporder_fk_orderperson ON shiporder (fk_orderperson)
-
-CREATE INDEX ix_shiporder_shipto_fk_orderperson ON shiporder (shipto_fk_orderperson)
+CREATE CLUSTERED INDEX ix_fk_orders_shiporder ON orders_shiporder (fk_orders, fk_shiporder)
 
 CREATE INDEX ix_orders_shiporder_fk_shiporder ON orders_shiporder (fk_shiporder)
-
-CREATE INDEX ix_item_fk_parent_shiporder ON item (fk_parent_shiporder)
 

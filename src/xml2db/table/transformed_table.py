@@ -1,6 +1,6 @@
 from typing import Union, List, Tuple
 
-from xml2db.exceptions import DataModelConfigError
+from ..exceptions import DataModelConfigError
 from .column import DataModelColumn
 from .relations import DataModelRelation1, DataModelRelationN
 from .table import DataModelTable
@@ -185,9 +185,11 @@ class DataModelTableTransformed(DataModelTable):
                     prefixed_key,
                     [(rel.name, rel.other_table.type_name)] + child_field.name_chain,
                     child_field.data_type,
-                    [0, child_field.occurs[1]]
-                    if rel.occurs[0] == 0
-                    else child_field.occurs,
+                    (
+                        [0, child_field.occurs[1]]
+                        if rel.occurs[0] == 0
+                        else child_field.occurs
+                    ),
                     child_field.min_length,
                     child_field.max_length,
                     child_field.is_attr,
@@ -210,9 +212,11 @@ class DataModelTableTransformed(DataModelTable):
                     [(rel.name, rel.other_table.type_name)] + child_field.name_chain,
                     self,
                     child_field.other_table,
-                    [0, child_field.occurs[1]]
-                    if rel.occurs[0] == 0
-                    else child_field.occurs,
+                    (
+                        [0, child_field.occurs[1]]
+                        if rel.occurs[0] == 0
+                        else child_field.occurs
+                    ),
                     child_field.ngroup,
                     self.data_model,
                 )
@@ -229,9 +233,11 @@ class DataModelTableTransformed(DataModelTable):
                     [(rel.name, rel.other_table.type_name)] + child_field.name_chain,
                     self,
                     child_field.other_table,
-                    [0, child_field.occurs[1]]
-                    if rel.occurs[0] == 0
-                    else child_field.occurs,
+                    (
+                        [0, child_field.occurs[1]]
+                        if rel.occurs[0] == 0
+                        else child_field.occurs
+                    ),
                     child_field.ngroup,
                     self.data_model,
                 )

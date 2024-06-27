@@ -3,9 +3,38 @@ import pytest
 from lxml import etree
 
 from xml2db import DataModel
-from xml2db.xml_converter import XMLConverter
+from xml2db.xml_converter import XMLConverter, remove_record_hash
 
 from .sample_models import models
+
+
+@pytest.mark.parametrize(
+    "test_config",
+    [
+        {**model, **version, "xml_file": xml_file}
+        for model in models
+        for xml_file in os.listdir(model["xml_path"])
+        for version in model["versions"]
+    ],
+)
+def test_document_tree_parsing(test_config):
+    """Test whether iterative and recursive parsing give same results"""
+    model = DataModel(
+        test_config["xsd_path"],
+        short_name=test_config["id"],
+        model_config=test_config["config"],
+    )
+    converter = XMLConverter(model)
+    file_path = os.path.join(test_config["xml_path"], test_config["xml_file"])
+
+    parsed_recursive = converter.parse_xml(
+        file_path, file_path, skip_validation=True, iterparse=False
+    )
+    parsed_iterative = converter.parse_xml(
+        file_path, file_path, skip_validation=True, iterparse=True
+    )
+
+    assert parsed_recursive == parsed_iterative
 
 
 @pytest.mark.parametrize(
@@ -31,7 +60,7 @@ def test_document_tree_to_flat_data(test_config):
 
     # parse XML to document tree
     converter.parse_xml(file_path, file_path)
-    exp_doc_tree = converter.document_tree
+    exp_doc_tree = remove_record_hash(converter.document_tree)
 
     # parse XML to document tree and then flat data model
     doc = model.parse_xml(file_path)

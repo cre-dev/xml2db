@@ -4,6 +4,7 @@ from datetime import datetime
 from io import BytesIO
 from typing import Iterable, Union
 from uuid import uuid4
+import hashlib
 
 import xmlschema
 import sqlalchemy
@@ -11,13 +12,13 @@ from sqlalchemy import MetaData, create_engine, inspect
 from sqlalchemy.sql.ddl import CreateIndex, CreateTable
 from graphlib import TopologicalSorter
 
-from xml2db import document
-from xml2db.exceptions import DataModelConfigError
-from xml2db.table import (
+from .document import Document
+from .exceptions import DataModelConfigError, check_type
+from .table import (
     DataModelTableReused,
     DataModelTableDuplicated,
 )
-from xml2db.xml_converter import XMLConverter
+from .xml_converter import XMLConverter
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ class DataModel:
     This class allows parsing an XSD file to build  a representation of the XML schema, simplify it and convert it into
     a set of database tables. It also allows [parsing XML documents](./#xml2db.model.DataModel.parse_xml) that fit this
     XML schema and importing their content into a database.
-    
+
     Args:
         xsd_file: A path to a XSD file
         short_name: A short name for the schema
@@ -39,11 +40,13 @@ class DataModel:
         model_config: A config dict to provide options for building the model (full options available here:
             [Configuring your data model](../configuring.md))
         connection_string: A database connection string (optional if you will not be loading data)
+        db_engine: A `sqlalchemy.Engine` to use to connect to the database (it takes precedence over `connection_string`
+            and is optional if you will not be loading data)
         db_type: The targeted database backend (`postgresql`, `mssql`, `mysql`...). It is ignored and inferred from
-            `connection_string`, if provided
+            `connection_string` or `db_engine`, if provided
         db_schema: A schema name to use in the database
         temp_prefix: A prefix to use for temporary tables (if `None`, will be generated randomly)
-    
+
     Attributes:
         xml_schema: The `xmlschema.XMLSchema` object associated with this data model
         data_flow_name: A short identifier used for the data model (`short_name` argument value)
@@ -69,10 +72,14 @@ class DataModel:
         base_url: str = None,
         model_config: dict = None,
         connection_string: str = None,
+        db_engine: str = None,
         db_type: str = None,
         db_schema: str = None,
         temp_prefix: str = None,
     ):
+        self.model_config = self._validate_config(model_config)
+        self.tables_config = model_config.get("tables", {})
+
         self.xml_schema = xmlschema.XMLSchema(
             os.path.basename(xsd_file) if base_url is None else xsd_file,
             base_url=(
@@ -85,49 +92,25 @@ class DataModel:
         self.data_flow_name = short_name
         self.data_flow_long_name = long_name
 
-        if connection_string is None:
+        if connection_string is None and db_engine is None:
             logger.warning(
                 "DataModel created without connection string cannot do actual imports"
             )
             self.engine = None
             self.db_type = db_type
         else:
-            engine_options = {}
-            if "mssql" in connection_string:
-                engine_options = {
-                    "fast_executemany": True,
-                }
-            self.engine = create_engine(
-                connection_string,
-                isolation_level="SERIALIZABLE",
-                **engine_options,
-            )
-            self.db_type = self.engine.dialect.name
-
-        self.model_config = {} if model_config is None else model_config
-
-        # validate row_numbers global option value
-        if "row_numbers" in self.model_config:
-            if not isinstance(self.model_config["row_numbers"], bool):
-                raise DataModelConfigError("row_numbers must be a bool")
-        else:
-            self.model_config["row_numbers"] = False
-
-        # as_columnstore global option available only for MSSQL database
-        if "as_columnstore" in self.model_config:
-            if not isinstance(self.model_config["as_columnstore"], bool):
-                raise DataModelConfigError("as_columnstore must be a bool")
-            if (
-                self.model_config["as_columnstore"]
-                and self.engine
-                and not self.engine.dialect.name == "mssql"
-            ):
-                self.model_config["as_columnstore"] = False
-                logger.info(
-                    "Clustered columnstore indexes are only supported with MS SQL Server database, noop"
+            if db_engine:
+                self.engine = db_engine
+            else:
+                engine_options = {}
+                if "mssql" in connection_string:
+                    engine_options = {"fast_executemany": True}
+                self.engine = create_engine(
+                    connection_string,
+                    isolation_level="SERIALIZABLE",
+                    **engine_options,
                 )
-        else:
-            self.model_config["as_columnstore"] = False
+            self.db_type = self.engine.dialect.name
 
         self.db_schema = db_schema
         self.temp_prefix = str(uuid4())[:8] if temp_prefix is None else temp_prefix
@@ -135,15 +118,41 @@ class DataModel:
         self.tables = {}
         self.names_types_map = {}
         self.root_table = None
+
         self.types_transforms = {}
         self.fields_transforms = {}
         self.ordered_tables_keys = []
+        self.transaction_groups = []
         self.source_tree = ""
         self.target_tree = ""
         self.metadata = MetaData()
         self.processed_at = datetime.now()
 
         self._build_model()
+
+    def _validate_config(self, cfg):
+        if cfg is None:
+            cfg = {}
+        model_config = {
+            key: check_type(cfg, key, exp_type, default)
+            for key, exp_type, default in [
+                ("as_columnstore", bool, False),
+                ("row_numbers", bool, False),
+                ("document_tree_hook", callable, None),
+                ("document_tree_node_hook", callable, None),
+                ("record_hash_column_name", str, "xml2db_record_hash"),
+                ("record_hash_constructor", callable, hashlib.sha1),
+                ("record_hash_size", int, 20),
+                ("metadata_columns", list, []),
+            ]
+        }
+        if model_config["as_columnstore"] and self.db_type == "mssql":
+            model_config["as_columnstore"] = False
+            logger.info(
+                "Clustered columnstore indexes are only supported with MS SQL Server database, noop"
+            )
+
+        return model_config
 
     @property
     def fk_ordered_tables(
@@ -179,7 +188,7 @@ class DataModel:
         Returns:
             A data model instance.
         """
-        table_config = self.model_config.get("tables", {}).get(table_name, {})
+        table_config = self.tables_config.get(table_name, {})
         if table_config.get("reuse", True):
             return DataModelTableReused(
                 table_name,
@@ -242,6 +251,18 @@ class DataModel:
             {key: sorted(tb.dependencies) for key, tb in self.tables.items()}
         )
         self.ordered_tables_keys = list(ts.static_order())
+        # build a dict of transaction groups, i.e. set of tables for which merge queries must be done within
+        # a transaction (we compute it whether it is used or not for the sake of debugging
+        tr_groups_index = {}
+        for key in self.ordered_tables_keys:
+            tb = self.tables[key]
+            if tb.is_reused:
+                tr_groups_index[key] = len(self.transaction_groups)
+                self.transaction_groups.append([tb])
+            else:
+                idx = tr_groups_index[tb.parent.type_name]
+                tr_groups_index[key] = idx
+                self.transaction_groups[idx].append(tb)
         # build the ordered table in the sqlalchemy Metadata object (cannot be done before simplification because
         # it will fail if we attempt to recreate tables that already exist in the sqlalchemy metadata
         for tb in self.fk_ordered_tables:
@@ -590,7 +611,9 @@ class DataModel:
             )
         return "\n".join(out)
 
-    def get_all_create_table_statements(self, temp: bool = False) -> Iterable[CreateTable]:
+    def get_all_create_table_statements(
+        self, temp: bool = False
+    ) -> Iterable[CreateTable]:
         """Yield sqlalchemy `create table` statements for all tables
 
         Args:
@@ -653,31 +676,37 @@ class DataModel:
     def parse_xml(
         self,
         xml_file: Union[str, BytesIO],
-        xml_file_path: str = None,
         skip_validation: bool = True,
-    ) -> document.Document:
+        iterparse: bool = True,
+        recover: bool = False,
+    ) -> Document:
         """Parse an XML document based on this data model
 
         This method is just a wrapper around the parse_xml method of the Document class.
 
         Args:
             xml_file: The path or the file object of an XML file to parse
-            xml_file_path: The path of the XML file, mandatory if xml_file is file object in order to fill the
-                'xml2db_input_file_path' column of the root table.
             skip_validation: Should we validate the documents against the schema first?
+            iterparse: Parse XML using iterative parsing, which is a bit slower but uses less memory
+            recover: Should we try to parse incorrect XML? (argument passed to lxml parser)
 
         Returns:
             A parsed [`Document`](document.md) object
         """
-        doc = document.Document(self)
-        doc.parse_xml(xml_file, xml_file_path, skip_validation)
+        doc = Document(self)
+        doc.parse_xml(
+            xml_file=xml_file,
+            skip_validation=skip_validation,
+            iterparse=iterparse,
+            recover=recover,
+        )
         return doc
 
     def extract_from_database(
         self,
         root_select_where: str,
         force_tz: Union[str, None] = None,
-    ) -> document.Document:
+    ) -> Document:
         """Extract a document from the database, based on a where clause applied to the root table. For instance, you
             can use the column `xml2db_input_file_path` to filter the data loaded from a specific file.
 
@@ -698,6 +727,6 @@ class DataModel:
         Examples:
 
         """
-        doc = document.Document(self)
+        doc = Document(self)
         doc.extract_from_database(self.root_table, root_select_where, force_tz=force_tz)
         return doc
