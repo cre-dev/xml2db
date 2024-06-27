@@ -238,49 +238,47 @@ CREATE TABLE junit10 (
 	FOREIGN KEY(fk_testsuites) REFERENCES testsuites (pk_testsuites)
 )
 
+CREATE INDEX ix_properties_property_fk_properties ON properties_property (fk_properties)
+
 CREATE INDEX ix_properties_property_fk_property ON properties_property (fk_property)
 
 CREATE INDEX ix_testcase_skipped_fk_skipped ON testcase_skipped (fk_skipped)
 
+CREATE INDEX ix_testcase_skipped_fk_testcase ON testcase_skipped (fk_testcase)
+
 CREATE INDEX ix_testcase_error_fk_error ON testcase_error (fk_error)
+
+CREATE INDEX ix_testcase_error_fk_testcase ON testcase_error (fk_testcase)
 
 CREATE INDEX ix_testcase_failure_fk_failure ON testcase_failure (fk_failure)
 
+CREATE INDEX ix_testcase_failure_fk_testcase ON testcase_failure (fk_testcase)
+
 CREATE INDEX `ix_testcase_rerunFailure_flakyError_fk_flakyError` ON `testcase_rerunFailure_flakyError` (`fk_flakyError`)
+
+CREATE INDEX `ix_testcase_rerunFailure_flakyError_fk_testcase` ON `testcase_rerunFailure_flakyError` (fk_testcase)
 
 CREATE INDEX `ix_testcase_rerunError_flakyError_fk_flakyError` ON `testcase_rerunError_flakyError` (`fk_flakyError`)
 
+CREATE INDEX `ix_testcase_rerunError_flakyError_fk_testcase` ON `testcase_rerunError_flakyError` (fk_testcase)
+
 CREATE INDEX `ix_testcase_flakyFailure_flakyError_fk_flakyError` ON `testcase_flakyFailure_flakyError` (`fk_flakyError`)
+
+CREATE INDEX `ix_testcase_flakyFailure_flakyError_fk_testcase` ON `testcase_flakyFailure_flakyError` (fk_testcase)
 
 CREATE INDEX `ix_testcase_flakyError_fk_flakyError` ON `testcase_flakyError` (`fk_flakyError`)
 
+CREATE INDEX `ix_testcase_flakyError_fk_testcase` ON `testcase_flakyError` (fk_testcase)
+
 CREATE INDEX ix_testsuite_properties_fk_properties ON testsuite_properties (fk_properties)
+
+CREATE INDEX ix_testsuite_properties_fk_testsuite ON testsuite_properties (fk_testsuite)
 
 CREATE INDEX ix_testsuite_testcase_fk_testcase ON testsuite_testcase (fk_testcase)
 
+CREATE INDEX ix_testsuite_testcase_fk_testsuite ON testsuite_testcase (fk_testsuite)
+
 CREATE INDEX ix_testsuites_testsuite_fk_testsuite ON testsuites_testsuite (fk_testsuite)
 
-CREATE INDEX ix_junit10_fk_error ON junit10 (fk_error)
-
-CREATE INDEX ix_junit10_fk_failure ON junit10 (fk_failure)
-
-CREATE INDEX `ix_junit10_fk_flakyError` ON junit10 (`fk_flakyError`)
-
-CREATE INDEX ix_junit10_fk_properties ON junit10 (fk_properties)
-
-CREATE INDEX ix_junit10_fk_property ON junit10 (fk_property)
-
-CREATE INDEX ix_junit10_fk_skipped ON junit10 (fk_skipped)
-
-CREATE INDEX ix_junit10_fk_testcase ON junit10 (fk_testcase)
-
-CREATE INDEX ix_junit10_fk_testsuite ON junit10 (fk_testsuite)
-
-CREATE INDEX ix_junit10_fk_testsuites ON junit10 (fk_testsuites)
-
-CREATE INDEX `ix_junit10_flakyFailure_fk_flakyError` ON junit10 (`flakyFailure_fk_flakyError`)
-
-CREATE INDEX `ix_junit10_rerunError_fk_flakyError` ON junit10 (`rerunError_fk_flakyError`)
-
-CREATE INDEX `ix_junit10_rerunFailure_fk_flakyError` ON junit10 (`rerunFailure_fk_flakyError`)
+CREATE INDEX ix_testsuites_testsuite_fk_testsuites ON testsuites_testsuite (fk_testsuites)
 

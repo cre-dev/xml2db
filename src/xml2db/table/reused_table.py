@@ -61,12 +61,12 @@ class DataModelTableReused(DataModelTableTransformed):
                     )
             # Use DataModelColumn to create record hash column in order to get the right data type
             hash_col = DataModelColumn(
-                self.data_model.record_hash_column_name,
+                self.data_model.model_config["record_hash_column_name"],
                 [],
                 "binary",
                 [1, 1],
-                self.data_model.record_hash_size,
-                self.data_model.record_hash_size,
+                self.data_model.model_config["record_hash_size"],
+                self.data_model.model_config["record_hash_size"],
                 False,
                 False,
                 False,
@@ -76,11 +76,16 @@ class DataModelTableReused(DataModelTableTransformed):
             )
             yield from hash_col.get_sqlalchemy_column(temp)
             yield UniqueConstraint(
-                self.data_model.record_hash_column_name,
+                self.data_model.model_config["record_hash_column_name"],
                 name=f"{prefix if temp else ''}{self.name}_xml2db_record_hash",
             )
 
         # build target table
+        extra_args = (
+            [extra for extra in self.config.get("extra_args", [])()]
+            if callable(self.config.get("extra_args", []))
+            else self.config.get("extra_args", [])
+        )
         self.table = Table(
             self.name,
             self.metadata,
@@ -90,6 +95,7 @@ class DataModelTableReused(DataModelTableTransformed):
                 mssql_clustered=not self.config["as_columnstore"],
             ),
             *get_col(),
+            *extra_args,
         )
 
         # set columnstore index
@@ -137,9 +143,12 @@ class DataModelTableReused(DataModelTableTransformed):
         # find matching records hash in target table
         yield self.temp_table.update().values(temp_exists=True).where(
             getattr(
-                self.temp_table.c, self.data_model.record_hash_column_name
+                self.temp_table.c,
+                self.data_model.model_config["record_hash_column_name"],
             )  # noqa: Linter puzzled by ==
-            == getattr(self.table.c, self.data_model.record_hash_column_name)
+            == getattr(
+                self.table.c, self.data_model.model_config["record_hash_column_name"]
+            )
         )
 
         # update foreign keys for n-1 relations tables
@@ -163,9 +172,12 @@ class DataModelTableReused(DataModelTableTransformed):
             **{f"pk_{self.name}": getattr(self.table.c, f"pk_{self.name}")}
         ).where(
             getattr(
-                self.temp_table.c, self.data_model.record_hash_column_name
+                self.temp_table.c,
+                self.data_model.model_config["record_hash_column_name"],
             )  # noqa: Linter puzzled by ==
-            == getattr(self.table.c, self.data_model.record_hash_column_name)
+            == getattr(
+                self.table.c, self.data_model.model_config["record_hash_column_name"]
+            )
         )
 
         # update primary keys for n-n relations tables

@@ -6,7 +6,7 @@ from sqlalchemy.schema import CreateTable, CreateIndex
 
 from .column import DataModelColumn
 from .relations import DataModelRelation1, DataModelRelationN
-from ..exceptions import DataModelConfigError
+from ..exceptions import DataModelConfigError, check_type
 
 if TYPE_CHECKING:
     from ..model import DataModel
@@ -55,34 +55,23 @@ class DataModelTable:
         data_model: "DataModel",
     ):
         """Constructor method"""
+
         # config attributes
         self.name = table_name
         self.type_name = type_name
         self.is_root_table = is_root_table
         self.is_virtual_node = is_virtual_node
         self.model_group = "sequence"
-        self.config = {} if config is None else config
-        if "as_columnstore" in self.config:
-            if not isinstance(self.config["as_columnstore"], bool):
-                raise DataModelConfigError("as_columnstore must be a bool")
-            if (
-                self.config["as_columnstore"]
-                and data_model.engine
-                and not data_model.engine.dialect.name == "mssql"
-            ):
-                self.config["as_columnstore"] = False
-                logger.warning(
-                    "Clustered columnstore indexes are only supported with MS SQL Server database"
-                )
-        else:
-            self.config["as_columnstore"] = data_model.model_config["as_columnstore"]
+        self.config = self._validate_config(config, data_model.db_type)
         self.db_schema = db_schema
         self.temp_prefix = temp_prefix
+
         # fields (columns and relations)
         self.fields = []
         self.columns = {}
         self.relations_1 = {}
         self.relations_n = {}
+
         # dependencies logic
         self.is_simplified = False  # is the table already simplified ? (used in the simplification process)
         self.parents_1 = (
@@ -96,11 +85,42 @@ class DataModelTable:
             set()
         )  # a set of tables this table depends on (can be children or parents)
         self.referenced_as_fk = False
+
         # sqlalchemy objects
         self.metadata = metadata
         self.table = None
         self.temp_table = None
         self.data_model = data_model
+
+    def _validate_config(self, cfg, db_type):
+        if cfg is None:
+            cfg = {}
+
+        config = {
+            "reuse": check_type(cfg, "reuse", bool, True),
+            "as_columnstore": check_type(cfg, "as_columnstore", bool, False),
+        }
+        if "extra_args" in cfg and not (
+            isinstance(cfg["extra_args"], list)
+            or isinstance(cfg["extra_args"], tuple)
+            or callable(cfg["extra_args"])
+        ):
+            raise DataModelConfigError("extra_args must be a list, a tuple or callable")
+        config["extra_args"] = cfg.get("extra_args", [])
+        if "choice_transform" in cfg:
+            config["choice_transform"] = check_type(
+                cfg, "choice_transform", bool, False
+            )
+
+        if config["as_columnstore"] and not db_type == "mssql":
+            config["as_columnstore"] = False
+            logger.warning(
+                "Clustered columnstore indexes are only supported with MS SQL Server database"
+            )
+
+        config["fields"] = cfg.get("fields", {})
+
+        return config
 
     def add_column(
         self,

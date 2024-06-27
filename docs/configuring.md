@@ -30,11 +30,13 @@ others at the field level. The general structure of the configuration dict is th
         "table1": {
             "reuse": True,
             "choice_transform": False,
+            "as_columnstore": False,
             "fields": {
                 "my_column": {
                     "type": None #default type
                 } 
-            }
+            },
+            "extra_args": [],
         }
     }
 }
@@ -277,4 +279,22 @@ With MS SQL Server database backend, `xml2db` can create
 on tables. However, for `n-n` relationships tables, this option needs to be set globally (see below). The default value 
 is `False` (disabled).
 
-Configuration: `"as_columnstore":` `False` (default) or `True`
+### Extra arguments
+
+Extra arguments can be passed to `sqlalchemy.Table` constructors, for instance if you want to customize indexes. These
+can be passed in an iterable (e.g. `tuple` or `list`) which will be simply unpacked into the `sqlalchemy.Table` 
+constructor when building the table.
+
+Configuration: `"extra_args": []` (default)
+
+!!! example
+    Adding an index on a specific column:
+    ``` python
+    model_config = {
+        "tables": {
+            "my_table": {
+                "extra_args": sqlalchemy.Index("my_index", "my_column1", "my_column2"),
+            }
+        }
+    }
+    ```

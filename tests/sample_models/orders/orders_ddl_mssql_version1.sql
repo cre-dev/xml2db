@@ -64,11 +64,7 @@ CREATE TABLE item (
 	FOREIGN KEY(fk_parent_shiporder) REFERENCES shiporder (pk_shiporder)
 )
 
-CREATE INDEX ix_shiporder_fk_orderperson ON shiporder (fk_orderperson)
-
-CREATE INDEX ix_shiporder_shipto_fk_orderperson ON shiporder (shipto_fk_orderperson)
+CREATE CLUSTERED INDEX ix_fk_orders_shiporder ON orders_shiporder (fk_orders, fk_shiporder)
 
 CREATE INDEX ix_orders_shiporder_fk_shiporder ON orders_shiporder (fk_shiporder)
-
-CREATE INDEX ix_item_fk_parent_shiporder ON item (fk_parent_shiporder)
 

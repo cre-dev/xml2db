@@ -2,6 +2,14 @@ import os.path
 import sqlalchemy
 import hashlib
 
+
+def make_sample_index():
+    yield sqlalchemy.Index(
+        "fk_parent_REMITTable1_idx",
+        "fk_parent_REMITTable1"
+    )
+
+
 models = [
     {
         "id": "orders",
@@ -85,15 +93,22 @@ models = [
             {
                 "config": {
                     "row_numbers": True,
-                    "as_columnstore": True,
                     "tables": {
                         "REMITTable1": {
                             "fields": {
                                 "contractList": {"transform": "elevate_wo_prefix"}
                             }
                         },
-                        "TradeReport": {"reuse": False},
-                        "OrderReport": {"reuse": False},
+                        "TradeReport": {
+                            "reuse": False,
+                            "as_columnstore": True,
+                            "extra_args": make_sample_index,
+                        },
+                        "OrderReport": {
+                            "reuse": False,
+                            "as_columnstore": True,
+                            "extra_args": make_sample_index,
+                        },
                         "legContract": {"reuse": False},
                         "legContractId": {"reuse": False},
                     },
@@ -202,3 +217,4 @@ def _generate_models_output():
 
 if __name__ == "__main__":
     _generate_models_output()
+

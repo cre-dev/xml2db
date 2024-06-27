@@ -13,7 +13,7 @@ from sqlalchemy.sql.ddl import CreateIndex, CreateTable
 from graphlib import TopologicalSorter
 
 from .document import Document
-from .exceptions import DataModelConfigError
+from .exceptions import DataModelConfigError, check_type
 from .table import (
     DataModelTableReused,
     DataModelTableDuplicated,
@@ -40,8 +40,10 @@ class DataModel:
         model_config: A config dict to provide options for building the model (full options available here:
             [Configuring your data model](../configuring.md))
         connection_string: A database connection string (optional if you will not be loading data)
+        db_engine: A `sqlalchemy.Engine` to use to connect to the database (it takes precedence over `connection_string`
+            and is optional if you will not be loading data)
         db_type: The targeted database backend (`postgresql`, `mssql`, `mysql`...). It is ignored and inferred from
-            `connection_string`, if provided
+            `connection_string` or `db_engine`, if provided
         db_schema: A schema name to use in the database
         temp_prefix: A prefix to use for temporary tables (if `None`, will be generated randomly)
 
@@ -70,10 +72,14 @@ class DataModel:
         base_url: str = None,
         model_config: dict = None,
         connection_string: str = None,
+        db_engine: str = None,
         db_type: str = None,
         db_schema: str = None,
         temp_prefix: str = None,
     ):
+        self.model_config = self._validate_config(model_config)
+        self.tables_config = model_config.get("tables", {})
+
         self.xml_schema = xmlschema.XMLSchema(
             os.path.basename(xsd_file) if base_url is None else xsd_file,
             base_url=(
@@ -86,49 +92,25 @@ class DataModel:
         self.data_flow_name = short_name
         self.data_flow_long_name = long_name
 
-        if connection_string is None:
+        if connection_string is None and db_engine is None:
             logger.warning(
                 "DataModel created without connection string cannot do actual imports"
             )
             self.engine = None
             self.db_type = db_type
         else:
-            engine_options = {}
-            if "mssql" in connection_string:
-                engine_options = {
-                    "fast_executemany": True,
-                }
-            self.engine = create_engine(
-                connection_string,
-                isolation_level="SERIALIZABLE",
-                **engine_options,
-            )
-            self.db_type = self.engine.dialect.name
-
-        self.model_config = {} if model_config is None else model_config
-
-        # validate row_numbers global option value
-        if "row_numbers" in self.model_config:
-            if not isinstance(self.model_config["row_numbers"], bool):
-                raise DataModelConfigError("row_numbers must be a bool")
-        else:
-            self.model_config["row_numbers"] = False
-
-        # as_columnstore global option available only for MSSQL database
-        if "as_columnstore" in self.model_config:
-            if not isinstance(self.model_config["as_columnstore"], bool):
-                raise DataModelConfigError("as_columnstore must be a bool")
-            if (
-                self.model_config["as_columnstore"]
-                and self.engine
-                and not self.engine.dialect.name == "mssql"
-            ):
-                self.model_config["as_columnstore"] = False
-                logger.info(
-                    "Clustered columnstore indexes are only supported with MS SQL Server database, noop"
+            if db_engine:
+                self.engine = db_engine
+            else:
+                engine_options = {}
+                if "mssql" in connection_string:
+                    engine_options = {"fast_executemany": True}
+                self.engine = create_engine(
+                    connection_string,
+                    isolation_level="SERIALIZABLE",
+                    **engine_options,
                 )
-        else:
-            self.model_config["as_columnstore"] = False
+            self.db_type = self.engine.dialect.name
 
         self.db_schema = db_schema
         self.temp_prefix = str(uuid4())[:8] if temp_prefix is None else temp_prefix
@@ -136,13 +118,7 @@ class DataModel:
         self.tables = {}
         self.names_types_map = {}
         self.root_table = None
-        self.record_hash_column_name = self.model_config.get(
-            "record_hash_column_name", "xml2db_record_hash"
-        )
-        self.record_hash_constructor = self.model_config.get(
-            "record_hash_constructor", hashlib.sha1
-        )
-        self.record_hash_size = self.model_config.get("record_hash_size", 20)
+
         self.types_transforms = {}
         self.fields_transforms = {}
         self.ordered_tables_keys = []
@@ -153,6 +129,30 @@ class DataModel:
         self.processed_at = datetime.now()
 
         self._build_model()
+
+    def _validate_config(self, cfg):
+        if cfg is None:
+            cfg = {}
+        model_config = {
+            key: check_type(cfg, key, exp_type, default)
+            for key, exp_type, default in [
+                ("as_columnstore", bool, False),
+                ("row_numbers", bool, False),
+                ("document_tree_hook", callable, None),
+                ("document_tree_node_hook", callable, None),
+                ("record_hash_column_name", str, "xml2db_record_hash"),
+                ("record_hash_constructor", callable, hashlib.sha1),
+                ("record_hash_size", int, 20),
+                ("metadata_columns", list, []),
+            ]
+        }
+        if model_config["as_columnstore"] and self.db_type == "mssql":
+            model_config["as_columnstore"] = False
+            logger.info(
+                "Clustered columnstore indexes are only supported with MS SQL Server database, noop"
+            )
+
+        return model_config
 
     @property
     def fk_ordered_tables(
@@ -188,7 +188,7 @@ class DataModel:
         Returns:
             A data model instance.
         """
-        table_config = self.model_config.get("tables", {}).get(table_name, {})
+        table_config = self.tables_config.get(table_name, {})
         if table_config.get("reuse", True):
             return DataModelTableReused(
                 table_name,

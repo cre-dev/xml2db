@@ -234,8 +234,8 @@ class XMLConverter:
                         )
                     else:
                         node_type, transform = self.model.root_table, None
-                    if element.text and element.text.strip():
-                        node[1]["value"] = [element.text.strip()]
+                    if element.text:
+                        node[1]["value"] = [element.text]
                     node = self._transform_node(*node)
                     if transform not in ["elevate", "elevate_wo_prefix"]:
                         node = self._compute_hash_deduplicate(node, hash_maps)
@@ -296,7 +296,7 @@ class XMLConverter:
         node_type, content = node
         table = self.model.tables[node_type]
 
-        h = self.model.record_hash_constructor()
+        h = self.model.model_config["record_hash_constructor"]()
         for field_type, name, _ in table.fields:
             if field_type == "col":
                 h.update(str(content.get(name, None)).encode("utf-8"))
@@ -316,11 +316,7 @@ class XMLConverter:
 
         node = (node_type, content, node_hash)
 
-        if "document_tree_node_hook" in self.model.model_config:
-            if not callable(self.model.model_config["document_tree_node_hook"]):
-                raise DataModelConfigError(
-                    "document_tree_node_hook provided in config must be callable"
-                )
+        if self.model.model_config["document_tree_node_hook"] is not None:
             node = self.model.model_config["document_tree_node_hook"](node)
 
         hash_maps[node_type][node_hash] = node

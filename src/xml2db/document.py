@@ -64,11 +64,7 @@ class Document:
             iterparse=iterparse,
         )
 
-        if "document_tree_hook" in self.model.model_config:
-            if not callable(self.model.model_config["document_tree_hook"]):
-                raise DataModelConfigError(
-                    "document_tree_hook provided in config must be callable"
-                )
+        if self.model.model_config["document_tree_hook"] is not None:
             logger.info(f"Running document_tree_hook function for {self.xml_file_path}")
             document_tree = self.model.model_config["document_tree_hook"](document_tree)
 
@@ -200,7 +196,7 @@ class Document:
                     else:
                         record[f"temp_{rel.field_name}"] = None
 
-            record[self.model.record_hash_column_name] = node_hash
+            record[self.model.model_config["record_hash_column_name"]] = node_hash
 
             # add n-n relationship data for reused children nodes
             for rel in model_table.relations_n.values():

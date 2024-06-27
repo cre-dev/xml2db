@@ -292,69 +292,31 @@ CREATE TABLE "legContract" (
 	FOREIGN KEY(fk_contract) REFERENCES contract (pk_contract)
 )
 
-CREATE INDEX "idx_contractTradingHours_columnstore" ON "contractTradingHours" ()
-
-CREATE INDEX "idx_deliveryProfile_columnstore" ON "deliveryProfile" ()
-
-CREATE INDEX "idx_fixingIndex_columnstore" ON "fixingIndex" ()
-
-CREATE INDEX "idx_optionDetails_columnstore" ON "optionDetails" ()
-
-CREATE INDEX "idx_priceIntervalQuantityDetails_columnstore" ON "priceIntervalQuantityDetails" ()
-
-CREATE INDEX "idx_clickAndTradeDetails_columnstore" ON "clickAndTradeDetails" ()
-
-CREATE INDEX idx_contract_columnstore ON contract ()
-
-CREATE INDEX "ix_contract_fk_optionDetails" ON contract ("fk_optionDetails")
-
-CREATE INDEX "idx_contract_fixingIndex_columnstore" ON "contract_fixingIndex" ()
+CREATE INDEX "ix_contract_fixingIndex_fk_contract" ON "contract_fixingIndex" (fk_contract)
 
 CREATE INDEX "ix_contract_fixingIndex_fk_fixingIndex" ON "contract_fixingIndex" ("fk_fixingIndex")
 
-CREATE INDEX "idx_contract_contractTradingHours_columnstore" ON "contract_contractTradingHours" ()
+CREATE INDEX "ix_contract_contractTradingHours_fk_contract" ON "contract_contractTradingHours" (fk_contract)
 
 CREATE INDEX "ix_contract_contractTradingHours_fk_contractTradingHours" ON "contract_contractTradingHours" ("fk_contractTradingHours")
 
-CREATE INDEX "idx_contract_deliveryProfile_columnstore" ON "contract_deliveryProfile" ()
+CREATE INDEX "ix_contract_deliveryProfile_fk_contract" ON "contract_deliveryProfile" (fk_contract)
 
 CREATE INDEX "ix_contract_deliveryProfile_fk_deliveryProfile" ON "contract_deliveryProfile" ("fk_deliveryProfile")
 
-CREATE INDEX "idx_REMITTable1_columnstore" ON "REMITTable1" ()
-
-CREATE INDEX "idx_REMITTable1_contract_columnstore" ON "REMITTable1_contract" ()
+CREATE INDEX "ix_REMITTable1_contract_fk_REMITTable1" ON "REMITTable1_contract" ("fk_REMITTable1")
 
 CREATE INDEX "ix_REMITTable1_contract_fk_contract" ON "REMITTable1_contract" (fk_contract)
 
-CREATE INDEX "idx_OrderReport_columnstore" ON "OrderReport" ()
+CREATE INDEX "fk_parent_REMITTable1_idx" ON "OrderReport" ("fk_parent_REMITTable1")
 
-CREATE INDEX "ix_OrderReport_fk_contractInfo_contract" ON "OrderReport" ("fk_contractInfo_contract")
-
-CREATE INDEX "ix_OrderReport_fk_parent_REMITTable1" ON "OrderReport" ("fk_parent_REMITTable1")
-
-CREATE INDEX "idx_OrderReport_priceIntervalQuantityDetails_columnstore" ON "OrderReport_priceIntervalQuantityDetails" ()
+CREATE INDEX "ix_OrderReport_priceIntervalQuantityDetails_fk_OrderReport" ON "OrderReport_priceIntervalQuantityDetails" ("fk_OrderReport")
 
 CREATE INDEX "ix_OrderReport_priceIntervalQuantityDetails_fk_priceInt_5eb5" ON "OrderReport_priceIntervalQuantityDetails" ("fk_priceIntervalQuantityDetails")
 
-CREATE INDEX "idx_TradeReport_columnstore" ON "TradeReport" ()
+CREATE INDEX "fk_parent_REMITTable1_idx" ON "TradeReport" ("fk_parent_REMITTable1")
 
-CREATE INDEX "ix_TradeReport_fk_clickAndTradeDetails" ON "TradeReport" ("fk_clickAndTradeDetails")
-
-CREATE INDEX "ix_TradeReport_fk_contractInfo_contract" ON "TradeReport" ("fk_contractInfo_contract")
-
-CREATE INDEX "ix_TradeReport_fk_parent_REMITTable1" ON "TradeReport" ("fk_parent_REMITTable1")
-
-CREATE INDEX "idx_TradeReport_priceIntervalQuantityDetails_columnstore" ON "TradeReport_priceIntervalQuantityDetails" ()
+CREATE INDEX "ix_TradeReport_priceIntervalQuantityDetails_fk_TradeReport" ON "TradeReport_priceIntervalQuantityDetails" ("fk_TradeReport")
 
 CREATE INDEX "ix_TradeReport_priceIntervalQuantityDetails_fk_priceInt_38b7" ON "TradeReport_priceIntervalQuantityDetails" ("fk_priceIntervalQuantityDetails")
-
-CREATE INDEX "idx_legContractId_columnstore" ON "legContractId" ()
-
-CREATE INDEX "ix_legContractId_fk_parent_OrderReport" ON "legContractId" ("fk_parent_OrderReport")
-
-CREATE INDEX "idx_legContract_columnstore" ON "legContract" ()
-
-CREATE INDEX "ix_legContract_fk_contract" ON "legContract" (fk_contract)
-
-CREATE INDEX "ix_legContract_fk_parent_OrderReport" ON "legContract" ("fk_parent_OrderReport")
 

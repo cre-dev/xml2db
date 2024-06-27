@@ -311,33 +311,43 @@ CREATE TABLE "REMITTable1_TradeList_TradeReport" (
 	FOREIGN KEY("fk_TradeReport") REFERENCES "TradeReport" ("pk_TradeReport")
 )
 
-CREATE INDEX "ix_contract_fk_optionDetails" ON contract ("fk_optionDetails")
+CREATE INDEX "ix_contract_fixingIndex_fk_contract" ON "contract_fixingIndex" (fk_contract)
 
 CREATE INDEX "ix_contract_fixingIndex_fk_fixingIndex" ON "contract_fixingIndex" ("fk_fixingIndex")
 
+CREATE INDEX "ix_contract_contractTradingHours_fk_contract" ON "contract_contractTradingHours" (fk_contract)
+
 CREATE INDEX "ix_contract_contractTradingHours_fk_contractTradingHours" ON "contract_contractTradingHours" ("fk_contractTradingHours")
+
+CREATE INDEX "ix_contract_deliveryProfile_fk_contract" ON "contract_deliveryProfile" (fk_contract)
 
 CREATE INDEX "ix_contract_deliveryProfile_fk_deliveryProfile" ON "contract_deliveryProfile" ("fk_deliveryProfile")
 
-CREATE INDEX "ix_legContract_fk_contract" ON "legContract" (fk_contract)
-
-CREATE INDEX "ix_TradeReport_fk_clickAndTradeDetails" ON "TradeReport" ("fk_clickAndTradeDetails")
-
-CREATE INDEX "ix_TradeReport_fk_contractInfo_contract" ON "TradeReport" ("fk_contractInfo_contract")
+CREATE INDEX "ix_TradeReport_priceIntervalQuantityDetails_fk_TradeReport" ON "TradeReport_priceIntervalQuantityDetails" ("fk_TradeReport")
 
 CREATE INDEX "ix_TradeReport_priceIntervalQuantityDetails_fk_priceInt_38b7" ON "TradeReport_priceIntervalQuantityDetails" ("fk_priceIntervalQuantityDetails")
 
-CREATE INDEX "ix_OrderReport_fk_contractInfo_contract" ON "OrderReport" ("fk_contractInfo_contract")
+CREATE INDEX "ix_OrderReport_priceIntervalQuantityDetails_fk_OrderReport" ON "OrderReport_priceIntervalQuantityDetails" ("fk_OrderReport")
 
 CREATE INDEX "ix_OrderReport_priceIntervalQuantityDetails_fk_priceInt_5eb5" ON "OrderReport_priceIntervalQuantityDetails" ("fk_priceIntervalQuantityDetails")
 
+CREATE INDEX "ix_OrderReport_contractInfo_legContractId_fk_OrderReport" ON "OrderReport_contractInfo_legContractId" ("fk_OrderReport")
+
 CREATE INDEX "ix_OrderReport_contractInfo_legContractId_fk_legContractId" ON "OrderReport_contractInfo_legContractId" ("fk_legContractId")
 
+CREATE INDEX "ix_OrderReport_contractInfo_legContract_fk_OrderReport" ON "OrderReport_contractInfo_legContract" ("fk_OrderReport")
+
 CREATE INDEX "ix_OrderReport_contractInfo_legContract_fk_legContract" ON "OrderReport_contractInfo_legContract" ("fk_legContract")
+
+CREATE INDEX "ix_REMITTable1_contractList_contract_fk_REMITTable1" ON "REMITTable1_contractList_contract" ("fk_REMITTable1")
 
 CREATE INDEX "ix_REMITTable1_contractList_contract_fk_contract" ON "REMITTable1_contractList_contract" (fk_contract)
 
 CREATE INDEX "ix_REMITTable1_OrderList_OrderReport_fk_OrderReport" ON "REMITTable1_OrderList_OrderReport" ("fk_OrderReport")
+
+CREATE INDEX "ix_REMITTable1_OrderList_OrderReport_fk_REMITTable1" ON "REMITTable1_OrderList_OrderReport" ("fk_REMITTable1")
+
+CREATE INDEX "ix_REMITTable1_TradeList_TradeReport_fk_REMITTable1" ON "REMITTable1_TradeList_TradeReport" ("fk_REMITTable1")
 
 CREATE INDEX "ix_REMITTable1_TradeList_TradeReport_fk_TradeReport" ON "REMITTable1_TradeList_TradeReport" ("fk_TradeReport")
 

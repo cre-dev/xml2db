@@ -64,7 +64,6 @@ class DataModelTableDuplicated(DataModelTableTransformed):
                     f"fk_parent_{self.parent.name}",
                     Integer,
                     ForeignKey(f"{self.parent.name}.pk_{self.parent.name}"),
-                    index=True,
                 )
             # row_number if needed
             if self.data_model.model_config["row_numbers"]:
@@ -79,6 +78,11 @@ class DataModelTableDuplicated(DataModelTableTransformed):
                     yield from field.get_sqlalchemy_column(temp)
 
         # build target table
+        extra_args = (
+            [extra for extra in self.config.get("extra_args", [])()]
+            if callable(self.config.get("extra_args", []))
+            else self.config.get("extra_args", [])
+        )
         self.table = Table(
             self.name,
             self.metadata,
@@ -88,6 +92,7 @@ class DataModelTableDuplicated(DataModelTableTransformed):
                 mssql_clustered=not self.config["as_columnstore"],
             ),
             *get_col(),
+            *extra_args,
         )
 
         # set columnstore index
