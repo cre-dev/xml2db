@@ -3,11 +3,13 @@ import sqlalchemy
 import hashlib
 
 
-def make_sample_index():
-    yield sqlalchemy.Index(
-        "fk_parent_REMITTable1_idx",
-        "fk_parent_REMITTable1"
-    )
+def make_sample_index(table_name):
+    def wrapped():
+        yield sqlalchemy.Index(
+            f"{table_name}_fk_parent_REMITTable1_idx",
+            "fk_parent_REMITTable1"
+        )
+    return wrapped
 
 
 models = [
@@ -102,12 +104,12 @@ models = [
                         "TradeReport": {
                             "reuse": False,
                             "as_columnstore": True,
-                            "extra_args": make_sample_index,
+                            "extra_args": make_sample_index("TradeReport"),
                         },
                         "OrderReport": {
                             "reuse": False,
                             "as_columnstore": True,
-                            "extra_args": make_sample_index,
+                            "extra_args": make_sample_index("OrderReport"),
                         },
                         "legContract": {"reuse": False},
                         "legContractId": {"reuse": False},

@@ -308,7 +308,7 @@ CREATE INDEX [ix_REMITTable1_contract_fk_contract] ON [REMITTable1_contract] (fk
 
 CREATE CLUSTERED INDEX [ix_fk_REMITTable1_contract] ON [REMITTable1_contract] ([fk_REMITTable1], fk_contract)
 
-CREATE INDEX [fk_parent_REMITTable1_idx] ON [OrderReport] ([fk_parent_REMITTable1])
+CREATE INDEX [OrderReport_fk_parent_REMITTable1_idx] ON [OrderReport] ([fk_parent_REMITTable1])
 
 CREATE CLUSTERED COLUMNSTORE INDEX [idx_OrderReport_columnstore] ON [OrderReport]
 
@@ -316,7 +316,7 @@ CREATE INDEX [ix_OrderReport_priceIntervalQuantityDetails_fk_priceIntervalQuanti
 
 CREATE CLUSTERED INDEX [ix_fk_OrderReport_priceIntervalQuantityDetails] ON [OrderReport_priceIntervalQuantityDetails] ([fk_OrderReport], [fk_priceIntervalQuantityDetails])
 
-CREATE INDEX [fk_parent_REMITTable1_idx] ON [TradeReport] ([fk_parent_REMITTable1])
+CREATE INDEX [TradeReport_fk_parent_REMITTable1_idx] ON [TradeReport] ([fk_parent_REMITTable1])
 
 CREATE CLUSTERED COLUMNSTORE INDEX [idx_TradeReport_columnstore] ON [TradeReport]
 

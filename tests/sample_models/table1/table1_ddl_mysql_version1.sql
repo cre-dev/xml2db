@@ -308,13 +308,13 @@ CREATE INDEX `ix_REMITTable1_contract_fk_REMITTable1` ON `REMITTable1_contract` 
 
 CREATE INDEX `ix_REMITTable1_contract_fk_contract` ON `REMITTable1_contract` (fk_contract)
 
-CREATE INDEX `fk_parent_REMITTable1_idx` ON `OrderReport` (`fk_parent_REMITTable1`)
+CREATE INDEX `OrderReport_fk_parent_REMITTable1_idx` ON `OrderReport` (`fk_parent_REMITTable1`)
 
 CREATE INDEX `ix_OrderReport_priceIntervalQuantityDetails_fk_OrderReport` ON `OrderReport_priceIntervalQuantityDetails` (`fk_OrderReport`)
 
 CREATE INDEX `ix_OrderReport_priceIntervalQuantityDetails_fk_priceInte_5eb5` ON `OrderReport_priceIntervalQuantityDetails` (`fk_priceIntervalQuantityDetails`)
 
-CREATE INDEX `fk_parent_REMITTable1_idx` ON `TradeReport` (`fk_parent_REMITTable1`)
+CREATE INDEX `TradeReport_fk_parent_REMITTable1_idx` ON `TradeReport` (`fk_parent_REMITTable1`)
 
 CREATE INDEX `ix_TradeReport_priceIntervalQuantityDetails_fk_TradeReport` ON `TradeReport_priceIntervalQuantityDetails` (`fk_TradeReport`)
 
