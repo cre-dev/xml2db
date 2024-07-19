@@ -37,9 +37,11 @@ class Document:
     def parse_xml(
         self,
         xml_file: Union[str, BytesIO],
+        metadata: dict = None,
         skip_validation: bool = True,
         iterparse: bool = True,
         recover: bool = False,
+        flat_data: dict = None,
     ) -> None:
         """Parse an XML document and apply transformation corresponding to the target data model
 
@@ -50,9 +52,13 @@ class Document:
 
         Args:
             xml_file: The path or the file object of an XML file to parse
+            metadata: A dict of metadata values to add to the root table (a value for each key defined in
+                `metadata_columns` passed to model config)
             skip_validation: Should we validate the document against the schema first?
             iterparse: Parse XML using iterative parsing, which is a bit slower but uses less memory
             recover: Should we try to parse incorrect XML? (argument passed to lxml parser)
+            flat_data: A dict containing flat data if we want to add data to another dataset instead of creating
+                a new one
         """
         self.xml_file_path = xml_file[:255] if isinstance(xml_file, str) else "<stream>"
 
@@ -69,7 +75,11 @@ class Document:
             document_tree = self.model.model_config["document_tree_hook"](document_tree)
 
         logger.info(f"Adding records to data model for {self.xml_file_path}")
-        self.data = self.doc_tree_to_flat_data(document_tree)
+        self.data = self.doc_tree_to_flat_data(
+            document_tree,
+            metadata=metadata,
+            flat_data=flat_data,
+        )
 
         logger.debug(self.__repr__())
 
@@ -90,11 +100,16 @@ class Document:
         converter.document_tree = self.flat_data_to_doc_tree()
         return converter.to_xml(out_file=out_file, nsmap=nsmap, indent=indent)
 
-    def doc_tree_to_flat_data(self, document_tree: tuple) -> dict:
+    def doc_tree_to_flat_data(
+        self, document_tree: tuple, metadata: dict = None, flat_data: dict = None
+    ) -> dict:
         """Convert document tree (nested dict) to flat tables data model to prepare database import
 
         Args:
             document_tree: A tuple (node_type, content, hash) containing the document tree
+            metadata: A dict of metadata values to add to the root table (a value for each key defined in
+                `metadata_columns` passed to model config)
+            flat_data: A dict to store the flat data into
 
         Returns:
             A dict containing flat tables
@@ -108,6 +123,7 @@ class Document:
             Args:
                 node: A tuple (node_type, content, hash) containing a node of the document tree
                 pk_parent_node: The primary key of its parent node
+                row_number: The row number of the record
                 data_model: The dict to write output to
 
             Returns:
@@ -196,6 +212,12 @@ class Document:
                     else:
                         record[f"temp_{rel.field_name}"] = None
 
+            # write metadata if it is the root table
+            if pk_parent_node == 0 and isinstance(metadata, dict):
+                for meta_col in self.model.model_config.get("metadata_columns", []):
+                    if meta_col["name"] in metadata:
+                        record[meta_col["name"]] = metadata[meta_col["name"]]
+
             record[self.model.model_config["record_hash_column_name"]] = node_hash
 
             # add n-n relationship data for reused children nodes
@@ -231,7 +253,7 @@ class Document:
 
             return record_pk
 
-        flat_tables = {}
+        flat_tables = flat_data if flat_data else {}
         _extract_node(document_tree, 0, 0, flat_tables)
 
         return flat_tables
@@ -346,17 +368,13 @@ class Document:
             int(list(data_index[self.model.root_table]["records"].keys())[0]),
         )
 
-    def insert_into_temp_tables(
-        self, max_lines: int = -1, metadata: dict = None
-    ) -> None:
+    def insert_into_temp_tables(self, max_lines: int = -1) -> None:
         """Insert data into temporary tables
 
         (Re)creates temp tables before inserting data.
 
         Args:
             max_lines: The maximum number of lines to insert in a single statement
-            metadata: A dict of metadata values to add to the root table (a value for each key defined in
-                `metadata_columns` passed to model config)
         """
         logger.info(f"Dropping temp tables if exist for {self.xml_file_path}")
         self.model.drop_all_temp_tables()
@@ -365,11 +383,6 @@ class Document:
         self.model.create_all_tables(temp=True)
 
         logger.info(f"Inserting data into temporary tables from {self.xml_file_path}")
-        # write metadata into the root table data
-        root_data = self.data[self.model.root_table]["records"][0]
-        for meta_col in self.model.model_config.get("metadata_columns", []):
-            if meta_col["name"] in metadata:
-                root_data[meta_col["name"]] = metadata[meta_col["name"]]
         # insert data (order does not really matter)
         for tb in self.model.fk_ordered_tables:
             for query, data in tb.get_insert_temp_records_statements(
@@ -418,7 +431,6 @@ class Document:
         self,
         single_transaction: bool = True,
         max_lines: int = -1,
-        metadata: dict = None,
     ) -> int:
         """Insert and merge data into the database
 
@@ -429,8 +441,6 @@ class Document:
                 scope required to ensure database consistency?
             max_lines: The maximum number of lines to insert in a single statement when loading data to the temporary
                 tables
-            metadata: A dict of metadata values to add to the root table (a value for each key defined in
-                `metadata_columns` passed to model config)
 
         Returns:
             The number of inserted rows
@@ -444,7 +454,7 @@ class Document:
             logger.error(e)
             raise
         try:
-            self.insert_into_temp_tables(max_lines, metadata)
+            self.insert_into_temp_tables(max_lines)
         except Exception as e:
             logger.error(
                 f"Error while importing into temporary tables from {self.xml_file_path}"

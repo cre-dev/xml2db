@@ -64,7 +64,7 @@ clustered columnstore indexes. The default value is `False` (disabled).
 useful for instance to add the name of the file which has been parsed, or a timestamp, etc. Columns should be specified
 as dicts, the only required keys are `name` and `type` (a SQLAlchemy type object); other keys will be passed directly
 as keyword arguments to `sqlalchemy.Column`. Actual values need to be passed to 
-[`Document.insert_into_target_tables`](api/document.md#xml2db.document.Document.insert_into_target_tables) for each 
+[`DataModel.parse_xml`](api/data_model.md#xml2db.model.DataModel.parse_xml) for each 
 parsed documents, as a `dict`, using the `metadata` argument.
 * `record_hash_column_name`: the column name to use to store records hash data (defaults to `xml2db_record_hash`).
 * `record_hash_constructor`: a function used to build a hash, with a signature similar to `hashlib` constructor 

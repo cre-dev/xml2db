@@ -6,9 +6,9 @@ import hashlib
 def make_sample_index(table_name):
     def wrapped():
         yield sqlalchemy.Index(
-            f"{table_name}_fk_parent_REMITTable1_idx",
-            "fk_parent_REMITTable1"
+            f"{table_name}_fk_parent_REMITTable1_idx", "fk_parent_REMITTable1"
         )
+
     return wrapped
 
 
@@ -219,4 +219,3 @@ def _generate_models_output():
 
 if __name__ == "__main__":
     _generate_models_output()
-
