@@ -23,8 +23,8 @@ def test_database_xml_roundtrip(setup_db_model, model_config):
 
     for file in xml_files:
         # do parse and insert into the database
-        doc = model.parse_xml(file)
-        doc.insert_into_target_tables(metadata={"input_file_path": file})
+        doc = model.parse_xml(file, metadata={"input_file_path": file})
+        doc.insert_into_target_tables()
 
     for file in xml_files:
         doc = model.extract_from_database(
@@ -65,8 +65,8 @@ def test_database_document_tree_roundtrip(setup_db_model, model_config):
 
     for file in xml_files:
         # do parse and insert into the database
-        doc = model.parse_xml(file)
-        doc.insert_into_target_tables(metadata={"input_file_path": file})
+        doc = model.parse_xml(file, metadata={"input_file_path": file})
+        doc.insert_into_target_tables()
 
     for file in xml_files:
         doc = model.extract_from_database(
@@ -77,7 +77,49 @@ def test_database_document_tree_roundtrip(setup_db_model, model_config):
         converter = XMLConverter(model)
         converter.parse_xml(file, file)
 
-        assert doc.flat_data_to_doc_tree() == remove_record_hash(converter.document_tree)
+        assert doc.flat_data_to_doc_tree() == remove_record_hash(
+            converter.document_tree
+        )
+
+
+@pytest.mark.dbtest
+@pytest.mark.parametrize(
+    "model_config",
+    [{**models[0], **version} for version in models[0]["versions"]],
+)
+def test_database_document_tree_roundtrip_single_load(setup_db_model, model_config):
+    """A test for roundtrip insert to the database from and to document tree"""
+
+    model = setup_db_model
+    xml_files = [
+        os.path.join(model_config["xml_path"], file)
+        for file in os.listdir(model_config["xml_path"])
+    ]
+
+    flat_data = None
+    doc = None
+    for file in xml_files:
+        # do parse
+        doc = model.parse_xml(
+            file, metadata={"input_file_path": file}, flat_data=flat_data
+        )
+        flat_data = doc.data
+
+    # insert into the database all at once
+    doc.insert_into_target_tables()
+
+    for file in xml_files:
+        doc = model.extract_from_database(
+            f"input_file_path='{file}'", force_tz="Europe/Paris"
+        )
+
+        # parse file to doctree for reference
+        converter = XMLConverter(model)
+        converter.parse_xml(file, file)
+
+        assert doc.flat_data_to_doc_tree() == remove_record_hash(
+            converter.document_tree
+        )
 
 
 @pytest.mark.skip
@@ -97,8 +139,8 @@ def test_database_single_document_tree_roundtrip(setup_db_model, model_config):
     file_path = os.path.join(model_config["xml_path"], model_config["xml_file"])
 
     # do parse and insert into the database
-    doc = model.parse_xml(file_path)
-    doc.insert_into_target_tables(metadata={"input_file_path": file_path})
+    doc = model.parse_xml(file_path, metadata={"input_file_path": file_path})
+    doc.insert_into_target_tables()
 
     doc = model.extract_from_database(
         f"input_file_path='{file_path}'", force_tz="Europe/Paris"

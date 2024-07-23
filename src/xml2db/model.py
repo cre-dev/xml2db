@@ -676,9 +676,11 @@ class DataModel:
     def parse_xml(
         self,
         xml_file: Union[str, BytesIO],
+        metadata: dict = None,
         skip_validation: bool = True,
         iterparse: bool = True,
         recover: bool = False,
+        flat_data: dict = None,
     ) -> Document:
         """Parse an XML document based on this data model
 
@@ -686,9 +688,13 @@ class DataModel:
 
         Args:
             xml_file: The path or the file object of an XML file to parse
+            metadata: A dict of metadata values to add to the root table (a value for each key defined in
+                `metadata_columns` passed to model config)
             skip_validation: Should we validate the documents against the schema first?
             iterparse: Parse XML using iterative parsing, which is a bit slower but uses less memory
             recover: Should we try to parse incorrect XML? (argument passed to lxml parser)
+            flat_data: A dict containing flat data if we want to add data to another dataset instead of creating
+                a new one
 
         Returns:
             A parsed [`Document`](document.md) object
@@ -696,9 +702,11 @@ class DataModel:
         doc = Document(self)
         doc.parse_xml(
             xml_file=xml_file,
+            metadata=metadata,
             skip_validation=skip_validation,
             iterparse=iterparse,
             recover=recover,
+            flat_data=flat_data,
         )
         return doc
 

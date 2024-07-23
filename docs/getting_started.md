@@ -121,6 +121,25 @@ troubleshooting if need be.
     [`metadata_columns` option](configuring.md#model-configuration) and create additional columns in the root table.
     It can be used for instance to save file name or loading timestamp.
 
+    Actual values need to be passed to [`DataModel.parse_xml`](api/data_model.md#xml2db.model.DataModel.parse_xml) for 
+    each parsed documents, as a `dict`, using the `metadata` argument.
+
+!!! note
+    You can also load multiple documents at the same time to the database, which could make the process faster if you 
+    have a lot of small XML files to load:
+    ``` py
+    data = None
+    for xml_file in files:
+        document = data_model.parse_xml(
+            xml_file="path/to/file.xml",
+            flat_data=data,
+        )
+        data = document.data
+    document.insert_into_target_tables()
+    ```
+
+
+
 ## Getting back the data into XML
 
 You can extract the data from the database into XML files. This was implemented primarily to be able to test the package
