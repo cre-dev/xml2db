@@ -1,8 +1,7 @@
-# Loading complex XML files to a relational database
+# Loading XML files into a relational database
 
-`xml2db` is a Python package which allows parsing and loading XML files into a relational database. It is designed to 
-handle complex XML files which cannot be denormalized to flat tables. It works out of the box, without any custom 
-mapping rules.
+`xml2db` is a Python package which allows parsing and loading XML files into a relational database. It handles complex 
+XML files which cannot be denormalized to flat tables, and works out of the box, without any custom mapping rules.
 
 It can be used within an [Extract, Load, Transform](https://docs.getdbt.com/terms/elt) data pipeline pattern as it 
 allows loading XML files into a relational data model which is very close from the source data, yet easy to work with.
@@ -29,7 +28,7 @@ document = data_model.parse_xml(
 document.insert_into_target_tables()
 ```
 
-The resulting data model will adhere closely to the XSD schema. However, `xml2db` will perform a few systematic 
+The data model created by `xml2db` will be close to the XSD schema. However, `xml2db` will perform a few systematic 
 simplifications aimed at limiting the complexity of the resulting data model and the storage footprint. The resulting 
 data model can be configured, but the above code will work out of the box, with reasonable defaults.
 
@@ -37,9 +36,9 @@ The raw data loaded into the database can then be processed if need be, using fo
 SQL views or stored procedures aimed at extracting, correcting and formatting the data into more user-friendly tables.
 
 This package uses `sqlalchemy` to interact with the database, so it should work with different database backends. 
-Automated integration tests run against PostgreSQL, MySQL and MS SQL Server. `xml2db` does not work with SQLite. You may
-have to install additional packages to connect to your database (e.g. `psycopg2` for PostgreSQL, `pymysql` for MySQL or 
-`pyodbc` for MS SQL Server).
+Automated integration tests run against PostgreSQL, MySQL, MS SQL Server and DuckDB. You may have to install additional 
+packages to connect to your database (e.g. `psycopg2` for PostgreSQL, `pymysql` for MySQL, `pyodbc` for MS SQL Server or
+`duckdb_engine` for DuckDB).
 
 **Please read the [package documentation website](https://cre-dev.github.io/xml2db) for all the details!**
 
@@ -74,7 +73,8 @@ pytest -m "not dbtest"
 
 ## Contributing
 
-`xml2db` is developed and used at the [French energy regulation authority (CRE)](https://www.cre.fr/) to process complex XML data.
+`xml2db` is developed and used at the [French energy regulation authority (CRE)](https://www.cre.fr/) to process complex 
+XML data.
 
 Contributions are welcome, as well as bug reports, starting on the project's 
 [issue page](https://github.com/cre-dev/xml2db/issues).

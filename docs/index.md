@@ -1,15 +1,16 @@
 ---
-title: "Loading complex XML into a relational database"
+title: "Loading XML into a relational database"
 ---
 
-# Loading complex XML into a relational database
+# Loading XML into a relational database
 
-`xml2db` is a Python package which allows parsing and loading XML files into a relational database. It is designed to 
-handle complex XML files which cannot be denormalized to flat tables. It works out of the box, without any custom 
-mapping rules.
+`xml2db` is a Python package which allows parsing and loading XML files into a relational database. It builds 
+automatically a mapping between an XML schema and a set of tables in the database. It means that it can handle complex
+XML files which cannot be denormalized into flat tables. It works out of the box, without any custom mapping rules.
 
-It can be used within an [Extract, Load, Transform](https://docs.getdbt.com/terms/elt) data pipeline pattern as it 
-allows loading XML files into a relational data model which is very close from the source data, yet easy to work with.
+`xml2db` fits well within an [Extract, Load, Transform](https://docs.getdbt.com/terms/elt) data pipeline pattern as it 
+allows loading XML files into a relational data model which is very close to the source data, yet easy to work with, 
+being flat database tables.
 
 Starting from an XSD schema which represents a given XML structure, `xml2db` builds a data model, i.e. a set of database 
 tables linked to each other by foreign keys relationships. Then, it allows parsing and loading XML files into the 
@@ -35,17 +36,17 @@ document = data_model.parse_xml(xml_file="path/to/file.xml")
 document.insert_into_target_tables()
 ```
 
-The resulting data model will adhere closely to the XSD schema. However, `xml2db` will perform a few systematic 
-simplifications aimed at limiting the complexity of the resulting data model and the storage footprint. The resulting 
-data model can be configured, but the above code will work out of the box, with reasonable defaults.
+The resulting data model will be very similar with the XSD schema. However, `xml2db` will perform automatically a few
+simplifications aimed at limiting the complexity of the resulting data model and the storage footprint. The data model 
+can be configured, but the above code will work out of the box for most schemas, with reasonable defaults.
 
 The raw data loaded into the database can then be processed if need be, using for instance [DBT](https://www.getdbt.com/),
 SQL views or stored procedures aimed at extracting, correcting and formatting the data into more user-friendly tables.
 
 This package uses `sqlalchemy` to interact with the database, so it should work with different database backends. 
-Automated integration tests run against PostgreSQL, MySQL and MS SQL Server. `xml2db` does not work with SQLite. You may
-have to install additional packages to connect to your database (e.g. `psycopg2` for PostgreSQL, `pymysql` for MySQL or 
-`pyodbc` for MS SQL Server).
+Automated integration tests run against PostgreSQL, MySQL, MS SQL Server and DuckDB. You may have to install additional 
+packages to connect to your database (e.g. `psycopg2` for PostgreSQL, `pymysql` for MySQL, `pyodbc` for MS SQL Server or
+`duckdb_engine` for DuckDB).
 
 ## How to visualize your data model 
 

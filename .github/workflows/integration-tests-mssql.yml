@@ -40,6 +40,6 @@ jobs:
     
       - name: Test with pytest
         run: |
-          pytest tests
+          pytest tests -x
         env:
           DB_STRING: mssql+pyodbc://sa:MyTestPassword1@localhost:1433/master?driver=ODBC+Driver+17+for+SQL+Server
