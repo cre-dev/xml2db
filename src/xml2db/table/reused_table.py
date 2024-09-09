@@ -7,6 +7,7 @@ from sqlalchemy import (
     UniqueConstraint,
     Boolean,
     select,
+    Sequence,
 )
 
 from .transformed_table import DataModelTableTransformed
@@ -86,10 +87,25 @@ class DataModelTableReused(DataModelTableTransformed):
             if callable(self.config.get("extra_args", []))
             else self.config.get("extra_args", [])
         )
+
+        if self.data_model.db_type == "duckdb":
+            pk_sequence = Sequence(f"pk_sequ_{self.name}")
+            pk_col = Column(
+                f"pk_{self.name}",
+                Integer,
+                pk_sequence,
+                server_default=pk_sequence.next_value(),
+                primary_key=True,
+            )
+        else:
+            pk_col = Column(
+                f"pk_{self.name}", Integer, primary_key=True, autoincrement=True
+            )
+
         self.table = Table(
             self.name,
             self.metadata,
-            Column(f"pk_{self.name}", Integer, primary_key=True, autoincrement=True),
+            pk_col,
             PrimaryKeyConstraint(
                 name=f"cx_pk_{self.name}",
                 mssql_clustered=not self.config["as_columnstore"],

@@ -44,6 +44,6 @@ jobs:
     
       - name: Test with pytest
         run: |
-          pytest tests
+          pytest tests -x
         env:
           DB_STRING: mysql+pymysql://root:secretroot@127.0.0.1:3306/test_db

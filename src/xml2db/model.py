@@ -10,6 +10,7 @@ import xmlschema
 import sqlalchemy
 from sqlalchemy import MetaData, create_engine, inspect
 from sqlalchemy.sql.ddl import CreateIndex, CreateTable
+from sqlalchemy.exc import ProgrammingError
 from graphlib import TopologicalSorter
 
 from .document import Document
@@ -104,10 +105,12 @@ class DataModel:
             else:
                 engine_options = {}
                 if "mssql" in connection_string:
-                    engine_options = {"fast_executemany": True}
+                    engine_options = {
+                        "fast_executemany": True,
+                        "isolation_level": "SERIALIZABLE",
+                    }
                 self.engine = create_engine(
                     connection_string,
-                    isolation_level="SERIALIZABLE",
                     **engine_options,
                 )
             self.db_type = self.engine.dialect.name
@@ -647,13 +650,24 @@ class DataModel:
         You do not have to call this method explicitly when using
             [`Document.insert_into_target_tables()`](document.md#xml2db.document.Document.insert_into_target_tables).
         """
+
+        def do_create_schema():
+            with self.engine.connect() as conn:
+                conn.execute(sqlalchemy.schema.CreateSchema(self.db_schema))
+                conn.commit()
+
         if self.db_schema is not None:
-            inspector = inspect(self.engine)
-            if self.db_schema not in inspector.get_schema_names():
-                with self.engine.connect() as conn:
-                    conn.execute(sqlalchemy.schema.CreateSchema(self.db_schema))
-                    conn.commit()
-                logger.info(f"Created schema: {self.db_schema}")
+            if self.db_type == "duckdb":
+                try:
+                    do_create_schema()
+                except ProgrammingError:
+                    pass
+            else:
+                inspector = inspect(self.engine)
+                if self.db_schema not in inspector.get_schema_names():
+                    do_create_schema()
+
+            logger.info(f"Created schema: {self.db_schema}")
 
     def drop_all_tables(self):
         """Drop the data model target (unprefixed) tables.

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xml2db"
-version = "0.12.0"
+version = "0.12.1"
 authors = [
   { name="Commission de régulation de l'énergie", email="opensource@cre.fr" },
 ]
@@ -18,12 +18,12 @@ classifiers = [
 ]
 dependencies = [
     "sqlalchemy>1.4",
-    "xmlschema==3.1.0",
+    "xmlschema==3.3.2",
     "lxml==5.1.0",
 ]
 
 [project.optional-dependencies]
-docs = ["mkdocs-material==9.5.23", "mkdocstrings-python==1.10.2"]
+docs = ["mkdocs-material==9.5.34", "mkdocstrings-python==1.11.1"]
 tests = ["pytest>=7.0"]
 
 [project.urls]
