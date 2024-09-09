@@ -23,7 +23,7 @@ jobs:
       - name: Install package
         run: |
           python -m pip install --upgrade pip
-          python -m pip install duckdb_engine .[tests]
+          python -m pip install duckdb_engine pytz .[tests]
 
       - name: Test with pytest
         run: |
