@@ -79,7 +79,7 @@ class DataModel:
         temp_prefix: str = None,
     ):
         self.model_config = self._validate_config(model_config)
-        self.tables_config = model_config.get("tables", {})
+        self.tables_config = model_config.get("tables", {}) if model_config else {}
 
         self.xml_schema = xmlschema.XMLSchema(
             os.path.basename(xsd_file) if base_url is None else xsd_file,

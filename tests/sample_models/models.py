@@ -1,6 +1,7 @@
-import os.path
-import sqlalchemy
 import hashlib
+import os.path
+
+import sqlalchemy
 
 
 def make_sample_index(table_name):

@@ -1,10 +1,10 @@
 import os
+
 import pytest
 from lxml import etree
 
 from xml2db import DataModel
 from xml2db.xml_converter import XMLConverter, remove_record_hash
-
 from .sample_models import models
 
 

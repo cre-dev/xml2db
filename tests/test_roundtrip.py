@@ -1,8 +1,9 @@
 import os
+
 import pytest
 from lxml import etree
-from xml2db.xml_converter import XMLConverter, remove_record_hash
 
+from xml2db.xml_converter import XMLConverter, remove_record_hash
 from .fixtures import setup_db_model, conn_string
 from .sample_models import models
 
