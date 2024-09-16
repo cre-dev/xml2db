@@ -2,7 +2,7 @@ import csv
 import datetime
 import logging
 from io import BytesIO
-from typing import Union, TYPE_CHECKING, Dict
+from typing import Union, TYPE_CHECKING
 from zoneinfo import ZoneInfo
 from sqlalchemy import Column, Table, text, select
 from sqlalchemy.engine import Connection
@@ -12,7 +12,6 @@ from lxml import etree
 if TYPE_CHECKING:
     from .model import DataModel
 
-from .exceptions import DataModelConfigError
 from .xml_converter import XMLConverter
 
 logger = logging.getLogger(__name__)

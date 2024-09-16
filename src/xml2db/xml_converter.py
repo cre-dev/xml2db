@@ -6,8 +6,6 @@ from lxml import etree
 from io import BytesIO
 from itertools import zip_longest
 
-from .exceptions import DataModelConfigError
-
 
 if typing.TYPE_CHECKING:
     from .model import DataModel

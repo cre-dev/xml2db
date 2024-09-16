@@ -1,9 +1,9 @@
 import os
+
 import pytest
 from sqlalchemy.dialects import postgresql, mssql, mysql
 
 from xml2db import DataModel
-
 from .sample_models import models
 
 

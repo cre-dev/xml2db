@@ -211,6 +211,11 @@ source code to see how the lower level steps are stitched together.
 
 Extracting the data from the database and converting it back to XML follow similar steps, in reverse order.
 
+!!! info
+    Extracting the data from the database is not very optimized and is actually currently quite slow, mostly due to
+    complex join queries to retrieve data based on a filter only on the top node. This feature is currently useful
+    for roundtrip test, but has limited value otherwise, because of its poor performance compared to loading.
+
 ### Querying data from the database
 
 Walking through the data model tree, we query all tables using a chain of joins to the root table, on which we apply the

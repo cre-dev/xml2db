@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+<orders xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" batch_id="5" xsi:noNamespaceSchemaLocation="../orders.xsd">
+  <shiporder orderid="1" processed_at="2023-09-10T09:37:00.000+02:00">
+    <orderperson>
+      <name>Bob</name>
+      <address>string</address>
+      <city>string</city>
+      <zip codingSystem="us">102832</zip>
+      <country>FR</country>
+      <phoneNumber>+1732897354</phoneNumber>
+      <phoneNumber>+1732323984</phoneNumber>
+      <companyId>
+        <bic>JIDAZIO786DAZH</bic>
+      </companyId>
+    </orderperson>
+    <item>
+      <product>
+        <name>product 1</name>
+        <version>regular</version>
+      </product>
+      <quantity>13</quantity>
+      <price>340.23</price>
+    </item>
+    <item>
+      <product>
+        <name>product 2</name>
+        <version>regular</version>
+      </product>
+      <note>string</note>
+      <quantity>8</quantity>
+      <price>56.2</price>
+    </item>
+    <item>
+      <product>
+        <name>product 1</name>
+        <version>premium</version>
+      </product>
+      <quantity>25</quantity>
+      <price>21.7</price>
+    </item>
+  </shiporder>
+</orders>
+Hello World!
