@@ -1,28 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-
-    <xs:simpleType name="stringtype">
-        <xs:restriction base="xs:string"/>
-    </xs:simpleType>
-
-    <xs:simpleType name="inttype">
-        <xs:restriction base="xs:integer"/>
-    </xs:simpleType>
-
-    <xs:simpleType name="dectype">
-        <xs:restriction base="xs:decimal"/>
-    </xs:simpleType>
-
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:bt="http://www.cre.fr/xml2db/base_types.xsd">
+    <xs:import schemaLocation="base_types.xsd"
+                namespace="http://www.cre.fr/xml2db/base_types.xsd" />
     <xs:complexType name="companyIdType">
         <xs:choice>
-            <xs:element name="ace" type="stringtype"/>
-            <xs:element name="bic" type="stringtype"/>
-            <xs:element name="lei" type="stringtype"/>
+            <xs:element name="ace" type="bt:stringtype"/>
+            <xs:element name="bic" type="bt:stringtype"/>
+            <xs:element name="lei" type="bt:stringtype"/>
         </xs:choice>
     </xs:complexType>
 
     <xs:simpleType name="ZipCodeType-base">
-        <xs:restriction base="stringtype">
+        <xs:restriction base="bt:stringtype">
             <xs:maxLength value="10"/>
         </xs:restriction>
     </xs:simpleType>
@@ -37,29 +27,29 @@
 
     <xs:complexType name="contacttype">
         <xs:sequence>
-            <xs:element name="name" type="stringtype"/>
-            <xs:element name="address" type="stringtype"/>
-            <xs:element name="city" type="stringtype"/>
+            <xs:element name="name" type="bt:stringtype"/>
+            <xs:element name="address" type="bt:stringtype"/>
+            <xs:element name="city" type="bt:stringtype"/>
             <xs:element name="zip" type="ZipCodeType"/>
-            <xs:element name="country" type="stringtype"/>
-            <xs:element name="phoneNumber" type="stringtype" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="country" type="bt:stringtype"/>
+            <xs:element name="phoneNumber" type="bt:stringtype" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="companyId" type="companyIdType" minOccurs="0" maxOccurs="1"/>
         </xs:sequence>
     </xs:complexType>
 
     <xs:complexType name="producttype">
         <xs:sequence>
-            <xs:element name="name" type="stringtype"/>
-            <xs:element name="version" type="stringtype"/>
+            <xs:element name="name" type="bt:stringtype"/>
+            <xs:element name="version" type="bt:stringtype"/>
         </xs:sequence>
     </xs:complexType>
 
     <xs:complexType name="itemtype">
         <xs:sequence>
             <xs:element name="product" type="producttype" minOccurs="1" maxOccurs="1"/>
-            <xs:element name="note" type="stringtype" minOccurs="0"/>
-            <xs:element name="quantity" type="inttype"/>
-            <xs:element name="price" type="dectype"/>
+            <xs:element name="note" type="bt:stringtype" minOccurs="0"/>
+            <xs:element name="quantity" type="bt:inttype"/>
+            <xs:element name="price" type="bt:dectype"/>
         </xs:sequence>
     </xs:complexType>
 
@@ -69,7 +59,7 @@
             <xs:element name="shipto" type="contacttype" minOccurs="0" maxOccurs="1"/>
             <xs:element name="item" maxOccurs="unbounded" type="itemtype"/>
         </xs:sequence>
-        <xs:attribute name="orderid" type="stringtype" use="required" />
+        <xs:attribute name="orderid" type="bt:stringtype" use="required" />
         <xs:attribute name="processed_at" type="xs:dateTime" />
     </xs:complexType>
 
@@ -77,7 +67,7 @@
         <xs:sequence>
             <xs:element name="shiporder" type="shipordertype" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
-        <xs:attribute name="batch_id" type="stringtype" />
+        <xs:attribute name="batch_id" type="bt:stringtype" />
     </xs:complexType>
 
     <xs:element name="orders" type="orderstype"/>

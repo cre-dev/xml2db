@@ -74,7 +74,7 @@ class XMLConverter:
             logger.info("Skipping XML file validation")
         else:
             logger.info("Validating XML file against the schema")
-            if not self.model.xml_schema.is_valid(xt if xt else xml_file):
+            if not self.model.lxml_schema.validate(xt if xt else etree.parse(xml_file)):
                 logger.error(f"XML file {file_path} does not conform with the schema")
                 raise ValueError(
                     f"XML file {file_path} does not conform with the schema"

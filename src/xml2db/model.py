@@ -8,6 +8,7 @@ import hashlib
 
 import xmlschema
 import sqlalchemy
+from lxml import etree
 from sqlalchemy import MetaData, create_engine, inspect
 from sqlalchemy.sql.ddl import CreateIndex, CreateTable
 from sqlalchemy.exc import ProgrammingError
@@ -50,6 +51,7 @@ class DataModel:
 
     Attributes:
         xml_schema: The `xmlschema.XMLSchema` object associated with this data model
+        lxml_schema: The `lxml.etree.XMLSchema` object associated with this data model
         data_flow_name: A short identifier used for the data model (`short_name` argument value)
         data_flow_long_name: A longer for the data model (`long_name` argument value)
         db_schema: A database schema name to store the database tables
@@ -73,7 +75,7 @@ class DataModel:
         base_url: str = None,
         model_config: dict = None,
         connection_string: str = None,
-        db_engine: str = None,
+        db_engine: sqlalchemy.Engine = None,
         db_type: str = None,
         db_schema: str = None,
         temp_prefix: str = None,
@@ -81,14 +83,14 @@ class DataModel:
         self.model_config = self._validate_config(model_config)
         self.tables_config = model_config.get("tables", {}) if model_config else {}
 
-        self.xml_schema = xmlschema.XMLSchema(
-            os.path.basename(xsd_file) if base_url is None else xsd_file,
-            base_url=(
-                base_url
-                if base_url is not None
-                else os.path.normpath(os.path.dirname(xsd_file))
-            ),
-        )
+        xsd_file_name = xsd_file
+        if base_url is None:
+            base_url = os.path.normpath(os.path.dirname(xsd_file))
+            xsd_file_name = os.path.basename(xsd_file)
+
+        self.xml_schema = xmlschema.XMLSchema(xsd_file_name, base_url=base_url)
+        self.lxml_schema = etree.XMLSchema(etree.parse(xsd_file))
+
         self.xml_converter = XMLConverter(data_model=self)
         self.data_flow_name = short_name
         self.data_flow_long_name = long_name
