@@ -75,7 +75,7 @@ class DataModel:
         base_url: str = None,
         model_config: dict = None,
         connection_string: str = None,
-        db_engine: str = None,
+        db_engine: sqlalchemy.Engine = None,
         db_type: str = None,
         db_schema: str = None,
         temp_prefix: str = None,
@@ -89,7 +89,7 @@ class DataModel:
             xsd_file_name = os.path.basename(xsd_file)
 
         self.xml_schema = xmlschema.XMLSchema(xsd_file_name, base_url=base_url)
-        self.lxml_schema = etree.XMLSchema(etree.parse(xsd_file, base_url=base_url))
+        self.lxml_schema = etree.XMLSchema(etree.parse(xsd_file))
 
         self.xml_converter = XMLConverter(data_model=self)
         self.data_flow_name = short_name
