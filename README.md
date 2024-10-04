@@ -78,5 +78,3 @@ XML data.
 
 Contributions are welcome, as well as bug reports, starting on the project's 
 [issue page](https://github.com/cre-dev/xml2db/issues).
-
-If you find this package useful you can give it a star on [`xml2db`'s GitHub repo](https://github.com/cre-dev/xml2db)!

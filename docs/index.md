@@ -4,17 +4,15 @@ title: "Loading XML into a relational database"
 
 # Loading XML into a relational database
 
-`xml2db` is a Python package which allows parsing and loading XML files into a relational database. It builds 
-automatically a mapping between an XML schema and a set of tables in the database. It means that it can handle complex
-XML files which cannot be denormalized into flat tables. It works out of the box, without any custom mapping rules.
+`xml2db` is a Python package which allows parsing and loading XML files into a relational database:
 
-`xml2db` fits well within an [Extract, Load, Transform](https://docs.getdbt.com/terms/elt) data pipeline pattern as it 
-allows loading XML files into a relational data model which is very close to the source data, yet easy to work with, 
-being flat database tables.
+* it maps automatically a XSD schema with a set of tables in the database
+* it can handle complex XML files which cannot be denormalized into flat tables
+* it works out of the box, without any custom mapping rules.
 
-Starting from an XSD schema which represents a given XML structure, `xml2db` builds a data model, i.e. a set of database 
-tables linked to each other by foreign keys relationships. Then, it allows parsing and loading XML files into the 
-database, and getting them back from the database into XML format if needed.
+`xml2db` fits well within an [Extract, Load, Transform](https://docs.getdbt.com/terms/elt) data pipeline pattern: it 
+loads XML files into a relational data model which is very close to the source data, yet easy to work with, being flat 
+database tables.
 
 ## How to load XML files into a database
 
@@ -130,4 +128,4 @@ XML data.
 Contributions are welcome, as well as bug reports, starting on the project's 
 [issue page](https://github.com/cre-dev/xml2db/issues).
 
-    
+If you find this package useful, you can give it a star on [`xml2db`'s GitHub repo](https://github.com/cre-dev/xml2db)!
