@@ -34,6 +34,7 @@ CREATE TABLE shiporder (
 CREATE TABLE orders (
 	pk_orders INTEGER NOT NULL AUTO_INCREMENT, 
 	batch_id VARCHAR(255), 
+	version INTEGER, 
 	xml2db_processed_at DATETIME, 
 	input_file_path VARCHAR(256), 
 	record_hash BINARY(16), 
@@ -60,6 +61,7 @@ CREATE TABLE item (
 	note VARCHAR(255), 
 	quantity INTEGER, 
 	price DOUBLE, 
+	currency VARCHAR(3), 
 	CONSTRAINT cx_pk_item PRIMARY KEY (pk_item), 
 	FOREIGN KEY(fk_parent_shiporder) REFERENCES shiporder (pk_shiporder)
 )

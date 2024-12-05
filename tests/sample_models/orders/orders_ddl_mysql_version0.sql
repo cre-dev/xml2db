@@ -23,6 +23,7 @@ CREATE TABLE item (
 	note VARCHAR(255), 
 	quantity INTEGER, 
 	price DOUBLE, 
+	currency VARCHAR(3), 
 	record_hash BINARY(20), 
 	CONSTRAINT cx_pk_item PRIMARY KEY (pk_item), 
 	CONSTRAINT item_xml2db_record_hash UNIQUE (record_hash)
@@ -54,6 +55,7 @@ CREATE TABLE shiporder_item (
 CREATE TABLE orders (
 	pk_orders INTEGER NOT NULL AUTO_INCREMENT, 
 	batch_id VARCHAR(255), 
+	version INTEGER, 
 	input_file_path VARCHAR(256), 
 	record_hash BINARY(20), 
 	CONSTRAINT cx_pk_orders PRIMARY KEY (pk_orders), 

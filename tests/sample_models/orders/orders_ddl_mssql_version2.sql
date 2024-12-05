@@ -2,6 +2,7 @@
 CREATE TABLE orders (
 	pk_orders INTEGER NOT NULL IDENTITY, 
 	batch_id VARCHAR(1000) NULL, 
+	version INTEGER NULL, 
 	input_file_path VARCHAR(256) NULL, 
 	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_orders PRIMARY KEY CLUSTERED (pk_orders), 
@@ -42,6 +43,7 @@ CREATE TABLE item (
 	note VARCHAR(1000) NULL, 
 	quantity INTEGER NULL, 
 	price DOUBLE PRECISION NULL, 
+	currency CHAR(3) NULL, 
 	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_item PRIMARY KEY CLUSTERED (pk_item), 
 	CONSTRAINT item_xml2db_record_hash UNIQUE (xml2db_record_hash), 

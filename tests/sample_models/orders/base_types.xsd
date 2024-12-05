@@ -8,6 +8,27 @@
     <xs:simpleType name="inttype">
         <xs:restriction base="xs:integer"/>
     </xs:simpleType>
+    <xs:simpleType name="quantitytype">
+        <xs:restriction base="xs:integer">
+            <xs:maxInclusive value="99" />
+            <xs:minInclusive value="1" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="currencytype">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="EUR" />
+            <xs:enumeration value="CHF" />
+            <xs:enumeration value="GBP" />
+            <xs:enumeration value="USD" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="versiontype">
+        <xs:restriction base="xs:int">
+            <xs:enumeration value="1" />
+            <xs:enumeration value="2" />
+            <xs:enumeration value="3" />
+        </xs:restriction>
+    </xs:simpleType>
     <xs:simpleType name="dectype">
         <xs:restriction base="xs:decimal"/>
     </xs:simpleType>

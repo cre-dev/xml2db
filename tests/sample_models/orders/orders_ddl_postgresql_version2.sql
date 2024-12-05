@@ -2,6 +2,7 @@
 CREATE TABLE orders (
 	pk_orders SERIAL NOT NULL, 
 	batch_id VARCHAR(1000), 
+	version INTEGER, 
 	input_file_path VARCHAR(256), 
 	xml2db_record_hash BYTEA, 
 	CONSTRAINT cx_pk_orders PRIMARY KEY (pk_orders), 
@@ -42,6 +43,7 @@ CREATE TABLE item (
 	note VARCHAR(1000), 
 	quantity INTEGER, 
 	price DOUBLE PRECISION, 
+	currency VARCHAR(3), 
 	xml2db_record_hash BYTEA, 
 	CONSTRAINT cx_pk_item PRIMARY KEY (pk_item), 
 	CONSTRAINT item_xml2db_record_hash UNIQUE (xml2db_record_hash), 

@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <orders xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" batch_id="4" xsi:noNamespaceSchemaLocation="../orders.xsd">
+  <version>2</version>
   <shiporder orderid="3" processed_at="2023-09-11T18:27:56.000+02:00">
     <orderperson>
       <name>Alice</name>
@@ -27,6 +28,7 @@
       </product>
       <quantity>10</quantity>
       <price>12.3</price>
+      <currency>EUR</currency>
     </item>
     <item>
       <product>
@@ -36,6 +38,7 @@
       <note>string</note>
       <quantity>21</quantity>
       <price>70.4</price>
+      <currency>EUR</currency>
     </item>
   </shiporder>
 </orders>
