@@ -384,7 +384,7 @@ class DataModel:
                         else None
                     )
                     ae = ae and bt_ae if ae is not None and bt_ae is not None else None
-                if elem_type.enumeration is not None:
+                if elem_type.enumeration is not None and dt in ["string", "NMTOKEN", "duration", "token"]:
                     mil = min([len(val) for val in elem_type.enumeration])
                     mal = max([len(val) for val in elem_type.enumeration])
                 return dt, mil, mal, ae

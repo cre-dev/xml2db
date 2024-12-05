@@ -3,6 +3,7 @@ erDiagram
     orders ||--o{ shiporder : "shiporder*"
     orders {
         string batch_id
+        int version
     }
     shiporder ||--|| orderperson : "orderperson"
     shiporder ||--o| orderperson : "shipto"
@@ -17,6 +18,7 @@ erDiagram
         string note
         integer quantity
         decimal price
+        string currency
     }
     orderperson {
         string name

@@ -48,8 +48,9 @@
         <xs:sequence>
             <xs:element name="product" type="producttype" minOccurs="1" maxOccurs="1"/>
             <xs:element name="note" type="bt:stringtype" minOccurs="0"/>
-            <xs:element name="quantity" type="bt:inttype"/>
+            <xs:element name="quantity" type="bt:quantitytype"/>
             <xs:element name="price" type="bt:dectype"/>
+            <xs:element name="currency" type="bt:currencytype"/>
         </xs:sequence>
     </xs:complexType>
 
@@ -65,6 +66,7 @@
 
     <xs:complexType name="orderstype">
         <xs:sequence>
+            <xs:element name="version" type="bt:versiontype" />
             <xs:element name="shiporder" type="shipordertype" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
         <xs:attribute name="batch_id" type="bt:stringtype" />

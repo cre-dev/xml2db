@@ -20,6 +20,7 @@ erDiagram
         string note
         integer quantity
         decimal price
+        string currency
     }
     product {
         string name
@@ -39,5 +40,6 @@ erDiagram
     orders ||--o{ shiporder : "shiporder"
     orders {
         string batch_id
+        int version
     }
 ```
