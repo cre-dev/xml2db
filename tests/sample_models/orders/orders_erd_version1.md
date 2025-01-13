@@ -21,6 +21,7 @@ erDiagram
         dateTime processed_at
     }
     orderperson {
+        string name_attr
         string name
         string address
         string city
@@ -31,5 +32,6 @@ erDiagram
         string companyId_ace
         string companyId_bic
         string companyId_lei
+        string coordinates
     }
 ```

@@ -1,6 +1,7 @@
 
 CREATE TABLE orderperson (
 	pk_orderperson INTEGER NOT NULL IDENTITY, 
+	name_attr VARCHAR(1000) NULL, 
 	name VARCHAR(1000) NULL, 
 	address VARCHAR(1000) NULL, 
 	city VARCHAR(1000) NULL, 
@@ -11,6 +12,7 @@ CREATE TABLE orderperson (
 	[companyId_ace] VARCHAR(1000) NULL, 
 	[companyId_bic] VARCHAR(1000) NULL, 
 	[companyId_lei] VARCHAR(1000) NULL, 
+	coordinates VARCHAR(1000) NULL, 
 	record_hash BINARY(16) NULL, 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY CLUSTERED (pk_orderperson), 
 	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (record_hash)

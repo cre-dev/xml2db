@@ -1,6 +1,7 @@
 
 CREATE TABLE orderperson (
 	pk_orderperson SERIAL NOT NULL, 
+	name_attr VARCHAR(1000), 
 	name VARCHAR(1000), 
 	address VARCHAR(1000), 
 	city VARCHAR(1000), 
@@ -11,6 +12,7 @@ CREATE TABLE orderperson (
 	"companyId_ace" VARCHAR(1000), 
 	"companyId_bic" VARCHAR(1000), 
 	"companyId_lei" VARCHAR(1000), 
+	coordinates VARCHAR(1000), 
 	record_hash BYTEA, 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY (pk_orderperson), 
 	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (record_hash)

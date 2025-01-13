@@ -70,7 +70,7 @@ class DataModel:
     def __init__(
         self,
         xsd_file: str,
-        short_name: str = None,
+        short_name: str = "DocumentRoot",
         long_name: str = None,
         base_url: str = None,
         model_config: dict = None,
@@ -226,8 +226,7 @@ class DataModel:
         """
         # parse the XML schema recursively and hold a reference to the head table
         root_table = self._parse_tree(
-            self.xml_schema[0] if len(self.xml_schema) == 1 else self.xml_schema,
-            is_root_table=True,
+            self.xml_schema[0] if len(self.xml_schema) == 1 else self.xml_schema
         )
         self.root_table = root_table.type_name
         # compute a text representation of the original data model and store it
@@ -273,9 +272,7 @@ class DataModel:
         for tb in self.fk_ordered_tables:
             tb.build_sqlalchemy_tables()
 
-    def _parse_tree(
-        self, parent_node: xmlschema.XsdElement, is_root_table: bool = False
-    ):
+    def _parse_tree(self, parent_node: xmlschema.XsdElement, nodes_path: list = None):
         """Parse a node of an XML schema recursively and create a target data model without any simplification
 
         We parse the XSD tree recursively to create for each node (basically a complex type in the XSD) an equivalent \
@@ -289,7 +286,7 @@ class DataModel:
 
         Args:
             parent_node: the current XSD node being parsed
-            is_root_table: True if this is the root table
+            nodes_path: a list of nodes types from the root node
         """
 
         # find current node type and name and returns corresponding table if it already exists
@@ -301,12 +298,16 @@ class DataModel:
         if parent_type is None:
             parent_type = parent_node.local_name
 
+        nodes_path = (nodes_path if nodes_path else []) + [parent_type]
+
         # if this type has already been encountered, stop here and return existing table
         if parent_type in self.tables:
             parent_table = self.tables[parent_type]
             return parent_table
 
-        # elements names and types should be bijective. If an element name is used for different types,
+        # For database tables we use element names rather than XSD types, under the assumption that they are often
+        # more meaningful given that they are the one which appear in XML documents. However, same names can be used
+        # for different XSD types, so if an element name is used for different types,
         # we add a suffix to the name to make it unique again (using a dict to keep the name/type association)
         parent_name = (
             parent_node.local_name
@@ -324,7 +325,7 @@ class DataModel:
         parent_table = self._create_table_model(
             parent_name,
             parent_type,
-            is_root_table,
+            len(nodes_path) == 1,
             isinstance(parent_node, xmlschema.XMLSchema),
         )
         self.tables[parent_type] = parent_table
@@ -363,6 +364,13 @@ class DataModel:
                     if elem_type.base_type
                     else recurse_parse_simple_type(elem_type.member_types)
                 )
+            if elem_type.is_list():
+                return (
+                    "string",
+                    0,
+                    None,
+                    elem_type.allow_empty,
+                )
             if elem_type.is_restriction():
                 dt = elem_type.base_type.local_name
                 mil = elem_type.min_length
@@ -384,7 +392,12 @@ class DataModel:
                         else None
                     )
                     ae = ae and bt_ae if ae is not None and bt_ae is not None else None
-                if elem_type.enumeration is not None and dt in ["string", "NMTOKEN", "duration", "token"]:
+                if elem_type.enumeration is not None and dt in [
+                    "string",
+                    "NMTOKEN",
+                    "duration",
+                    "token",
+                ]:
                     mil = min([len(val) for val in elem_type.enumeration])
                     mal = max([len(val) for val in elem_type.enumeration])
                 return dt, mil, mal, ae
@@ -410,8 +423,11 @@ class DataModel:
                 ),
             ]
 
-        # go through item attributes and add them as columns
+        # go through item attributes and add them as columns, adding a suffix if an element with the same name exists
+        children_names = None
         for attrib_name, attrib in parent_node.attributes.items():
+            if children_names is None:
+                children_names = [child.local_name for child in parent_node]
             (
                 data_type,
                 min_length,
@@ -419,7 +435,7 @@ class DataModel:
                 allow_empty,
             ) = recurse_parse_simple_type([attrib.type])
             parent_table.add_column(
-                f"{attrib_name}",
+                f"{attrib_name}{'_attr' if attrib_name in children_names else ''}",
                 data_type,
                 [0, 1],
                 min_length,
@@ -487,27 +503,33 @@ class DataModel:
                     )
 
                 elif ct.is_complex():
-                    child_table = self._parse_tree(child)
-                    child_table.model_group = (
-                        "choice"
-                        if ct.model_group and ct.model_group.model == "choice"
-                        else "sequence"
-                    )
-                    occurs = get_occurs(child)
-                    if child.is_single():
-                        parent_table.add_relation_1(
-                            child.local_name,
-                            child_table,
-                            occurs,
-                            nested_containers[-1][1],
+                    # ignoring recursive definitions by skipping these fields
+                    if child.type.local_name in nodes_path:
+                        logger.warning(
+                            f"type '{child.type.local_name}' contains a recursive definition"
                         )
                     else:
-                        parent_table.add_relation_n(
-                            child.local_name,
-                            child_table,
-                            occurs,
-                            nested_containers[-1][1],
+                        child_table = self._parse_tree(child, nodes_path)
+                        child_table.model_group = (
+                            "choice"
+                            if ct.model_group and ct.model_group.model == "choice"
+                            else "sequence"
                         )
+                        occurs = get_occurs(child)
+                        if occurs[1] == 1:
+                            parent_table.add_relation_1(
+                                child.local_name,
+                                child_table,
+                                occurs,
+                                nested_containers[-1][1],
+                            )
+                        else:
+                            parent_table.add_relation_n(
+                                child.local_name,
+                                child_table,
+                                occurs,
+                                nested_containers[-1][1],
+                            )
                 else:
                     raise ValueError("unknown case; please check")
             else:
@@ -544,31 +566,19 @@ class DataModel:
     def _repr_tree(
         self,
         parent_table: Union[DataModelTableReused, DataModelTableDuplicated],
-        visited_nodes: Union[set, None] = None,
     ):
         """Build a text representation of the data model tree
 
         Args:
             parent_table: the current data model table object
         """
-        if visited_nodes is None:
-            visited_nodes = set()
-        else:
-            visited_nodes = {item for item in visited_nodes}
-        visited_nodes.add(parent_table.name)
         for field_type, name, field in parent_table.fields:
             if field_type == "col":
                 yield f"{field.name}{field.occurs}: {field.data_type}"
-            elif field_type == "rel1":
+            else:
                 mg = " (choice)" if field.other_table.model_group == "choice" else ""
-                yield f"{field.name}{field.occurs}{mg}:{' ...' if field_type in visited_nodes else ''}"
-                if field.other_table.name not in visited_nodes:
-                    for line in self._repr_tree(field.other_table, visited_nodes):
-                        yield f"    {line}"
-            elif field_type == "reln":
-                mg = " (choice)" if field.other_table.model_group == "choice" else ""
-                yield f"{field.name}{field.occurs}{mg}:{' ...' if field_type in visited_nodes else ''}"
-                for line in self._repr_tree(field.other_table, visited_nodes):
+                yield f"{field.name}{field.occurs}{mg}:"
+                for line in self._repr_tree(field.other_table):
                     yield f"    {line}"
 
     def get_entity_rel_diagram(self, text_context: bool = True) -> str:

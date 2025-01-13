@@ -12,6 +12,7 @@ CREATE TABLE orders (
 
 CREATE TABLE orderperson (
 	pk_orderperson SERIAL NOT NULL, 
+	name_attr VARCHAR(1000), 
 	name VARCHAR(1000), 
 	address VARCHAR(1000), 
 	city VARCHAR(1000), 
@@ -21,6 +22,7 @@ CREATE TABLE orderperson (
 	"phoneNumber" VARCHAR(8000), 
 	"companyId_type" VARCHAR(3), 
 	"companyId_value" VARCHAR(1000), 
+	coordinates VARCHAR(1000), 
 	xml2db_record_hash BYTEA, 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY (pk_orderperson), 
 	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (xml2db_record_hash)
@@ -57,6 +59,7 @@ CREATE TABLE shiporder (
 	fk_parent_orders INTEGER, 
 	orderid VARCHAR(1000), 
 	processed_at TIMESTAMP WITH TIME ZONE, 
+	orderperson_name_attr VARCHAR(1000), 
 	orderperson_name VARCHAR(1000), 
 	orderperson_address VARCHAR(1000), 
 	orderperson_city VARCHAR(1000), 
@@ -66,6 +69,7 @@ CREATE TABLE shiporder (
 	"orderperson_phoneNumber" VARCHAR(8000), 
 	"orderperson_companyId_type" VARCHAR(3), 
 	"orderperson_companyId_value" VARCHAR(1000), 
+	orderperson_coordinates VARCHAR(1000), 
 	shipto_fk_orderperson INTEGER, 
 	CONSTRAINT cx_pk_shiporder PRIMARY KEY (pk_shiporder), 
 	FOREIGN KEY(fk_parent_orders) REFERENCES orders (pk_orders), 

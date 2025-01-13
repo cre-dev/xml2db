@@ -171,17 +171,28 @@ class Document:
                     record["xml2db_row_number"] = row_number
 
             # build record from fields for columns and n-1 relations
-            for field_type, key, _ in model_table.fields:
+            for field_type, key, field in model_table.fields:
                 if field_type == "col":
-                    if key in content:
+                    content_key = (
+                        (
+                            f"{key[:-5]}__attr"
+                            if key.endswith("_attr")
+                            else f"{key}__attr"
+                        )
+                        if field.is_attr
+                        else key
+                    )
+                    if content_key in content:
                         if model_table.columns[key].data_type in ["decimal", "float"]:
-                            val = [float(v) for v in content[key]]
+                            val = [float(v) for v in content[content_key]]
                         elif model_table.columns[key].data_type == "integer":
-                            val = [int(v) for v in content[key]]
+                            val = [int(v) for v in content[content_key]]
                         elif model_table.columns[key].data_type == "boolean":
-                            val = [v == "true" or v == "1" for v in content[key]]
+                            val = [
+                                v == "true" or v == "1" for v in content[content_key]
+                            ]
                         else:
-                            val = content[key]
+                            val = content[content_key]
 
                         if len(val) == 1:
                             record[key] = val[0]
@@ -320,20 +331,29 @@ class Document:
             record = data_index[node_type]["records"][node_pk]
             for field_type, rel_name, rel in tb.fields:
                 if field_type == "col" and record[rel_name] is not None:
+                    content_key = (
+                        (
+                            f"{rel_name[:-5]}__attr"
+                            if rel_name.endswith("_attr")
+                            else f"{rel_name}__attr"
+                        )
+                        if rel.is_attr
+                        else rel_name
+                    )
                     if rel.data_type in [
                         "decimal",
                         "float",
                     ]:  # remove trailing ".0" for decimal and float
-                        content[rel_name] = [
+                        content[content_key] = [
                             value.rstrip("0").rstrip(".") if "." in value else value
                             for value in str(record[rel_name]).split(",")
                         ]
                     elif isinstance(record[rel_name], datetime.datetime):
-                        content[rel_name] = [
+                        content[content_key] = [
                             record[rel_name].isoformat(timespec="milliseconds")
                         ]
                     else:
-                        content[rel_name] = (
+                        content[content_key] = (
                             list(csv.reader([str(record[rel_name])], escapechar="\\"))[
                                 0
                             ]

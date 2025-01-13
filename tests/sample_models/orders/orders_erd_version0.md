@@ -21,6 +21,7 @@ erDiagram
         string currency
     }
     orderperson {
+        string name_attr
         string name
         string address
         string city
@@ -30,5 +31,6 @@ erDiagram
         string-N phoneNumber
         string companyId_type
         string companyId_value
+        string coordinates
     }
 ```

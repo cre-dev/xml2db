@@ -2,7 +2,7 @@
 <orders xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" batch_id="5" xsi:noNamespaceSchemaLocation="../orders.xsd">
   <version>2</version>
   <shiporder orderid="1" processed_at="2023-09-10T09:37:00.000+02:00">
-    <orderperson>
+    <orderperson name="billing">
       <name>Bob</name>
       <address>string</address>
       <city>string</city>

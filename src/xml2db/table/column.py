@@ -36,7 +36,7 @@ def types_mapping_default(temp: bool, col: "DataModelColumn") -> Any:
         return Double
     if col.data_type == "dateTime":
         return DateTime(timezone=True)
-    if col.data_type == "integer" or col.data_type == "int":
+    if col.data_type in ["integer", "int", "positiveInteger", "nonNegativeInteger"]:
         return Integer
     if col.data_type == "boolean":
         return Boolean
@@ -83,7 +83,7 @@ def types_mapping_mssql(temp: bool, col: "DataModelColumn") -> Any:
         # using the DATETIMEOFFSET directly in the temporary table caused issues when inserting data in the target
         # table with INSERT INTO SELECT converts datetime VARCHAR to DATETIMEOFFSET without errors
         return mssql.VARCHAR(100) if temp else mssql.DATETIMEOFFSET
-    if col.data_type == "integer" or col.data_type == "int":
+    if col.data_type in ["integer", "int", "positiveInteger", "nonNegativeInteger"]:
         return Integer
     if col.data_type == "boolean":
         return Boolean

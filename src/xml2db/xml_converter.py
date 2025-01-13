@@ -128,31 +128,32 @@ class XMLConverter:
                 key
                 != "{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation"
             ):
-                content[key] = [val]
+                content[f"{key}__attr"] = [val]
 
         if node.text and node.text.strip():
             content["value"] = [node.text.strip()]
 
         for element in node.iterchildren():
-            key = element.tag.split("}")[1] if "}" in element.tag else element.tag
-            node_type_key = (node_type, key)
-            value = None
-            if element.text and element.text.strip():
-                value = element.text
-            transform = self.model.fields_transforms.get(node_type_key, (None, "join"))[
-                1
-            ]
-            if transform != "join":
-                value = self._parse_xml_node(
-                    self.model.fields_transforms[node_type_key][0],
-                    element,
-                    transform not in ["elevate", "elevate_wo_prefix"],
-                    hash_maps,
-                )
-            if key in content:
-                content[key].append(value)
-            else:
-                content[key] = [value]
+            if isinstance(element.tag, str):
+                key = element.tag.split("}")[1] if "}" in element.tag else element.tag
+                node_type_key = (node_type, key)
+                value = None
+                if element.text and element.text.strip():
+                    value = element.text
+                transform = self.model.fields_transforms.get(
+                    node_type_key, (None, "join")
+                )[1]
+                if transform != "join":
+                    value = self._parse_xml_node(
+                        self.model.fields_transforms[node_type_key][0],
+                        element,
+                        transform not in ["elevate", "elevate_wo_prefix"],
+                        hash_maps,
+                    )
+                if key in content:
+                    content[key].append(value)
+                else:
+                    content[key] = [value]
 
         node = self._transform_node(node_type, content)
 
@@ -212,7 +213,7 @@ class XMLConverter:
                             attrib_key
                             != "{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation"
                         ):
-                            content[attrib_key] = [attrib_val]
+                            content[f"{attrib_key}__attr"] = [attrib_val]
                     nodes_stack.append((node_type, content))
 
             elif event == "end":
@@ -295,9 +296,17 @@ class XMLConverter:
         table = self.model.tables[node_type]
 
         h = self.model.model_config["record_hash_constructor"]()
-        for field_type, name, _ in table.fields:
+        for field_type, name, field in table.fields:
             if field_type == "col":
-                h.update(str(content.get(name, None)).encode("utf-8"))
+                if field.is_attr:
+                    if f"{name}__attr" in content:
+                        h.update(str(content[f"{name}__attr"]).encode("utf-8"))
+                    elif f"{name[:-5]}__attr" in content:
+                        h.update(str(content[f"{name[:-5]}__attr"]).encode("utf-8"))
+                    else:
+                        h.update(str(None).encode("utf-8"))
+                else:
+                    h.update(str(content.get(name, None)).encode("utf-8"))
             elif field_type == "rel1":
                 h.update(content[name][0][2] if name in content else b"")
             elif field_type == "reln":
@@ -419,10 +428,17 @@ class XMLConverter:
             attributes = {}
             text_content = None
             if field_type == "col":
-                if rel_name in content:
-                    if rel.is_attr:
-                        attributes[rel.name_chain[-1][0]] = content[rel_name][0]
-                    elif rel.is_content:
+                if rel.is_attr:
+                    if f"{rel_name}__attr" in content:
+                        attributes[rel.name_chain[-1][0]] = content[
+                            f"{rel_name}__attr"
+                        ][0]
+                    elif f"{rel_name[:-5]}__attr" in content:
+                        attributes[rel.name_chain[-1][0][:-5]] = content[
+                            f"{rel_name[:-5]}__attr"
+                        ][0]
+                elif rel_name in content:
+                    if rel.is_content:
                         text_content = content[rel_name][0]
                     else:
                         for field_value in content[rel_name]:

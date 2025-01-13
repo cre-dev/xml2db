@@ -34,13 +34,16 @@
             <xs:element name="country" type="bt:stringtype"/>
             <xs:element name="phoneNumber" type="bt:stringtype" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="companyId" type="companyIdType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="coordinates" type="bt:CoordinatesListType" minOccurs="0" />
         </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required" />
     </xs:complexType>
 
     <xs:complexType name="producttype">
         <xs:sequence>
             <xs:element name="name" type="bt:stringtype"/>
             <xs:element name="version" type="bt:stringtype"/>
+            <xs:element name="related_product" type="producttype" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
     </xs:complexType>
 
