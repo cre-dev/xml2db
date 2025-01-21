@@ -434,17 +434,20 @@ class DataModel:
                 max_length,
                 allow_empty,
             ) = recurse_parse_simple_type([attrib.type])
+            suffix = attrib_name in children_names
             parent_table.add_column(
-                f"{attrib_name}{'_attr' if attrib_name in children_names else ''}",
+                f"{attrib_name}{'_attr' if suffix else ''}",
                 data_type,
                 [0, 1],
                 min_length,
                 max_length,
                 True,
+                suffix,
                 False,
                 allow_empty,
                 None,
             )
+
         nested_containers = []
         # go through the children to add either arguments either relations to the current element
         for child in parent_node:
@@ -470,6 +473,7 @@ class DataModel:
                                 if child.parent
                                 and child.parent.max_occurs != 1
                                 and child.parent.model != "choice"
+                                and child.max_occurs == 1
                                 else None
                             ),
                         )
@@ -496,6 +500,7 @@ class DataModel:
                         occurs,
                         min_length,
                         max_length,
+                        False,
                         False,
                         False,
                         allow_empty,
@@ -555,6 +560,7 @@ class DataModel:
                 [0, 1],
                 min_length,
                 max_length,
+                False,
                 False,
                 True,
                 allow_empty,

@@ -1,10 +1,12 @@
 import os
+import pprint
 
 import pytest
 from lxml import etree
 
 from xml2db import DataModel
 from xml2db.xml_converter import XMLConverter, remove_record_hash
+from .conftest import list_xml_path, models_path
 from .sample_models import models
 
 
@@ -13,19 +15,20 @@ from .sample_models import models
     [
         {**model, **version, "xml_file": xml_file}
         for model in models
-        for xml_file in os.listdir(model["xml_path"])
+        for xml_file in list_xml_path(model, "xml")
+        + list_xml_path(model, "equivalent_xml")
         for version in model["versions"]
     ],
 )
-def test_document_tree_parsing(test_config):
+def test_iterative_recursive_parsing(test_config):
     """Test whether iterative and recursive parsing give same results"""
     model = DataModel(
-        test_config["xsd_path"],
+        str(os.path.join(models_path, test_config["id"], test_config["xsd"])),
         short_name=test_config["id"],
         model_config=test_config["config"],
     )
     converter = XMLConverter(model)
-    file_path = os.path.join(test_config["xml_path"], test_config["xml_file"])
+    file_path = test_config["xml_file"]
 
     parsed_recursive = converter.parse_xml(
         file_path, file_path, skip_validation=True, iterparse=False
@@ -42,7 +45,7 @@ def test_document_tree_parsing(test_config):
     [
         {**model, **version, "xml_file": xml_file}
         for model in models
-        for xml_file in os.listdir(model["xml_path"])
+        for xml_file in list_xml_path(model, "xml")
         for version in model["versions"]
     ],
 )
@@ -50,22 +53,22 @@ def test_document_tree_to_flat_data(test_config):
     """A test for document tree to flat data conversion and back"""
 
     model = DataModel(
-        test_config["xsd_path"],
+        str(os.path.join(models_path, test_config["id"], test_config["xsd"])),
         short_name=test_config["id"],
         model_config=test_config["config"],
     )
     converter = XMLConverter(model)
 
-    file_path = os.path.join(test_config["xml_path"], test_config["xml_file"])
+    file_path = test_config["xml_file"]
 
     # parse XML to document tree
     converter.parse_xml(file_path, file_path)
-    exp_doc_tree = remove_record_hash(converter.document_tree)
+    exp_doc_tree = pprint.pformat(remove_record_hash(converter.document_tree))
 
     # parse XML to document tree and then flat data model
     doc = model.parse_xml(file_path)
     # and convert it back to document tree
-    act_doc_tree = doc.flat_data_to_doc_tree()
+    act_doc_tree = pprint.pformat(doc.flat_data_to_doc_tree())
 
     assert act_doc_tree == exp_doc_tree
 
@@ -75,7 +78,7 @@ def test_document_tree_to_flat_data(test_config):
     [
         {**model, **version, "xml_file": xml_file}
         for model in models
-        for xml_file in os.listdir(model["xml_path"])
+        for xml_file in list_xml_path(model, "xml")
         for version in model["versions"]
     ],
 )
@@ -83,13 +86,13 @@ def test_document_tree_to_xml(test_config):
     """A test for document tree to xml conversion and back"""
 
     model = DataModel(
-        test_config["xsd_path"],
+        str(os.path.join(models_path, test_config["id"], test_config["xsd"])),
         short_name=test_config["id"],
         model_config=test_config["config"],
     )
     converter = XMLConverter(model)
 
-    file_path = os.path.join(test_config["xml_path"], test_config["xml_file"])
+    file_path = test_config["xml_file"]
 
     # parse XML to document tree
     converter.parse_xml(file_path, file_path)

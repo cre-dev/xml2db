@@ -29,6 +29,26 @@ CREATE TABLE orderperson (
 )
 
 
+CREATE TABLE intfeature (
+	pk_intfeature INTEGER NOT NULL AUTO_INCREMENT, 
+	id VARCHAR(255), 
+	value INTEGER, 
+	xml2db_record_hash BINARY(20), 
+	CONSTRAINT cx_pk_intfeature PRIMARY KEY (pk_intfeature), 
+	CONSTRAINT intfeature_xml2db_record_hash UNIQUE (xml2db_record_hash)
+)
+
+
+CREATE TABLE stringfeature (
+	pk_stringfeature INTEGER NOT NULL AUTO_INCREMENT, 
+	id VARCHAR(255), 
+	value VARCHAR(255), 
+	xml2db_record_hash BINARY(20), 
+	CONSTRAINT cx_pk_stringfeature PRIMARY KEY (pk_stringfeature), 
+	CONSTRAINT stringfeature_xml2db_record_hash UNIQUE (xml2db_record_hash)
+)
+
+
 CREATE TABLE product (
 	pk_product INTEGER NOT NULL AUTO_INCREMENT, 
 	name VARCHAR(255), 
@@ -36,6 +56,22 @@ CREATE TABLE product (
 	xml2db_record_hash BINARY(20), 
 	CONSTRAINT cx_pk_product PRIMARY KEY (pk_product), 
 	CONSTRAINT product_xml2db_record_hash UNIQUE (xml2db_record_hash)
+)
+
+
+CREATE TABLE product_features_intfeature (
+	fk_product INTEGER NOT NULL, 
+	fk_intfeature INTEGER NOT NULL, 
+	FOREIGN KEY(fk_product) REFERENCES product (pk_product), 
+	FOREIGN KEY(fk_intfeature) REFERENCES intfeature (pk_intfeature)
+)
+
+
+CREATE TABLE product_features_stringfeature (
+	fk_product INTEGER NOT NULL, 
+	fk_stringfeature INTEGER NOT NULL, 
+	FOREIGN KEY(fk_product) REFERENCES product (pk_product), 
+	FOREIGN KEY(fk_stringfeature) REFERENCES stringfeature (pk_stringfeature)
 )
 
 
@@ -83,6 +119,14 @@ CREATE TABLE shiporder_item (
 	FOREIGN KEY(fk_shiporder) REFERENCES shiporder (pk_shiporder), 
 	FOREIGN KEY(fk_item) REFERENCES item (pk_item)
 )
+
+CREATE INDEX ix_product_features_intfeature_fk_intfeature ON product_features_intfeature (fk_intfeature)
+
+CREATE INDEX ix_product_features_intfeature_fk_product ON product_features_intfeature (fk_product)
+
+CREATE INDEX ix_product_features_stringfeature_fk_product ON product_features_stringfeature (fk_product)
+
+CREATE INDEX ix_product_features_stringfeature_fk_stringfeature ON product_features_stringfeature (fk_stringfeature)
 
 CREATE INDEX ix_shiporder_item_fk_item ON shiporder_item (fk_item)
 

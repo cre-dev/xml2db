@@ -5,6 +5,7 @@ from sqlalchemy.dialects import postgresql, mssql, mysql
 
 from xml2db import DataModel
 from .sample_models import models
+from .conftest import models_path
 
 
 @pytest.mark.parametrize(
@@ -19,14 +20,15 @@ def test_model_erd(test_config):
     """A test to check if generated ERD matches saved output"""
 
     model = DataModel(
-        test_config["xsd_path"],
+        str(os.path.join(models_path, test_config["id"], test_config["xsd"])),
         short_name=test_config["id"],
         model_config=test_config["config"],
     )
 
     expected = open(
         os.path.join(
-            os.path.dirname(test_config["xsd_path"]),
+            models_path,
+            test_config["id"],
             f"{test_config['id']}_erd_version{test_config['version_id']}.md",
         ),
         "r",
@@ -49,7 +51,7 @@ def test_model_ddl(test_config):
     """A test to check if generated SQL DDL matches saved output"""
 
     model = DataModel(
-        test_config["xsd_path"],
+        str(os.path.join(models_path, test_config["id"], test_config["xsd"])),
         short_name=test_config["id"],
         model_config=test_config["config"],
         db_type=test_config["dialect"].name,
@@ -57,7 +59,8 @@ def test_model_ddl(test_config):
 
     expected = open(
         os.path.join(
-            os.path.dirname(test_config["xsd_path"]),
+            models_path,
+            test_config["id"],
             f"{test_config['id']}_ddl_{test_config['dialect'].name}_version{test_config['version_id']}.sql",
         ),
         "r",

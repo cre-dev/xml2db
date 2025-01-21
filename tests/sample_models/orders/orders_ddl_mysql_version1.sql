@@ -19,6 +19,26 @@ CREATE TABLE orderperson (
 )
 
 
+CREATE TABLE intfeature (
+	pk_intfeature INTEGER NOT NULL AUTO_INCREMENT, 
+	id VARCHAR(255), 
+	value INTEGER, 
+	record_hash BINARY(16), 
+	CONSTRAINT cx_pk_intfeature PRIMARY KEY (pk_intfeature), 
+	CONSTRAINT intfeature_xml2db_record_hash UNIQUE (record_hash)
+)
+
+
+CREATE TABLE stringfeature (
+	pk_stringfeature INTEGER NOT NULL AUTO_INCREMENT, 
+	id VARCHAR(255), 
+	value VARCHAR(255), 
+	record_hash BINARY(16), 
+	CONSTRAINT cx_pk_stringfeature PRIMARY KEY (pk_stringfeature), 
+	CONSTRAINT stringfeature_xml2db_record_hash UNIQUE (record_hash)
+)
+
+
 CREATE TABLE shiporder (
 	pk_shiporder INTEGER NOT NULL AUTO_INCREMENT, 
 	orderid VARCHAR(255), 
@@ -56,6 +76,7 @@ CREATE TABLE orders_shiporder (
 
 CREATE TABLE item (
 	pk_item INTEGER NOT NULL AUTO_INCREMENT, 
+	temp_pk_item INTEGER, 
 	fk_parent_shiporder INTEGER, 
 	xml2db_row_number INTEGER NOT NULL, 
 	product_name VARCHAR(255), 
@@ -68,7 +89,33 @@ CREATE TABLE item (
 	FOREIGN KEY(fk_parent_shiporder) REFERENCES shiporder (pk_shiporder)
 )
 
+
+CREATE TABLE item_product_features_intfeature (
+	fk_item INTEGER NOT NULL, 
+	fk_intfeature INTEGER NOT NULL, 
+	xml2db_row_number INTEGER NOT NULL, 
+	FOREIGN KEY(fk_item) REFERENCES item (pk_item), 
+	FOREIGN KEY(fk_intfeature) REFERENCES intfeature (pk_intfeature)
+)
+
+
+CREATE TABLE item_product_features_stringfeature (
+	fk_item INTEGER NOT NULL, 
+	fk_stringfeature INTEGER NOT NULL, 
+	xml2db_row_number INTEGER NOT NULL, 
+	FOREIGN KEY(fk_item) REFERENCES item (pk_item), 
+	FOREIGN KEY(fk_stringfeature) REFERENCES stringfeature (pk_stringfeature)
+)
+
 CREATE INDEX ix_orders_shiporder_fk_orders ON orders_shiporder (fk_orders)
 
 CREATE INDEX ix_orders_shiporder_fk_shiporder ON orders_shiporder (fk_shiporder)
+
+CREATE INDEX ix_item_product_features_intfeature_fk_intfeature ON item_product_features_intfeature (fk_intfeature)
+
+CREATE INDEX ix_item_product_features_intfeature_fk_item ON item_product_features_intfeature (fk_item)
+
+CREATE INDEX ix_item_product_features_stringfeature_fk_item ON item_product_features_stringfeature (fk_item)
+
+CREATE INDEX ix_item_product_features_stringfeature_fk_stringfeature ON item_product_features_stringfeature (fk_stringfeature)
 

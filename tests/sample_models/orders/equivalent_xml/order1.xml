@@ -18,24 +18,6 @@
       <product>
         <name>product 1</name>
         <version>regular</version>
-        <features>
-          <intfeature>
-            <id>length</id>
-            <value>60</value>
-          </intfeature>
-          <intfeature>
-            <id>width</id>
-            <value>40</value>
-          </intfeature>
-          <intfeature>
-            <id>weight</id>
-            <value>10</value>
-          </intfeature>
-          <stringfeature>
-            <id>color</id>
-            <value>red</value>
-          </stringfeature>
-        </features>
       </product>
       <quantity>13</quantity>
       <price>340.23</price>

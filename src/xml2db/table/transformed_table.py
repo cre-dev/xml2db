@@ -76,6 +76,7 @@ class DataModelTableTransformed(DataModelTable):
                 False,
                 False,
                 False,
+                False,
                 None,
                 self.config,
                 self.data_model,
@@ -87,6 +88,7 @@ class DataModelTableTransformed(DataModelTable):
                 [1, 1],
                 min(min_lengths) if all(e is not None for e in min_lengths) else None,
                 max(max_lengths) if all(e is not None for e in max_lengths) else None,
+                False,
                 False,
                 False,
                 any(allow_empty),
@@ -193,6 +195,7 @@ class DataModelTableTransformed(DataModelTable):
                     child_field.min_length,
                     child_field.max_length,
                     child_field.is_attr,
+                    child_field.has_suffix,
                     child_field.is_content,
                     child_field.allow_empty,
                     child_field.ngroup,
@@ -276,9 +279,12 @@ class DataModelTableTransformed(DataModelTable):
 
         # if the table can be transformed, stop here
         if self._is_table_choice_transform_applicable():
+            fields_transform = {}
+            for col in self.columns.values():
+                fields_transform[(self.type_name, col.name)] = (None, "join")
             self._transform_to_choice()
             self.is_simplified = True
-            return {self.type_name: "choice"}, {}
+            return {self.type_name: "choice"}, fields_transform
 
         # loop through field to transform them if need be
         out_fields = []

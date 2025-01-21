@@ -24,9 +24,19 @@ erDiagram
         decimal price
         string currency
     }
+    product ||--o{ intfeature : "features_intfeature*"
+    product ||--o{ stringfeature : "features_stringfeature*"
     product {
         string name
         string version
+    }
+    stringfeature {
+        string id
+        string value
+    }
+    intfeature {
+        string id
+        integer value
     }
     orderperson {
         string name_attr

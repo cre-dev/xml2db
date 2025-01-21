@@ -12,6 +12,8 @@ erDiagram
         string orderid
         dateTime processed_at
     }
+    item ||--o{ intfeature : "product_features_intfeature*"
+    item ||--o{ stringfeature : "product_features_stringfeature*"
     item {
         string product_name
         string product_version
@@ -19,6 +21,14 @@ erDiagram
         integer quantity
         decimal price
         string currency
+    }
+    stringfeature {
+        string id
+        string value
+    }
+    intfeature {
+        string id
+        integer value
     }
     orderperson {
         string name_attr

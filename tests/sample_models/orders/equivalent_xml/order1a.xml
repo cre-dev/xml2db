@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
 <orders xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" batch_id="5" xsi:noNamespaceSchemaLocation="../orders.xsd">
   <version>2</version>
-  <shiporder orderid="1" processed_at="2023-09-10T09:37:00.000+02:00">
+  <shiporder orderid="1" processed_at="2023-09-10T09:37:00.000+02:00  ">
     <orderperson name="billing">
-      <name>Bob</name>
+      <name>    Bob    </name>
       <address>string</address>
       <city>string</city>
       <zip codingSystem="us">102832</zip>
@@ -16,29 +16,27 @@
     </orderperson>
     <item>
       <product>
-        <name>product 1</name>
+        <name>
+          product 1
+        </name>
         <version>regular</version>
-        <features>
-          <intfeature>
-            <id>length</id>
-            <value>60</value>
-          </intfeature>
-          <intfeature>
-            <id>width</id>
-            <value>40</value>
-          </intfeature>
-          <intfeature>
-            <id>weight</id>
-            <value>10</value>
-          </intfeature>
-          <stringfeature>
-            <id>color</id>
-            <value>red</value>
-          </stringfeature>
-        </features>
+        <related_product>
+          <name>
+            product 1
+          </name>
+          <version>premium</version>
+        </related_product>
+        <related_product>
+          <name>
+            product 1
+          </name>
+          <version>basic</version>
+        </related_product>
       </product>
       <quantity>13</quantity>
-      <price>340.23</price>
+      <price>
+        340.23
+      </price>
       <currency>EUR</currency>
     </item>
     <item>
@@ -56,7 +54,7 @@
         <name>product 1</name>
         <version>premium</version>
       </product>
-      <quantity>25</quantity>
+      <quantity>  25</quantity>
       <price>21.7</price>
       <currency>EUR</currency>
     </item>

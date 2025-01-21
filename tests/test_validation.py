@@ -1,10 +1,10 @@
-import xml.etree.ElementTree
-
 import lxml.etree
 import pytest
+import os
 
 from xml2db import DataModel
 from .sample_models import models
+from .conftest import models_path
 
 
 @pytest.mark.parametrize(
@@ -27,7 +27,9 @@ from .sample_models import models
 def test_invalid_xml(args: tuple):
 
     file_name, iterparse, recover, exception = args
-    data_model = DataModel(models[0]["xsd_path"])
+    data_model = DataModel(
+        str(os.path.join(models_path, models[0]["id"], models[0]["xsd"]))
+    )
 
     if exception is None:
         data_model.parse_xml(
@@ -49,8 +51,8 @@ def test_invalid_xml(args: tuple):
 @pytest.mark.parametrize(
     "args",
     [
-        ("invalid", True, False, IndexError),
-        ("invalid", True, True, IndexError),
+        ("invalid", True, False, None),
+        ("invalid", True, True, None),
         ("invalid", False, False, None),
         ("invalid", False, True, None),
         ("malformed_recover", True, False, lxml.etree.XMLSyntaxError),
@@ -58,7 +60,7 @@ def test_invalid_xml(args: tuple):
         ("malformed_recover", False, False, lxml.etree.XMLSyntaxError),
         ("malformed_recover", False, True, None),
         ("malformed_no_recover", True, False, lxml.etree.XMLSyntaxError),
-        ("malformed_no_recover", True, True, IndexError),
+        ("malformed_no_recover", True, True, None),
         ("malformed_no_recover", False, False, lxml.etree.XMLSyntaxError),
         ("malformed_no_recover", False, True, None),
     ],
@@ -66,7 +68,9 @@ def test_invalid_xml(args: tuple):
 def test_invalid_xml_skip_verify(args: tuple):
 
     file_name, iterparse, recover, exception = args
-    data_model = DataModel(models[0]["xsd_path"])
+    data_model = DataModel(
+        str(os.path.join(models_path, models[0]["id"], models[0]["xsd"]))
+    )
 
     if exception is None:
         data_model.parse_xml(

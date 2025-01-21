@@ -167,6 +167,7 @@ class DataModelColumn:
         min_length: int,
         max_length: Union[int, None],
         is_attr: bool,
+        has_suffix: bool,
         is_content: bool,
         allow_empty: bool,
         ngroup: Union[int, None],
@@ -181,6 +182,7 @@ class DataModelColumn:
         self.min_length = min_length
         self.max_length = max_length
         self.is_attr = is_attr
+        self.has_suffix = has_suffix
         self.is_content = is_content
         self.allow_empty = allow_empty
         self.ngroup = ngroup

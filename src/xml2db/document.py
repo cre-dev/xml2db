@@ -174,11 +174,7 @@ class Document:
             for field_type, key, field in model_table.fields:
                 if field_type == "col":
                     content_key = (
-                        (
-                            f"{key[:-5]}__attr"
-                            if key.endswith("_attr")
-                            else f"{key}__attr"
-                        )
+                        (f"{key[:-5]}__attr" if field.has_suffix else f"{key}__attr")
                         if field.is_attr
                         else key
                     )
@@ -334,7 +330,7 @@ class Document:
                     content_key = (
                         (
                             f"{rel_name[:-5]}__attr"
-                            if rel_name.endswith("_attr")
+                            if rel.has_suffix
                             else f"{rel_name}__attr"
                         )
                         if rel.is_attr
