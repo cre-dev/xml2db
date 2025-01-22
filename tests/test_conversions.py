@@ -115,3 +115,29 @@ def test_document_tree_to_xml(test_config):
         ref_xml = f.read()
 
     assert xml == ref_xml
+
+
+@pytest.mark.parametrize(
+    "test_config",
+    [
+        {**model, **version}
+        for model in models
+        for version in model["versions"]
+        if os.path.isdir(os.path.join(models_path, model["id"], "equivalent_xml"))
+    ],
+)
+def test_equivalent_xml(test_config):
+    """A test for xml documents which should result in the same extracted data"""
+
+    xml_files = list_xml_path(test_config, "equivalent_xml")
+
+    if len(xml_files) > 1:
+        model = DataModel(
+            str(os.path.join(models_path, test_config["id"], test_config["xsd"])),
+            short_name=test_config["id"],
+            model_config=test_config["config"],
+        )
+        ref_data = model.parse_xml(xml_files[0])
+        for xml_file in xml_files[1:]:
+            equ_data = model.parse_xml(xml_file)
+            assert ref_data.data == equ_data.data

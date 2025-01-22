@@ -36,11 +36,18 @@ def types_mapping_default(temp: bool, col: "DataModelColumn") -> Any:
         return Double
     if col.data_type == "dateTime":
         return DateTime(timezone=True)
-    if col.data_type in ["integer", "int", "positiveInteger", "nonNegativeInteger"]:
+    if col.data_type in [
+        "integer",
+        "int",
+        "nonPositiveInteger",
+        "nonNegativeInteger",
+        "positiveInteger",
+        "negativeInteger",
+    ]:
         return Integer
     if col.data_type == "boolean":
         return Boolean
-    if col.data_type == "byte":
+    if col.data_type in ["short", "byte"]:
         return SmallInteger
     if col.data_type == "long":
         return BigInteger
@@ -77,20 +84,10 @@ def types_mapping_mssql(temp: bool, col: "DataModelColumn") -> Any:
     """
     if col.occurs[1] != 1:
         return mssql.VARCHAR(8000)
-    if col.data_type in ["decimal", "float", "double"]:
-        return Double
     if col.data_type == "dateTime":
         # using the DATETIMEOFFSET directly in the temporary table caused issues when inserting data in the target
         # table with INSERT INTO SELECT converts datetime VARCHAR to DATETIMEOFFSET without errors
         return mssql.VARCHAR(100) if temp else mssql.DATETIMEOFFSET
-    if col.data_type in ["integer", "int", "positiveInteger", "nonNegativeInteger"]:
-        return Integer
-    if col.data_type == "boolean":
-        return Boolean
-    if col.data_type == "byte":
-        return SmallInteger
-    if col.data_type == "long":
-        return BigInteger
     if col.data_type == "date":
         return mssql.VARCHAR(16)
     if col.data_type == "time":
@@ -106,12 +103,7 @@ def types_mapping_mssql(temp: bool, col: "DataModelColumn") -> Any:
         if col.max_length == col.min_length:
             return mssql.BINARY(col.max_length)
         return mssql.VARBINARY(col.max_length)
-    else:
-        logger.warning(
-            f"unknown type '{col.data_type}' for column '{col.name}', defaulting to VARCHAR(1000) "
-            f"(this can be overridden by providing a field type in the configuration)"
-        )
-        return mssql.VARCHAR(1000)
+    return types_mapping_default(temp, col)
 
 
 def types_mapping_mysql(temp: bool, col: "DataModelColumn") -> Any:
