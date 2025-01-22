@@ -130,6 +130,7 @@ class DataModelTable:
         min_length: int,
         max_length: Union[int, None],
         is_attr: bool,
+        has_suffix: bool,
         is_content: bool,
         allow_empty: bool,
         ngroup: Union[str, None],
@@ -143,6 +144,7 @@ class DataModelTable:
             min_length: minimum length
             max_length: maximum length
             is_attr: is XML attribute or element?
+            has_suffix: for an attribute, do we need the '_attr' suffix?
             is_content: is content of a mixed type element?
             allow_empty: is nullable?
             ngroup: a string id signaling that the column belongs to a nested sequence
@@ -155,6 +157,7 @@ class DataModelTable:
             min_length,
             max_length,
             is_attr,
+            has_suffix,
             is_content,
             allow_empty,
             ngroup,

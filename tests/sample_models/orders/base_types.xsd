@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:bt="http://www.cre.fr/xml2db/base_types.xsd"
            targetNamespace="http://www.cre.fr/xml2db/base_types.xsd"
            elementFormDefault="qualified">
     <xs:simpleType name="stringtype">
@@ -32,4 +33,10 @@
     <xs:simpleType name="dectype">
         <xs:restriction base="xs:decimal"/>
     </xs:simpleType>
+    <xs:simpleType name="CoordinatesType">
+        <xs:restriction base="xs:float" />
+    </xs:simpleType>
+   <xs:simpleType name="CoordinatesListType">
+      <xs:list itemType="bt:CoordinatesType"/>
+   </xs:simpleType>
 </xs:schema>

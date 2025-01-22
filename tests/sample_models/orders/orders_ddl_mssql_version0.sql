@@ -1,6 +1,7 @@
 
 CREATE TABLE orderperson (
 	pk_orderperson INTEGER NOT NULL IDENTITY, 
+	name_attr VARCHAR(1000) NULL, 
 	name VARCHAR(1000) NULL, 
 	address VARCHAR(1000) NULL, 
 	city VARCHAR(1000) NULL, 
@@ -10,9 +11,30 @@ CREATE TABLE orderperson (
 	[phoneNumber] VARCHAR(8000) NULL, 
 	[companyId_type] CHAR(3) NULL, 
 	[companyId_value] VARCHAR(1000) NULL, 
+	coordinates VARCHAR(1000) NULL, 
 	record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY CLUSTERED (pk_orderperson), 
 	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (record_hash)
+)
+
+
+CREATE TABLE intfeature (
+	pk_intfeature INTEGER NOT NULL IDENTITY, 
+	id VARCHAR(1000) NULL, 
+	value INTEGER NULL, 
+	record_hash BINARY(20) NULL, 
+	CONSTRAINT cx_pk_intfeature PRIMARY KEY CLUSTERED (pk_intfeature), 
+	CONSTRAINT intfeature_xml2db_record_hash UNIQUE (record_hash)
+)
+
+
+CREATE TABLE stringfeature (
+	pk_stringfeature INTEGER NOT NULL IDENTITY, 
+	id VARCHAR(1000) NULL, 
+	value VARCHAR(1000) NULL, 
+	record_hash BINARY(20) NULL, 
+	CONSTRAINT cx_pk_stringfeature PRIMARY KEY CLUSTERED (pk_stringfeature), 
+	CONSTRAINT stringfeature_xml2db_record_hash UNIQUE (record_hash)
 )
 
 
@@ -27,6 +49,22 @@ CREATE TABLE item (
 	record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_item PRIMARY KEY CLUSTERED (pk_item), 
 	CONSTRAINT item_xml2db_record_hash UNIQUE (record_hash)
+)
+
+
+CREATE TABLE item_product_features_intfeature (
+	fk_item INTEGER NOT NULL, 
+	fk_intfeature INTEGER NOT NULL, 
+	FOREIGN KEY(fk_item) REFERENCES item (pk_item), 
+	FOREIGN KEY(fk_intfeature) REFERENCES intfeature (pk_intfeature)
+)
+
+
+CREATE TABLE item_product_features_stringfeature (
+	fk_item INTEGER NOT NULL, 
+	fk_stringfeature INTEGER NOT NULL, 
+	FOREIGN KEY(fk_item) REFERENCES item (pk_item), 
+	FOREIGN KEY(fk_stringfeature) REFERENCES stringfeature (pk_stringfeature)
 )
 
 
@@ -69,6 +107,14 @@ CREATE TABLE orders_shiporder (
 	FOREIGN KEY(fk_orders) REFERENCES orders (pk_orders), 
 	FOREIGN KEY(fk_shiporder) REFERENCES shiporder (pk_shiporder)
 )
+
+CREATE CLUSTERED INDEX ix_fk_item_product_features_intfeature ON item_product_features_intfeature (fk_item, fk_intfeature)
+
+CREATE INDEX ix_item_product_features_intfeature_fk_intfeature ON item_product_features_intfeature (fk_intfeature)
+
+CREATE CLUSTERED INDEX ix_fk_item_product_features_stringfeature ON item_product_features_stringfeature (fk_item, fk_stringfeature)
+
+CREATE INDEX ix_item_product_features_stringfeature_fk_stringfeature ON item_product_features_stringfeature (fk_stringfeature)
 
 CREATE CLUSTERED INDEX ix_fk_shiporder_item ON shiporder_item (fk_shiporder, fk_item)
 

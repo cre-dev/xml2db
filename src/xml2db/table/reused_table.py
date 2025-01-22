@@ -71,6 +71,7 @@ class DataModelTableReused(DataModelTableTransformed):
                 False,
                 False,
                 False,
+                False,
                 None,
                 self.config,
                 self.data_model,

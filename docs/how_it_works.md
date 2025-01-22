@@ -123,8 +123,10 @@ original one.
 
 ### Recursive XSD
 
-Recursive XML schemas are not supported, because most of the time they will result in cycles in foreign key constraints
-dependencies, which we cannot handle easily.
+Recursive XML schemas are not fully supported, because they result in cycles in tables dependencies, which would make
+the process much more complex. Whenever a field which would introduce a dependency cycle is detected in the XSD, it is 
+discarded with a warning, which means that the corresponding data in XML files will not be imported. The rest of the
+data should be processed correctly.
 
 ### Mixed content elements
 

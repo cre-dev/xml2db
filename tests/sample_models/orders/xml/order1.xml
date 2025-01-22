@@ -2,7 +2,7 @@
 <orders xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" batch_id="5" xsi:noNamespaceSchemaLocation="../orders.xsd">
   <version>2</version>
   <shiporder orderid="1" processed_at="2023-09-10T09:37:00.000+02:00">
-    <orderperson>
+    <orderperson name="billing">
       <name>Bob</name>
       <address>string</address>
       <city>string</city>
@@ -18,6 +18,24 @@
       <product>
         <name>product 1</name>
         <version>regular</version>
+        <features>
+          <intfeature>
+            <id>length</id>
+            <value>60</value>
+          </intfeature>
+          <intfeature>
+            <id>width</id>
+            <value>40</value>
+          </intfeature>
+          <intfeature>
+            <id>weight</id>
+            <value>10</value>
+          </intfeature>
+          <stringfeature>
+            <id>color</id>
+            <value>red</value>
+          </stringfeature>
+        </features>
       </product>
       <quantity>13</quantity>
       <price>340.23</price>

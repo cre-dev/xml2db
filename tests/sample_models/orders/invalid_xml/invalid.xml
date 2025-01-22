@@ -1,14 +1,14 @@
 <?xml version='1.0' encoding='utf-8'?>
 <orders xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" batch_id="4" xsi:noNamespaceSchemaLocation="../orders.xsd">
   <shiporder orderid="3" processed_at="2023-09-11T18:27:56.000+02:00">
-    <orderperson>
+    <orderperson name="billing">
       <name>Alice</name>
       <address>string</address>
       <city>string</city>
       <zip codingSystem="int">21093</zip>
       <country>US</country>
     </orderperson>
-    <shiptoContact>
+    <shiptoContact name="shipping">
       <name>Bob</name>
       <address>string</address>
       <city>string</city>

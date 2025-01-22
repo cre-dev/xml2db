@@ -128,31 +128,36 @@ class XMLConverter:
                 key
                 != "{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation"
             ):
-                content[key] = [val]
+                content[f"{key}__attr"] = [val.strip() if val.strip() else val]
 
         if node.text and node.text.strip():
             content["value"] = [node.text.strip()]
 
         for element in node.iterchildren():
-            key = element.tag.split("}")[1] if "}" in element.tag else element.tag
-            node_type_key = (node_type, key)
-            value = None
-            if element.text and element.text.strip():
-                value = element.text
-            transform = self.model.fields_transforms.get(node_type_key, (None, "join"))[
-                1
-            ]
-            if transform != "join":
-                value = self._parse_xml_node(
-                    self.model.fields_transforms[node_type_key][0],
-                    element,
-                    transform not in ["elevate", "elevate_wo_prefix"],
-                    hash_maps,
-                )
-            if key in content:
-                content[key].append(value)
-            else:
-                content[key] = [value]
+            if isinstance(element.tag, str):
+                key = element.tag.split("}")[1] if "}" in element.tag else element.tag
+                node_type_key = (node_type, key)
+                value = None
+                if element.text:
+                    value = (
+                        element.text.strip() if element.text.strip() else element.text
+                    )
+                if node_type_key not in self.model.fields_transforms:
+                    # skip the node if it is not in the data model
+                    continue
+                transform = self.model.fields_transforms[node_type_key][1]
+                if transform != "join":
+                    value = self._parse_xml_node(
+                        self.model.fields_transforms[node_type_key][0],
+                        element,
+                        transform not in ["elevate", "elevate_wo_prefix"],
+                        hash_maps,
+                    )
+                if value is not None:
+                    if key in content:
+                        content[key].append(value)
+                    else:
+                        content[key] = [value]
 
         node = self._transform_node(node_type, content)
 
@@ -189,6 +194,7 @@ class XMLConverter:
         hash_maps = {}
 
         joined_values = False
+        skipped_nodes = 0
         for event, element in etree.iterparse(
             xml_file,
             recover=recover,
@@ -196,12 +202,17 @@ class XMLConverter:
             remove_blank_text=True,
         ):
             key = element.tag.split("}")[1] if "}" in element.tag else element.tag
-            if event == "start":
+
+            if event == "start" and skipped_nodes > 0:
+                skipped_nodes += 1
+
+            elif event == "start":
                 if nodes_stack[-1][0]:
                     node_type_key = (nodes_stack[-1][0], key)
-                    node_type, transform = self.model.fields_transforms.get(
-                        node_type_key, (None, "join")
-                    )
+                    if node_type_key not in self.model.fields_transforms:
+                        skipped_nodes += 1
+                        continue
+                    node_type, transform = self.model.fields_transforms[node_type_key]
                 else:
                     node_type, transform = self.model.root_table, None
                 joined_values = transform == "join"
@@ -212,28 +223,41 @@ class XMLConverter:
                             attrib_key
                             != "{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation"
                         ):
-                            content[attrib_key] = [attrib_val]
+                            content[f"{attrib_key}__attr"] = [
+                                attrib_val.strip() if attrib_val.strip() else attrib_val
+                            ]
                     nodes_stack.append((node_type, content))
 
+            elif event == "end" and skipped_nodes > 0:
+                skipped_nodes -= 1
+
             elif event == "end":
-                # joined_values was set with the previous "start" event just before
+                # joined_values was set with the previous "start" event just before and corresponds to lists of simple
+                # type elements
                 if joined_values:
+                    value = None
                     if element.text:
-                        if key in nodes_stack[-1][1]:
-                            nodes_stack[-1][1][key].append(element.text)
+                        if element.text.strip():
+                            value = element.text.strip()
                         else:
-                            nodes_stack[-1][1][key] = [element.text]
+                            value = element.text
+                    if key in nodes_stack[-1][1]:
+                        nodes_stack[-1][1][key].append(value)
+                    else:
+                        nodes_stack[-1][1][key] = [value]
+
+                # else, we have completed a complex type node
                 else:
                     node = nodes_stack.pop()
                     if nodes_stack[-1][0]:
                         node_type_key = (nodes_stack[-1][0], key)
-                        node_type, transform = self.model.fields_transforms.get(
-                            node_type_key, (None, "join")
-                        )
+                        node_type, transform = self.model.fields_transforms[
+                            node_type_key
+                        ]
                     else:
                         node_type, transform = self.model.root_table, None
-                    if element.text:
-                        node[1]["value"] = [element.text]
+                    if element.text and element.text.strip():
+                        node[1]["value"] = [element.text.strip()]
                     node = self._transform_node(*node)
                     if transform not in ["elevate", "elevate_wo_prefix"]:
                         node = self._compute_hash_deduplicate(node, hash_maps)
@@ -292,12 +316,28 @@ class XMLConverter:
             A tuple of (node_type, content, hash) representing a node after deduplication
         """
         node_type, content = node
+        if node_type not in self.model.tables:
+            return "", None, b""
         table = self.model.tables[node_type]
 
         h = self.model.model_config["record_hash_constructor"]()
-        for field_type, name, _ in table.fields:
+        for field_type, name, field in table.fields:
             if field_type == "col":
-                h.update(str(content.get(name, None)).encode("utf-8"))
+                if field.is_attr:
+                    h.update(
+                        str(
+                            content.get(
+                                (
+                                    f"{name[:-5]}__attr"
+                                    if field.has_suffix
+                                    else f"{name}__attr"
+                                ),
+                                None,
+                            )
+                        ).encode("utf-8")
+                    )
+                else:
+                    h.update(str(content.get(name, None)).encode("utf-8"))
             elif field_type == "rel1":
                 h.update(content[name][0][2] if name in content else b"")
             elif field_type == "reln":
@@ -419,10 +459,17 @@ class XMLConverter:
             attributes = {}
             text_content = None
             if field_type == "col":
-                if rel_name in content:
-                    if rel.is_attr:
-                        attributes[rel.name_chain[-1][0]] = content[rel_name][0]
-                    elif rel.is_content:
+                if rel.is_attr:
+                    if rel.has_suffix and f"{rel_name[:-5]}__attr" in content:
+                        attributes[rel.name_chain[-1][0][:-5]] = content[
+                            f"{rel_name[:-5]}__attr"
+                        ][0]
+                    elif not rel.has_suffix and f"{rel_name}__attr" in content:
+                        attributes[rel.name_chain[-1][0]] = content[
+                            f"{rel_name}__attr"
+                        ][0]
+                elif rel_name in content:
+                    if rel.is_content:
                         text_content = content[rel_name][0]
                     else:
                         for field_value in content[rel_name]:
@@ -446,7 +493,8 @@ class XMLConverter:
             if prev_ngroup and rel.ngroup != prev_ngroup:
                 for ngroup_children in zip_longest(*ngroup_stack):
                     for child in ngroup_children:
-                        nodes_stack[-1][1].append(child)
+                        if child is not None:
+                            nodes_stack[-1][1].append(child)
                 ngroup_stack = []
             prev_ngroup = rel.ngroup
             if len(children) > 0:

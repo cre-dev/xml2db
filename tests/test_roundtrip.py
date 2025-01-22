@@ -4,7 +4,7 @@ import pytest
 from lxml import etree
 
 from xml2db.xml_converter import XMLConverter, remove_record_hash
-from .fixtures import setup_db_model, conn_string
+from .conftest import list_xml_path
 from .sample_models import models
 
 
@@ -17,10 +17,7 @@ def test_database_xml_roundtrip(setup_db_model, model_config):
     """A test for roundtrip insert to the database from and to XML"""
 
     model = setup_db_model
-    xml_files = [
-        os.path.join(model_config["xml_path"], file)
-        for file in os.listdir(model_config["xml_path"])
-    ]
+    xml_files = list_xml_path(model_config, "xml")
 
     for file in xml_files:
         # do parse and insert into the database
@@ -59,10 +56,7 @@ def test_database_document_tree_roundtrip(setup_db_model, model_config):
     """A test for roundtrip insert to the database from and to document tree"""
 
     model = setup_db_model
-    xml_files = [
-        os.path.join(model_config["xml_path"], file)
-        for file in os.listdir(model_config["xml_path"])
-    ]
+    xml_files = list_xml_path(model_config, "xml")
 
     for file in xml_files:
         # do parse and insert into the database
@@ -92,10 +86,7 @@ def test_database_document_tree_roundtrip_single_load(setup_db_model, model_conf
     """A test for roundtrip insert to the database from and to document tree"""
 
     model = setup_db_model
-    xml_files = [
-        os.path.join(model_config["xml_path"], file)
-        for file in os.listdir(model_config["xml_path"])
-    ]
+    xml_files = list_xml_path(model_config, "xml")
 
     flat_data = None
     doc = None
@@ -129,7 +120,7 @@ def test_database_document_tree_roundtrip_single_load(setup_db_model, model_conf
     [
         {**model, **version, "xml_file": xml_file}
         for model in models
-        for xml_file in os.listdir(model["xml_path"])
+        for xml_file in list_xml_path(model, "xml")
         for version in model["versions"]
     ],
 )

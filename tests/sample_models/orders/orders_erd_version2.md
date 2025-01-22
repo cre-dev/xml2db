@@ -5,6 +5,7 @@ erDiagram
     shiporder {
         string orderid
         dateTime processed_at
+        string orderperson_name_attr
         string orderperson_name
         string orderperson_address
         string orderperson_city
@@ -14,6 +15,7 @@ erDiagram
         string-N orderperson_phoneNumber
         string orderperson_companyId_type
         string orderperson_companyId_value
+        string orderperson_coordinates
     }
     item ||--|| product : "product"
     item {
@@ -22,11 +24,22 @@ erDiagram
         decimal price
         string currency
     }
+    product ||--o{ intfeature : "features_intfeature*"
+    product ||--o{ stringfeature : "features_stringfeature*"
     product {
         string name
         string version
     }
+    stringfeature {
+        string id
+        string value
+    }
+    intfeature {
+        string id
+        integer value
+    }
     orderperson {
+        string name_attr
         string name
         string address
         string city
@@ -36,6 +49,7 @@ erDiagram
         string-N phoneNumber
         string companyId_type
         string companyId_value
+        string coordinates
     }
     orders ||--o{ shiporder : "shiporder"
     orders {

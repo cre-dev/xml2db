@@ -18,8 +18,7 @@ models = [
         "id": "orders",
         "long_name": "A simple model for shipment orders",
         "description": "This model was made up to be a simple case which could represent real business cases.",
-        "xsd_path": "tests/sample_models/orders/orders.xsd",
-        "xml_path": "tests/sample_models/orders/xml",
+        "xsd": "orders.xsd",
         "versions": [
             {
                 "config": {
@@ -80,8 +79,7 @@ models = [
         "long_name": "Data model for reporting standard contracts in the European energy markets",
         "description": "This model is one of the official models published by the Agency for the cooperation of energy"
         "regulators to report energy markets transaction data.",
-        "xsd_path": "tests/sample_models/table1/Table1_V2.xsd",
-        "xml_path": "tests/sample_models/table1/xml",
+        "xsd": "Table1_V2.xsd",
         "versions": [
             {
                 "config": {
@@ -137,8 +135,7 @@ models = [
             "Xunit XSD was taken from https://github.com/jenkinsci/xunit-plugin/blob/master/src/main/resources/org/jenkinsci/plugins/xunit/types/model/xsd/junit-10.xsd"
             " and amended to remove its recursive nature."
         ),
-        "xsd_path": "tests/sample_models/junit10/junit-10.xsd",
-        "xml_path": "tests/sample_models/junit10/xml",
+        "xsd": "junit-10.xsd",
         "versions": [
             {
                 "config": {
@@ -185,7 +182,7 @@ def _generate_models_output():
 
     for model_config in models:
         for i in range(len(model_config["versions"])):
-            xsd_path = os.path.join("../../", model_config["xsd_path"])
+            xsd_path = os.path.join(model_config["id"], model_config["xsd"])
             for dialect in [d.dialect() for d in [postgresql, mssql, mysql]]:
                 model = DataModel(
                     xsd_path,
