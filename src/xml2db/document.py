@@ -179,16 +179,7 @@ class Document:
                         else key
                     )
                     if content_key in content:
-                        if model_table.columns[key].data_type in ["decimal", "float"]:
-                            val = [float(v) for v in content[content_key]]
-                        elif model_table.columns[key].data_type == "integer":
-                            val = [int(v) for v in content[content_key]]
-                        elif model_table.columns[key].data_type == "boolean":
-                            val = [
-                                v == "true" or v == "1" for v in content[content_key]
-                            ]
-                        else:
-                            val = content[content_key]
+                        val = content[content_key]
 
                         if len(val) == 1:
                             record[key] = val[0]
