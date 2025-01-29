@@ -41,7 +41,7 @@ jobs:
           git add requirements.txt
           git commit -m "update requirements.txt"
           git push -u origin maintenance/update_requirements
-          echo "ready to do pr"
+          gh pr create --base main --head maintenance/update_requirements --title "Update requirements.txt" --body "Update requirements.txt with up to date dependencies versions."
         else
           echo "no changes, nothing to do."
         fi
