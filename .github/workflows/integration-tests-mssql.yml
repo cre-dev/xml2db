@@ -1,12 +1,6 @@
 name: MSSQL integration tests
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-  schedule:
-    - cron: "34 3 8 * *"
   workflow_dispatch:
 
 jobs:
