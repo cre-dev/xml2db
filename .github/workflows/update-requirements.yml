@@ -11,12 +11,12 @@ on:
     - cron: "34 3 8 * *"
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
   update:
-
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
     runs-on: ubuntu-latest
 
     steps:
