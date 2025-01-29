@@ -29,13 +29,16 @@ jobs:
     - name: Update requirements.txt
       run: |
         pip freeze | grep -v 'xml2db' > requirements.txt
-    - name: Create pull request
-      if: git diff --quiet --name-only --exit-code requirements.txt && echo false || echo true
+    - name: Check changes and create pull request
       run: |
-        git config user.name github-actions[bot]
-        git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-        git checkout -b maintenance/update_requirements
-        git add requirements.txt
-        git commit -m "update requirements.txt"
-        git push
-        echo "ready to do pr"
+        if ! git diff --quiet --name-only --exit-code requirements.txt; then
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git checkout -b maintenance/update_requirements
+          git add requirements.txt
+          git commit -m "update requirements.txt"
+          git push
+          echo "ready to do pr"
+        else
+          echo "no changes, nothing to do."
+        fi
