@@ -37,7 +37,7 @@ jobs:
           git checkout -b maintenance/update_requirements
           git add requirements.txt
           git commit -m "update requirements.txt"
-          git push
+          git push -u origin maintenance/update_requirements
           echo "ready to do pr"
         else
           echo "no changes, nothing to do."
