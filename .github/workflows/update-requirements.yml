@@ -5,6 +5,8 @@
 name: Update requirements.txt
 
 on:
+  pull_request:
+    branches: [ "main" ]
   schedule:
     - cron: "34 3 8 * *"
   workflow_dispatch:
