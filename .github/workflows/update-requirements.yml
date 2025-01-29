@@ -1,0 +1,49 @@
+# This workflow will install Python dependencies and create a PR to update requirements.txt if needed
+# The goal is to make sure that tests still run with newer dependencies versions, in order to allow
+# lax dependencies versions.
+
+name: Update requirements.txt
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: "34 3 8 * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install .[tests,docs] pyodbc psycopg2 pymysql duckdb_engine
+    - name: Update requirements.txt
+      run: |
+        pip freeze | grep -v 'xml2db' > requirements.txt
+    - name: Check changes and create pull request
+      run: |
+        if ! git diff --quiet --name-only --exit-code requirements.txt; then
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git checkout -b maintenance/update_requirements
+          git add requirements.txt
+          git commit -m "update requirements.txt"
+          git push -u origin maintenance/update_requirements
+          gh pr create --base main --head maintenance/update_requirements --title "Update requirements.txt" --body "Update requirements.txt with up to date dependencies versions."
+        else
+          echo "no changes, nothing to do."
+        fi
+      env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
