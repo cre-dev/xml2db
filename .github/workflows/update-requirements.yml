@@ -45,3 +45,5 @@ jobs:
         else
           echo "no changes, nothing to do."
         fi
+      env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
