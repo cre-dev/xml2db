@@ -506,33 +506,28 @@ class XMLConverter:
                         "decimal",
                         "float",
                     ]:  # remove trailing ".0" for decimal and float
-                         val = (
-                            value.rstrip("0").rstrip(".") if "." in value else value
-                            for value in str(content[content_key]).split(",")
-                         )
-                    elif isinstance(content[content_key], datetime.datetime):
-                        val = content[content_key].isoformat(timespec="milliseconds")
+                        val = str(content[content_key][0])
+                        val = [val.rstrip("0").rstrip(".") if "." in val else val]
+                    elif isinstance(content[content_key][0], datetime):
+                        val = [
+                            content[content_key][0].isoformat(timespec="milliseconds")
+                        ]
                     else:
-                        val = str(content[content_key])
+                        val = content[content_key]
                     if rel.is_attr:
                         if rel.has_suffix:
-                            attributes[rel.name_chain[-1][0][:-5]] = content[
-                                f"{rel_name[:-5]}__attr"
-                            ][0]
-                        elif not rel.has_suffix and f"{rel_name}__attr" in content:
-                            attributes[rel.name_chain[-1][0]] = content[
-                                f"{rel_name}__attr"
-                            ][0]
-                    elif rel_name in content:
-                        if rel.is_content:
-                            text_content = content[rel_name][0]
+                            attributes[rel.name_chain[-1][0][:-5]] = val[0]
                         else:
-                            for field_value in content[rel_name]:
-                                child = etree.Element(rel.name_chain[-1][0])
-                                if isinstance(field_value, datetime):
-                                    field_value = field_value.isoformat()
-                                child.text = str(field_value).encode("utf-8")
-                                children.append(child)
+                            attributes[rel.name_chain[-1][0]] = val[0]
+                    elif rel.is_content:
+                        text_content = val[0]
+                    else:
+                        for field_value in val:
+                            child = etree.Element(rel.name_chain[-1][0])
+                            if isinstance(field_value, datetime):
+                                field_value = field_value.isoformat()
+                            child.text = str(field_value).encode("utf-8")
+                            children.append(child)
             elif field_type == "rel1":
                 if rel_name in content:
                     child = self._make_xml_node(

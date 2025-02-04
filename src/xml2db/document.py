@@ -327,15 +327,7 @@ class Document:
                         if rel.is_attr
                         else rel_name
                     )
-                    if rel.data_type in [
-                        "decimal",
-                        "float",
-                    ]:  # remove trailing ".0" for decimal and float
-                        content[content_key] = [
-                            value.rstrip("0").rstrip(".") if "." in value else value
-                            for value in str(record[rel_name]).split(",")
-                        ]
-                    elif isinstance(record[rel_name], datetime.datetime):
+                    if isinstance(record[rel_name], datetime.datetime):
                         content[content_key] = [
                             record[rel_name].isoformat(timespec="milliseconds")
                         ]
@@ -345,7 +337,7 @@ class Document:
                                 0
                             ]
                             if "," in str(record[rel_name])
-                            else [str(record[rel_name])]
+                            else [record[rel_name]]
                         )
                 elif (
                     field_type == "rel1"
