@@ -302,6 +302,39 @@ class XMLConverter:
                 child_key, val = list(content.items())[0]
                 content = {"type": [child_key], "value": val}
 
+        # convert some simple types to python types
+        if node_type in self.model.tables:
+            table = self.model.tables[node_type]
+            for key in table.columns:
+                content_key = (
+                    (
+                        f"{key[:-5]}__attr"
+                        if table.columns[key].has_suffix
+                        else f"{key}__attr"
+                    )
+                    if table.columns[key].is_attr
+                    else key
+                )
+                if content_key in content:
+                    if table.columns[key].data_type in ["decimal", "float"]:
+                        content[content_key] = [float(v) for v in content[content_key]]
+                    elif table.columns[key].data_type in [
+                        "integer",
+                        "int",
+                        "nonPositiveInteger",
+                        "nonNegativeInteger",
+                        "positiveInteger",
+                        "negativeInteger",
+                        "short",
+                        "byte",
+                        "long",
+                    ]:
+                        content[content_key] = [int(v) for v in content[content_key]]
+                    elif table.columns[key].data_type == "boolean":
+                        content[content_key] = [
+                            v == "true" or v == "1" for v in content[content_key]
+                        ]
+
         return node_type, content
 
     def _compute_hash_deduplicate(self, node: tuple, hash_maps: dict) -> tuple:
@@ -459,20 +492,37 @@ class XMLConverter:
             attributes = {}
             text_content = None
             if field_type == "col":
-                if rel.is_attr:
-                    if rel.has_suffix and f"{rel_name[:-5]}__attr" in content:
-                        attributes[rel.name_chain[-1][0][:-5]] = content[
-                            f"{rel_name[:-5]}__attr"
-                        ][0]
-                    elif not rel.has_suffix and f"{rel_name}__attr" in content:
-                        attributes[rel.name_chain[-1][0]] = content[
-                            f"{rel_name}__attr"
-                        ][0]
-                elif rel_name in content:
-                    if rel.is_content:
-                        text_content = content[rel_name][0]
+                content_key = (
+                    (
+                        f"{rel_name[:-5]}__attr"
+                        if rel.has_suffix
+                        else f"{rel_name}__attr"
+                    )
+                    if rel.is_attr
+                    else rel_name
+                )
+                if content_key in content:
+                    if rel.data_type in [
+                        "decimal",
+                        "float",
+                    ]:  # remove trailing ".0" for decimal and float
+                        val = str(content[content_key][0])
+                        val = [val.rstrip("0").rstrip(".") if "." in val else val]
+                    elif isinstance(content[content_key][0], datetime):
+                        val = [
+                            content[content_key][0].isoformat(timespec="milliseconds")
+                        ]
                     else:
-                        for field_value in content[rel_name]:
+                        val = content[content_key]
+                    if rel.is_attr:
+                        if rel.has_suffix:
+                            attributes[rel.name_chain[-1][0][:-5]] = val[0]
+                        else:
+                            attributes[rel.name_chain[-1][0]] = val[0]
+                    elif rel.is_content:
+                        text_content = val[0]
+                    else:
+                        for field_value in val:
                             child = etree.Element(rel.name_chain[-1][0])
                             if isinstance(field_value, datetime):
                                 field_value = field_value.isoformat()
