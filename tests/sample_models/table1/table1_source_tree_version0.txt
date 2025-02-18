@@ -1,0 +1,321 @@
+reportingEntityID[1, 1] (choice):
+    ace[0, 1]: string
+    lei[0, 1]: string
+    bic[0, 1]: string
+    eic[0, 1]: string
+    gln[0, 1]: string
+contractList[0, 1]:
+    contract[1, None]:
+        contractId[1, 1]: string
+        contractName[0, 1]: string
+        contractType[1, 1]: string
+        energyCommodity[1, 2]: string
+        fixingIndex[0, None]:
+            indexName[1, 1]: string
+            indexValue[0, 1]: decimal
+        settlementMethod[1, 1]: string
+        organisedMarketPlaceIdentifier[1, 1] (choice):
+            lei[0, 1]: string
+            mic[0, 1]: string
+            ace[0, 1]: string
+            bil[0, 1]: string
+        contractTradingHours[0, None]:
+            startTime[1, 1]: time
+            endTime[1, 1]: time
+            date[0, 1]: date
+        lastTradingDateTime[0, 1]: dateTime
+        optionDetails[0, 1]:
+            optionStyle[1, 1]: string
+            optionType[1, 1]: string
+            optionExerciseDate[0, None]: date
+            optionStrikePrice[0, 1]:
+                value[1, 1]: decimal
+                currency[1, 1]: string
+        deliveryPointOrZone[1, None]: string
+        deliveryStartDate[1, 1]: date
+        deliveryEndDate[1, 1]: date
+        duration[0, 1]: string
+        loadType[0, 1]: string
+        deliveryProfile[1, None]:
+            loadDeliveryStartDate[0, 1]: date
+            loadDeliveryEndDate[0, 1]: date
+            daysOfTheWeek[0, None]: string
+            loadDeliveryStartTime[1, None]: time
+            loadDeliveryEndTime[1, None]: time
+OrderList[0, 1]:
+    OrderReport[1, None]:
+        RecordSeqNumber[1, 1]: integer
+        idOfMarketParticipant[1, 1] (choice):
+            ace[0, 1]: string
+            lei[0, 1]: string
+            bic[0, 1]: string
+            eic[0, 1]: string
+            gln[0, 1]: string
+        traderID[1, 1] (choice):
+            traderIdForOrganisedMarket[0, 1]: string
+            traderIdForMarketParticipant[0, 1]: string
+        beneficiaryIdentification[0, 1] (choice):
+            ace[0, 1]: string
+            lei[0, 1]: string
+            bic[0, 1]: string
+            eic[0, 1]: string
+            gln[0, 1]: string
+        tradingCapacity[1, 1]: string
+        buySellIndicator[1, 1]: string
+        orderId[1, 1]:
+            uniqueOrderIdentifier[1, 1]: string
+            previousOrderIdentifier[0, 1]: string
+        orderType[1, 1]: string
+        orderCondition[0, None]: string
+        orderStatus[0, None]: string
+        minimumExecuteVolume[0, 1]:
+            value[1, 1]: decimal
+            unit[1, 1]: string
+        triggerDetails[0, 1]:
+            priceLimit[1, 1]:
+                value[1, 1]: decimal
+                currency[1, 1]: string
+            triggerContractId[0, 1]: string
+        undisclosedVolume[0, 1]:
+            value[1, 1]: decimal
+            unit[1, 1]: string
+        orderDuration[1, 1]:
+            duration[1, 1]: string
+            expirationDateTime[0, 1]: dateTime
+        contractInfo[1, 1] (choice):
+            contractId[0, 1]: string
+            legContractId[0, None]:
+                contractId[1, 1]: string
+                buySellIndicator[1, 1]: string
+            contract[0, 1]:
+                contractId[1, 1]: string
+                contractName[0, 1]: string
+                contractType[1, 1]: string
+                energyCommodity[1, 2]: string
+                fixingIndex[0, None]:
+                    indexName[1, 1]: string
+                    indexValue[0, 1]: decimal
+                settlementMethod[1, 1]: string
+                organisedMarketPlaceIdentifier[1, 1] (choice):
+                    lei[0, 1]: string
+                    mic[0, 1]: string
+                    ace[0, 1]: string
+                    bil[0, 1]: string
+                contractTradingHours[0, None]:
+                    startTime[1, 1]: time
+                    endTime[1, 1]: time
+                    date[0, 1]: date
+                lastTradingDateTime[0, 1]: dateTime
+                optionDetails[0, 1]:
+                    optionStyle[1, 1]: string
+                    optionType[1, 1]: string
+                    optionExerciseDate[0, None]: date
+                    optionStrikePrice[0, 1]:
+                        value[1, 1]: decimal
+                        currency[1, 1]: string
+                deliveryPointOrZone[1, None]: string
+                deliveryStartDate[1, 1]: date
+                deliveryEndDate[1, 1]: date
+                duration[0, 1]: string
+                loadType[0, 1]: string
+                deliveryProfile[1, None]:
+                    loadDeliveryStartDate[0, 1]: date
+                    loadDeliveryEndDate[0, 1]: date
+                    daysOfTheWeek[0, None]: string
+                    loadDeliveryStartTime[1, None]: time
+                    loadDeliveryEndTime[1, None]: time
+            legContract[0, None]:
+                contract[1, 1]:
+                    contractId[1, 1]: string
+                    contractName[0, 1]: string
+                    contractType[1, 1]: string
+                    energyCommodity[1, 2]: string
+                    fixingIndex[0, None]:
+                        indexName[1, 1]: string
+                        indexValue[0, 1]: decimal
+                    settlementMethod[1, 1]: string
+                    organisedMarketPlaceIdentifier[1, 1] (choice):
+                        lei[0, 1]: string
+                        mic[0, 1]: string
+                        ace[0, 1]: string
+                        bil[0, 1]: string
+                    contractTradingHours[0, None]:
+                        startTime[1, 1]: time
+                        endTime[1, 1]: time
+                        date[0, 1]: date
+                    lastTradingDateTime[0, 1]: dateTime
+                    optionDetails[0, 1]:
+                        optionStyle[1, 1]: string
+                        optionType[1, 1]: string
+                        optionExerciseDate[0, None]: date
+                        optionStrikePrice[0, 1]:
+                            value[1, 1]: decimal
+                            currency[1, 1]: string
+                    deliveryPointOrZone[1, None]: string
+                    deliveryStartDate[1, 1]: date
+                    deliveryEndDate[1, 1]: date
+                    duration[0, 1]: string
+                    loadType[0, 1]: string
+                    deliveryProfile[1, None]:
+                        loadDeliveryStartDate[0, 1]: date
+                        loadDeliveryEndDate[0, 1]: date
+                        daysOfTheWeek[0, None]: string
+                        loadDeliveryStartTime[1, None]: time
+                        loadDeliveryEndTime[1, None]: time
+                buySellIndicator[1, 1]: string
+        organisedMarketPlaceIdentifier[1, 1] (choice):
+            lei[0, 1]: string
+            mic[0, 1]: string
+            ace[0, 1]: string
+            bil[0, 1]: string
+        transactionTime[1, 1]: dateTime
+        originalEntryTime[0, 1]: dateTime
+        linkedOrderId[0, None]: string
+        priceDetails[0, 1]:
+            price[1, 1]: decimal
+            priceCurrency[1, 1]: string
+        notionalAmountDetails[0, 1]:
+            notionalAmount[1, 1]: decimal
+            notionalCurrency[1, 1]: string
+        quantity[0, 1]:
+            value[1, 1]: decimal
+            unit[1, 1]: string
+        totalNotionalContractQuantity[0, 1]:
+            value[1, 1]: decimal
+            unit[1, 1]: string
+        priceIntervalQuantityDetails[0, None]:
+            intervalStartDate[0, 1]: date
+            intervalEndDate[0, 1]: date
+            daysOfTheWeek[0, 1]: string
+            intervalStartTime[1, None]: time
+            intervalEndTime[1, None]: time
+            quantity[0, 1]: decimal
+            unit[0, 1]: string
+            priceTimeIntervalQuantity[0, 1]:
+                value[1, 1]: decimal
+                currency[1, 1]: string
+        actionType[1, 1]: string
+        Extra[0, 1]: string
+TradeList[0, 1]:
+    TradeReport[1, None]:
+        RecordSeqNumber[1, 1]: integer
+        idOfMarketParticipant[1, 1] (choice):
+            ace[0, 1]: string
+            lei[0, 1]: string
+            bic[0, 1]: string
+            eic[0, 1]: string
+            gln[0, 1]: string
+        traderID[0, 1] (choice):
+            traderIdForOrganisedMarket[0, 1]: string
+            traderIdForMarketParticipant[0, 1]: string
+        otherMarketParticipant[0, 1] (choice):
+            ace[0, 1]: string
+            lei[0, 1]: string
+            bic[0, 1]: string
+            eic[0, 1]: string
+            gln[0, 1]: string
+        beneficiaryIdentification[0, 1] (choice):
+            ace[0, 1]: string
+            lei[0, 1]: string
+            bic[0, 1]: string
+            eic[0, 1]: string
+            gln[0, 1]: string
+        tradingCapacity[1, 1]: string
+        buySellIndicator[1, 1]: string
+        aggressor[0, 1]: string
+        clickAndTradeDetails[0, 1]:
+            orderType[1, 1]: string
+            orderCondition[0, None]: string
+            orderStatus[0, None]: string
+            minimumExecuteVolume[0, 1]:
+                value[1, 1]: decimal
+                unit[1, 1]: string
+            triggerDetails[0, 1]:
+                priceLimit[1, 1]:
+                    value[1, 1]: decimal
+                    currency[1, 1]: string
+                triggerContractId[0, 1]: string
+            undisclosedVolume[0, 1]:
+                value[1, 1]: decimal
+                unit[1, 1]: string
+            orderDuration[0, 1]:
+                duration[1, 1]: string
+                expirationDateTime[0, 1]: dateTime
+        contractInfo[1, 1] (choice):
+            contractId[0, 1]: string
+            contract[0, 1]:
+                contractId[1, 1]: string
+                contractName[0, 1]: string
+                contractType[1, 1]: string
+                energyCommodity[1, 2]: string
+                fixingIndex[0, None]:
+                    indexName[1, 1]: string
+                    indexValue[0, 1]: decimal
+                settlementMethod[1, 1]: string
+                organisedMarketPlaceIdentifier[1, 1] (choice):
+                    lei[0, 1]: string
+                    mic[0, 1]: string
+                    ace[0, 1]: string
+                    bil[0, 1]: string
+                contractTradingHours[0, None]:
+                    startTime[1, 1]: time
+                    endTime[1, 1]: time
+                    date[0, 1]: date
+                lastTradingDateTime[0, 1]: dateTime
+                optionDetails[0, 1]:
+                    optionStyle[1, 1]: string
+                    optionType[1, 1]: string
+                    optionExerciseDate[0, None]: date
+                    optionStrikePrice[0, 1]:
+                        value[1, 1]: decimal
+                        currency[1, 1]: string
+                deliveryPointOrZone[1, None]: string
+                deliveryStartDate[1, 1]: date
+                deliveryEndDate[1, 1]: date
+                duration[0, 1]: string
+                loadType[0, 1]: string
+                deliveryProfile[1, None]:
+                    loadDeliveryStartDate[0, 1]: date
+                    loadDeliveryEndDate[0, 1]: date
+                    daysOfTheWeek[0, None]: string
+                    loadDeliveryStartTime[1, None]: time
+                    loadDeliveryEndTime[1, None]: time
+        organisedMarketPlaceIdentifier[1, 1] (choice):
+            lei[0, 1]: string
+            mic[0, 1]: string
+            ace[0, 1]: string
+            bil[0, 1]: string
+        transactionTime[1, 1]: dateTime
+        executionTime[0, 1]: dateTime
+        uniqueTransactionIdentifier[1, 1]:
+            uniqueTransactionIdentifier[1, 1]: string
+            additionalUtiInfo[0, 1]: string
+        linkedTransactionId[0, None]: string
+        linkedOrderId[0, None]: string
+        voiceBrokered[0, 1]: string
+        priceDetails[0, 1]:
+            price[1, 1]: decimal
+            priceCurrency[1, 1]: string
+        notionalAmountDetails[0, 1]:
+            notionalAmount[1, 1]: decimal
+            notionalCurrency[1, 1]: string
+        quantity[0, 1]:
+            value[1, 1]: decimal
+            unit[1, 1]: string
+        totalNotionalContractQuantity[0, 1]:
+            value[1, 1]: decimal
+            unit[1, 1]: string
+        terminationDate[0, 1]: dateTime
+        priceIntervalQuantityDetails[0, None]:
+            intervalStartDate[0, 1]: date
+            intervalEndDate[0, 1]: date
+            daysOfTheWeek[0, 1]: string
+            intervalStartTime[1, None]: time
+            intervalEndTime[1, None]: time
+            quantity[0, 1]: decimal
+            unit[0, 1]: string
+            priceTimeIntervalQuantity[0, 1]:
+                value[1, 1]: decimal
+                currency[1, 1]: string
+        actionType[1, 1]: string
+        Extra[0, 1]: string
