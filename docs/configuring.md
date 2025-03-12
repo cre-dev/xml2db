@@ -42,6 +42,10 @@ others at the field level. The general structure of the configuration dict is th
 }
 ```
 
+!!! tip
+    Table names and column names in the config dict (`table1` and `my_column` in the above example) refer to the names before
+    any transformation. They refer to the names that can be found in `DataModel.source_tree`.
+
 ## Model configuration
 
 The following options can be passed as a top-level keys of the model configuration `dict`:
@@ -147,20 +151,7 @@ automatically applied `join`, as it would require a complex process of adding a 
 
 ### Elevate children to upper level
 
-If a complex child element has a minimum and maximum occurrences number of 1 and 1 respectively, it can be "pulled" up 
-to its parent element. This behaviour will always be applied by default.
-
-If a complex child element has a minimum and maximum occurrences number of 0 and 1 respectively, it can also be "pulled"
-up to its parent element fields. This is applied by default if the child has less than 5 fields, because otherwise it
-could clutter the parent element with many columns that will often be all `NULL`.
-
-This simplification can be opted out using a configuration option, and forced in the case of a child with more than 5
-fields, using the following option:
-
-`"transform":` `"elevate"` (default) or `"elevate_wo_prefix"` or `False` (disable).
-
-By default, the elevated field name is prefixed with the name of the complex child so its origin is clear and to prevent 
-duplicated names, but this prefixing can be avoided with the value `"elevate_wo_prefix"`.
+If a complex child element has a maximum occurrences number of 1, it can be "pulled" up to its parent element.
 
 For example, complex child `timeInterval` with 2 fields of max occurrence 1, before elevation...
 ```shell
@@ -170,12 +161,28 @@ timeInterval[1, 1]:
     end[1, 1]: string
 ```
 
-... and after elevation (with prefix):
+... and after elevation:
 ```shell
 # Parent fields
 timeInterval_start[1, 1]: string
 timeInterval_end[1, 1]: string
 ```
+
+The resulting name concatenate the parent name and the child name, by default.
+
+This transformation will be applied by default when:
+
+* the minimum occurrence number is 1
+* or the minimum occurence number is 0 and the child has less than 5 fields, because otherwise it could clutter the parent 
+element with many columns that will often be all `NULL`.
+
+This can be configured by the `"transform"` option, with the following values:
+
+* `None`: default behaviour,
+* `"elevate"`: force the elevation of the child,
+* `"elevate_wo_prefix"`: force the elevation of the child, but drop the name of the parent element in the resulting 
+column name,
+* `False`: disable.
 
 !!! example
     Force "elevation" of a complex type to its parent:

@@ -213,6 +213,22 @@ def _generate_models_output():
                 f.write("```mermaid\n")
                 f.write(model.get_entity_rel_diagram(text_context=False))
                 f.write("\n```")
+            with open(
+                os.path.join(
+                    os.path.dirname(xsd_path),
+                    f"{model_config['id']}_source_tree_version{i}.txt",
+                ),
+                "wt",
+            ) as f:
+                f.write(model.source_tree)
+            with open(
+                os.path.join(
+                    os.path.dirname(xsd_path),
+                    f"{model_config['id']}_target_tree_version{i}.txt",
+                ),
+                "wt",
+            ) as f:
+                f.write(model.target_tree)
 
 
 if __name__ == "__main__":

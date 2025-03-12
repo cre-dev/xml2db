@@ -1,0 +1,43 @@
+orders:
+    batch_id[0, 1]: string
+    version[1, 1]: int
+    shiporder[0, None]:
+        orderid[0, 1]: string
+        processed_at[0, 1]: dateTime
+        orderperson_name_attr[0, 1]: string
+        orderperson_name[1, 1]: string
+        orderperson_address[1, 1]: string
+        orderperson_city[1, 1]: string
+        orderperson_zip_codingSystem[0, 1]: string
+        orderperson_zip_value[0, 1]: string
+        orderperson_country[1, 1]: string
+        orderperson_phoneNumber[0, None]: string
+        orderperson_companyId_type[0, 1]: string
+        orderperson_companyId_value[0, 1]: string
+        orderperson_coordinates[0, 1]: string
+        shipto[0, 1]:
+            name_attr[0, 1]: string
+            name[1, 1]: string
+            address[1, 1]: string
+            city[1, 1]: string
+            zip_codingSystem[0, 1]: string
+            zip_value[0, 1]: string
+            country[1, 1]: string
+            phoneNumber[0, None]: string
+            companyId_type[0, 1]: string
+            companyId_value[0, 1]: string
+            coordinates[0, 1]: string
+        item[1, None]:
+            product[1, 1]:
+                name[1, 1]: string
+                version[1, 1]: string
+                features_intfeature[0, None]:
+                    id[1, 1]: string
+                    value[1, 1]: integer
+                features_stringfeature[0, None]:
+                    id[1, 1]: string
+                    value[1, 1]: string
+            note[0, 1]: string
+            quantity[1, 1]: integer
+            price[1, 1]: decimal
+            currency[1, 1]: string

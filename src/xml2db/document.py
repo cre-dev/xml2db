@@ -4,10 +4,11 @@ import logging
 from io import BytesIO
 from typing import Union, TYPE_CHECKING
 from zoneinfo import ZoneInfo
+
+from lxml import etree
 from sqlalchemy import Column, Table, text, select
 from sqlalchemy.engine import Connection
 from sqlalchemy.sql.expression import TextClause
-from lxml import etree
 
 if TYPE_CHECKING:
     from .model import DataModel

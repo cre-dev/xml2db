@@ -20,6 +20,7 @@ dependencies = [
     "sqlalchemy>1.4",
     "xmlschema>=3.3.2",
     "lxml>=5.1.0",
+    "typing-extensions>=4; python_version<'3.11'"
 ]
 
 [project.optional-dependencies]

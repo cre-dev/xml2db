@@ -1,12 +1,13 @@
-from typing import Iterable, List, Any, Union, TYPE_CHECKING
 import logging
+from typing import Iterable, List, Any, Union, TYPE_CHECKING
+
 import sqlalchemy
 from sqlalchemy import Table
 from sqlalchemy.schema import CreateTable, CreateIndex
 
 from .column import DataModelColumn
 from .relations import DataModelRelation1, DataModelRelationN
-from ..exceptions import DataModelConfigError, check_type
+from ..model_config import TableConfigType, validate_table_config
 
 if TYPE_CHECKING:
     from ..model import DataModel
@@ -49,7 +50,7 @@ class DataModelTable:
         is_root_table: bool,
         is_virtual_node: bool,
         metadata: sqlalchemy.MetaData,
-        config: dict,
+        config: TableConfigType,
         db_schema: str,
         temp_prefix: str,
         data_model: "DataModel",
@@ -62,7 +63,7 @@ class DataModelTable:
         self.is_root_table = is_root_table
         self.is_virtual_node = is_virtual_node
         self.model_group = "sequence"
-        self.config = self._validate_config(config, data_model.db_type)
+        self.config = validate_table_config(config, data_model.db_type)
         self.db_schema = db_schema
         self.temp_prefix = temp_prefix
 
@@ -91,36 +92,6 @@ class DataModelTable:
         self.table = None
         self.temp_table = None
         self.data_model = data_model
-
-    def _validate_config(self, cfg, db_type):
-        if cfg is None:
-            cfg = {}
-
-        config = {
-            "reuse": check_type(cfg, "reuse", bool, True),
-            "as_columnstore": check_type(cfg, "as_columnstore", bool, False),
-        }
-        if "extra_args" in cfg and not (
-            isinstance(cfg["extra_args"], list)
-            or isinstance(cfg["extra_args"], tuple)
-            or callable(cfg["extra_args"])
-        ):
-            raise DataModelConfigError("extra_args must be a list, a tuple or callable")
-        config["extra_args"] = cfg.get("extra_args", [])
-        if "choice_transform" in cfg:
-            config["choice_transform"] = check_type(
-                cfg, "choice_transform", bool, False
-            )
-
-        if config["as_columnstore"] and not db_type == "mssql":
-            config["as_columnstore"] = False
-            logger.warning(
-                "Clustered columnstore indexes are only supported with MS SQL Server database"
-            )
-
-        config["fields"] = cfg.get("fields", {})
-
-        return config
 
     def add_column(
         self,
@@ -223,6 +194,19 @@ class DataModelTable:
         self.relations_n[name] = rel
         self.fields.append(("reln", name, rel))
         other_table.parents_n.add(rel)
+
+    def __repr__(self):
+        """Build a text representation of a table recursively"""
+        lines = [f"{self.name}:"]
+        for field_type, name, field in self.fields:
+            if field_type == "col":
+                lines.append(f"    {field.name}{field.occurs}: {field.data_type}")
+            else:
+                mg = " (choice)" if field.other_table.model_group == "choice" else ""
+                lines.append(f"    {field.name}{field.occurs}{mg}:")
+                for line in str(field.other_table).split("\n")[1:]:
+                    lines.append(f"    {line}")
+        return "\n".join(lines)
 
     def compute_dependencies(self) -> None:
         """Compute the table's dependencies according to foreign keys relationships.

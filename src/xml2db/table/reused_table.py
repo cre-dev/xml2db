@@ -10,8 +10,8 @@ from sqlalchemy import (
     Sequence,
 )
 
-from .transformed_table import DataModelTableTransformed
 from .column import DataModelColumn
+from .transformed_table import DataModelTableTransformed
 
 
 class DataModelTableReused(DataModelTableTransformed):

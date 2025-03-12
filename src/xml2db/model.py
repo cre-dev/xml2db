@@ -1,21 +1,25 @@
 import logging
 import os
 from datetime import datetime
+from graphlib import TopologicalSorter
 from io import BytesIO
 from typing import Iterable, Union
 from uuid import uuid4
-import hashlib
 
-import xmlschema
 import sqlalchemy
+import xmlschema
 from lxml import etree
 from sqlalchemy import MetaData, create_engine, inspect
-from sqlalchemy.sql.ddl import CreateIndex, CreateTable
 from sqlalchemy.exc import ProgrammingError
-from graphlib import TopologicalSorter
+from sqlalchemy.sql.ddl import CreateIndex, CreateTable
 
 from .document import Document
-from .exceptions import DataModelConfigError, check_type
+from .model_config import (
+    DataModelConfigError,
+    DataModelConfigType,
+    TableConfigType,
+    validate_model_config,
+)
 from .table import (
     DataModelTableReused,
     DataModelTableDuplicated,
@@ -73,28 +77,13 @@ class DataModel:
         short_name: str = "DocumentRoot",
         long_name: str = None,
         base_url: str = None,
-        model_config: dict = None,
+        model_config: DataModelConfigType = None,
         connection_string: str = None,
         db_engine: sqlalchemy.Engine = None,
         db_type: str = None,
         db_schema: str = None,
         temp_prefix: str = None,
     ):
-        self.model_config = self._validate_config(model_config)
-        self.tables_config = model_config.get("tables", {}) if model_config else {}
-
-        xsd_file_name = xsd_file
-        if base_url is None:
-            base_url = os.path.normpath(os.path.dirname(xsd_file))
-            xsd_file_name = os.path.basename(xsd_file)
-
-        self.xml_schema = xmlschema.XMLSchema(xsd_file_name, base_url=base_url)
-        self.lxml_schema = etree.XMLSchema(etree.parse(xsd_file))
-
-        self.xml_converter = XMLConverter(data_model=self)
-        self.data_flow_name = short_name
-        self.data_flow_long_name = long_name
-
         if connection_string is None and db_engine is None:
             logger.warning(
                 "DataModel created without connection string cannot do actual imports"
@@ -117,6 +106,20 @@ class DataModel:
                 )
             self.db_type = self.engine.dialect.name
 
+        self.model_config = validate_model_config(model_config, self.db_type)
+
+        xsd_file_name = xsd_file
+        if base_url is None:
+            base_url = os.path.normpath(os.path.dirname(xsd_file))
+            xsd_file_name = os.path.basename(xsd_file)
+
+        self.xml_schema = xmlschema.XMLSchema(xsd_file_name, base_url=base_url)
+        self.lxml_schema = etree.XMLSchema(etree.parse(xsd_file))
+
+        self.xml_converter = XMLConverter(data_model=self)
+        self.data_flow_name = short_name
+        self.data_flow_long_name = long_name
+
         self.db_schema = db_schema
         self.temp_prefix = str(uuid4())[:8] if temp_prefix is None else temp_prefix
 
@@ -134,30 +137,6 @@ class DataModel:
         self.processed_at = datetime.now()
 
         self._build_model()
-
-    def _validate_config(self, cfg):
-        if cfg is None:
-            cfg = {}
-        model_config = {
-            key: check_type(cfg, key, exp_type, default)
-            for key, exp_type, default in [
-                ("as_columnstore", bool, False),
-                ("row_numbers", bool, False),
-                ("document_tree_hook", callable, None),
-                ("document_tree_node_hook", callable, None),
-                ("record_hash_column_name", str, "xml2db_record_hash"),
-                ("record_hash_constructor", callable, hashlib.sha1),
-                ("record_hash_size", int, 20),
-                ("metadata_columns", list, []),
-            ]
-        }
-        if model_config["as_columnstore"] and self.db_type == "mssql":
-            model_config["as_columnstore"] = False
-            logger.info(
-                "Clustered columnstore indexes are only supported with MS SQL Server database, noop"
-            )
-
-        return model_config
 
     @property
     def fk_ordered_tables(
@@ -179,6 +158,7 @@ class DataModel:
         self,
         table_name: str,
         type_name: str,
+        table_config: TableConfigType,
         is_root_table: bool = False,
         is_virtual_node: bool = False,
     ) -> Union[DataModelTableReused, DataModelTableDuplicated]:
@@ -187,13 +167,13 @@ class DataModel:
         Args:
             table_name: name of the table
             type_name: type of the table
+            table_config: dict config for the table
             is_root_table: is this table the root table?
             is_virtual_node: was this table created to store multiple root elements?
 
         Returns:
             A data model instance.
         """
-        table_config = self.tables_config.get(table_name, {})
         if table_config.get("reuse", True):
             return DataModelTableReused(
                 table_name,
@@ -230,7 +210,7 @@ class DataModel:
         )
         self.root_table = root_table.type_name
         # compute a text representation of the original data model and store it
-        self.source_tree = "\n".join(self._repr_tree(root_table))
+        self.source_tree = str(root_table)
         # check user-provided configuration for tables
         for tb_config in self.model_config.get("tables", {}):
             if tb_config not in self.names_types_map:
@@ -245,7 +225,7 @@ class DataModel:
             key: tb for key, tb in self.tables.items() if hasattr(tb, "keep_table")
         }
         # compute a text representation of the simplified data model and store it
-        self.target_tree = "\n".join(self._repr_tree(root_table))
+        self.target_tree = str(root_table)
         # add parent table information on each table when it is not reused
         # raises an error if a table is not configured as "reused" and have more than 1 parent table
         for tb in self.tables.values():
@@ -319,12 +299,30 @@ class DataModel:
             while "_".join([parent_name, str(i)]) in self.names_types_map:
                 i += 1
             parent_name = "_".join([parent_name, str(i)])
+
+        table_config = self.model_config["tables"].get(parent_name, {})
+
+        # validate fields config (raise if useless config is provided)
+        children_names = {child.local_name for child in parent_node}
+        attributes_names = set(parent_node.attributes.keys())
+        if "product21" in table_config.get("fields", {}):
+            print("ok")
+        unused_fields_config = set(
+            table_config.get("fields", {}).keys()
+        ) - children_names.union(attributes_names)
+        if len(unused_fields_config) > 0:
+            raise DataModelConfigError(
+                f"config provided for field '{unused_fields_config.pop()}' for table '{parent_name}'"
+                " while this field does not exist in this table"
+            )
+
         self.names_types_map[parent_name] = parent_type
 
         # create a new table object associated with the element
         parent_table = self._create_table_model(
             parent_name,
             parent_type,
+            table_config,
             len(nodes_path) == 1,
             isinstance(parent_node, xmlschema.XMLSchema),
         )
@@ -424,10 +422,7 @@ class DataModel:
             ]
 
         # go through item attributes and add them as columns, adding a suffix if an element with the same name exists
-        children_names = None
         for attrib_name, attrib in parent_node.attributes.items():
-            if children_names is None:
-                children_names = [child.local_name for child in parent_node]
             (
                 data_type,
                 min_length,
@@ -568,24 +563,6 @@ class DataModel:
             )
 
         return parent_table
-
-    def _repr_tree(
-        self,
-        parent_table: Union[DataModelTableReused, DataModelTableDuplicated],
-    ):
-        """Build a text representation of the data model tree
-
-        Args:
-            parent_table: the current data model table object
-        """
-        for field_type, name, field in parent_table.fields:
-            if field_type == "col":
-                yield f"{field.name}{field.occurs}: {field.data_type}"
-            else:
-                mg = " (choice)" if field.other_table.model_group == "choice" else ""
-                yield f"{field.name}{field.occurs}{mg}:"
-                for line in self._repr_tree(field.other_table):
-                    yield f"    {line}"
 
     def get_entity_rel_diagram(self, text_context: bool = True) -> str:
         """Build an entity relationship diagram for the data model

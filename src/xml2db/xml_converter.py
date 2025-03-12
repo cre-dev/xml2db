@@ -1,11 +1,11 @@
+import logging
 import typing
 from datetime import datetime
-from typing import Union
-import logging
-from lxml import etree
 from io import BytesIO
 from itertools import zip_longest
+from typing import Union
 
+from lxml import etree
 
 if typing.TYPE_CHECKING:
     from .model import DataModel
