@@ -1,120 +1,54 @@
-error[1, 1]:
-    type[0, 1]: string
-    message[0, 1]: string
-    value[0, 1]: string
-failure[1, 1]:
-    type[0, 1]: string
-    message[0, 1]: string
-    value[0, 1]: string
-flakyError[1, 1]:
-    message[0, 1]: string
-    type[0, 1]: string
-    stackTrace[0, 1]: string
-    system-out[0, 1]: string
-    system-err[0, 1]: string
-    value[0, 1]: string
-flakyFailure[1, 1]:
-    message[0, 1]: string
-    type[0, 1]: string
-    stackTrace[0, 1]: string
-    system-out[0, 1]: string
-    system-err[0, 1]: string
-    value[0, 1]: string
-properties[1, 1]:
-    property[0, None]:
-        name[0, 1]: string
-        value[0, 1]: string
-property[1, 1]:
-    name[0, 1]: string
-    value[0, 1]: string
-rerunError[1, 1]:
-    message[0, 1]: string
-    type[0, 1]: string
-    stackTrace[0, 1]: string
-    system-out[0, 1]: string
-    system-err[0, 1]: string
-    value[0, 1]: string
-rerunFailure[1, 1]:
-    message[0, 1]: string
-    type[0, 1]: string
-    stackTrace[0, 1]: string
-    system-out[0, 1]: string
-    system-err[0, 1]: string
-    value[0, 1]: string
-skipped[1, 1]:
-    type[0, 1]: string
-    message[0, 1]: string
-    value[0, 1]: string
-system-err[1, 1]: string
-system-out[1, 1]: string
-testcase[1, 1]:
-    classname[0, 1]: string
-    name[0, 1]: string
-    time[0, 1]: string
-    group[0, 1]: string
-    skipped[0, None]:
+junit10:
+    error[1, 1]:
         type[0, 1]: string
         message[0, 1]: string
         value[0, 1]: string
-    error[0, None]:
+    failure[1, 1]:
         type[0, 1]: string
         message[0, 1]: string
         value[0, 1]: string
-    failure[0, None]:
-        type[0, 1]: string
-        message[0, 1]: string
-        value[0, 1]: string
-    rerunFailure[0, None]:
+    flakyError[1, 1]:
         message[0, 1]: string
         type[0, 1]: string
         stackTrace[0, 1]: string
         system-out[0, 1]: string
         system-err[0, 1]: string
         value[0, 1]: string
-    rerunError[0, None]:
+    flakyFailure[1, 1]:
         message[0, 1]: string
         type[0, 1]: string
         stackTrace[0, 1]: string
         system-out[0, 1]: string
         system-err[0, 1]: string
         value[0, 1]: string
-    flakyFailure[0, None]:
-        message[0, 1]: string
-        type[0, 1]: string
-        stackTrace[0, 1]: string
-        system-out[0, 1]: string
-        system-err[0, 1]: string
-        value[0, 1]: string
-    flakyError[0, None]:
-        message[0, 1]: string
-        type[0, 1]: string
-        stackTrace[0, 1]: string
-        system-out[0, 1]: string
-        system-err[0, 1]: string
-        value[0, 1]: string
-    system-out[0, None]: string
-    system-err[0, None]: string
-testsuite[1, 1] (choice):
-    name[0, 1]: string
-    errors[0, 1]: string
-    failures[0, 1]: string
-    skipped[0, 1]: string
-    tests[0, 1]: string
-    group[0, 1]: string
-    time[0, 1]: string
-    timestamp[0, 1]: string
-    hostname[0, 1]: string
-    id[0, 1]: string
-    package[0, 1]: string
-    file[0, 1]: string
-    log[0, 1]: string
-    url[0, 1]: string
-    version[0, 1]: string
-    properties[0, None]:
+    properties[1, 1]:
         property[0, None]:
             name[0, 1]: string
             value[0, 1]: string
-    testcase[0, None]:
+    property[1, 1]:
+        name[0, 1]: string
+        value[0, 1]: string
+    rerunError[1, 1]:
+        message[0, 1]: string
+        type[0, 1]: string
+        stackTrace[0, 1]: string
+        system-out[0, 1]: string
+        system-err[0, 1]: string
+        value[0, 1]: string
+    rerunFailure[1, 1]:
+        message[0, 1]: string
+        type[0, 1]: string
+        stackTrace[0, 1]: string
+        system-out[0, 1]: string
+        system-err[0, 1]: string
+        value[0, 1]: string
+    skipped[1, 1]:
+        type[0, 1]: string
+        message[0, 1]: string
+        value[0, 1]: string
+    system-err[1, 1]: string
+    system-out[1, 1]: string
+    testcase[1, 1]:
         classname[0, 1]: string
         name[0, 1]: string
         time[0, 1]: string
@@ -161,79 +95,146 @@ testsuite[1, 1] (choice):
             value[0, 1]: string
         system-out[0, None]: string
         system-err[0, None]: string
-    system-out[0, None]: string
-    system-err[0, None]: string
-testsuites_name[0, 1]: string
-testsuites_time[0, 1]: string
-testsuites_tests[0, 1]: string
-testsuites_failures[0, 1]: string
-testsuites_errors[0, 1]: string
-testsuites_testsuite[0, None] (choice):
-    name[0, 1]: string
-    errors[0, 1]: string
-    failures[0, 1]: string
-    skipped[0, 1]: string
-    tests[0, 1]: string
-    group[0, 1]: string
-    time[0, 1]: string
-    timestamp[0, 1]: string
-    hostname[0, 1]: string
-    id[0, 1]: string
-    package[0, 1]: string
-    file[0, 1]: string
-    log[0, 1]: string
-    url[0, 1]: string
-    version[0, 1]: string
-    properties[0, None]:
-        property[0, None]:
-            name[0, 1]: string
-            value[0, 1]: string
-    testcase[0, None]:
-        classname[0, 1]: string
+    testsuite[1, 1] (choice):
         name[0, 1]: string
-        time[0, 1]: string
+        errors[0, 1]: string
+        failures[0, 1]: string
+        skipped[0, 1]: string
+        tests[0, 1]: string
         group[0, 1]: string
-        skipped[0, None]:
-            type[0, 1]: string
-            message[0, 1]: string
-            value[0, 1]: string
-        error[0, None]:
-            type[0, 1]: string
-            message[0, 1]: string
-            value[0, 1]: string
-        failure[0, None]:
-            type[0, 1]: string
-            message[0, 1]: string
-            value[0, 1]: string
-        rerunFailure[0, None]:
-            message[0, 1]: string
-            type[0, 1]: string
-            stackTrace[0, 1]: string
-            system-out[0, 1]: string
-            system-err[0, 1]: string
-            value[0, 1]: string
-        rerunError[0, None]:
-            message[0, 1]: string
-            type[0, 1]: string
-            stackTrace[0, 1]: string
-            system-out[0, 1]: string
-            system-err[0, 1]: string
-            value[0, 1]: string
-        flakyFailure[0, None]:
-            message[0, 1]: string
-            type[0, 1]: string
-            stackTrace[0, 1]: string
-            system-out[0, 1]: string
-            system-err[0, 1]: string
-            value[0, 1]: string
-        flakyError[0, None]:
-            message[0, 1]: string
-            type[0, 1]: string
-            stackTrace[0, 1]: string
-            system-out[0, 1]: string
-            system-err[0, 1]: string
-            value[0, 1]: string
+        time[0, 1]: string
+        timestamp[0, 1]: string
+        hostname[0, 1]: string
+        id[0, 1]: string
+        package[0, 1]: string
+        file[0, 1]: string
+        log[0, 1]: string
+        url[0, 1]: string
+        version[0, 1]: string
+        properties[0, None]:
+            property[0, None]:
+                name[0, 1]: string
+                value[0, 1]: string
+        testcase[0, None]:
+            classname[0, 1]: string
+            name[0, 1]: string
+            time[0, 1]: string
+            group[0, 1]: string
+            skipped[0, None]:
+                type[0, 1]: string
+                message[0, 1]: string
+                value[0, 1]: string
+            error[0, None]:
+                type[0, 1]: string
+                message[0, 1]: string
+                value[0, 1]: string
+            failure[0, None]:
+                type[0, 1]: string
+                message[0, 1]: string
+                value[0, 1]: string
+            rerunFailure[0, None]:
+                message[0, 1]: string
+                type[0, 1]: string
+                stackTrace[0, 1]: string
+                system-out[0, 1]: string
+                system-err[0, 1]: string
+                value[0, 1]: string
+            rerunError[0, None]:
+                message[0, 1]: string
+                type[0, 1]: string
+                stackTrace[0, 1]: string
+                system-out[0, 1]: string
+                system-err[0, 1]: string
+                value[0, 1]: string
+            flakyFailure[0, None]:
+                message[0, 1]: string
+                type[0, 1]: string
+                stackTrace[0, 1]: string
+                system-out[0, 1]: string
+                system-err[0, 1]: string
+                value[0, 1]: string
+            flakyError[0, None]:
+                message[0, 1]: string
+                type[0, 1]: string
+                stackTrace[0, 1]: string
+                system-out[0, 1]: string
+                system-err[0, 1]: string
+                value[0, 1]: string
+            system-out[0, None]: string
+            system-err[0, None]: string
         system-out[0, None]: string
         system-err[0, None]: string
-    system-out[0, None]: string
-    system-err[0, None]: string
+    testsuites_name[0, 1]: string
+    testsuites_time[0, 1]: string
+    testsuites_tests[0, 1]: string
+    testsuites_failures[0, 1]: string
+    testsuites_errors[0, 1]: string
+    testsuites_testsuite[0, None] (choice):
+        name[0, 1]: string
+        errors[0, 1]: string
+        failures[0, 1]: string
+        skipped[0, 1]: string
+        tests[0, 1]: string
+        group[0, 1]: string
+        time[0, 1]: string
+        timestamp[0, 1]: string
+        hostname[0, 1]: string
+        id[0, 1]: string
+        package[0, 1]: string
+        file[0, 1]: string
+        log[0, 1]: string
+        url[0, 1]: string
+        version[0, 1]: string
+        properties[0, None]:
+            property[0, None]:
+                name[0, 1]: string
+                value[0, 1]: string
+        testcase[0, None]:
+            classname[0, 1]: string
+            name[0, 1]: string
+            time[0, 1]: string
+            group[0, 1]: string
+            skipped[0, None]:
+                type[0, 1]: string
+                message[0, 1]: string
+                value[0, 1]: string
+            error[0, None]:
+                type[0, 1]: string
+                message[0, 1]: string
+                value[0, 1]: string
+            failure[0, None]:
+                type[0, 1]: string
+                message[0, 1]: string
+                value[0, 1]: string
+            rerunFailure[0, None]:
+                message[0, 1]: string
+                type[0, 1]: string
+                stackTrace[0, 1]: string
+                system-out[0, 1]: string
+                system-err[0, 1]: string
+                value[0, 1]: string
+            rerunError[0, None]:
+                message[0, 1]: string
+                type[0, 1]: string
+                stackTrace[0, 1]: string
+                system-out[0, 1]: string
+                system-err[0, 1]: string
+                value[0, 1]: string
+            flakyFailure[0, None]:
+                message[0, 1]: string
+                type[0, 1]: string
+                stackTrace[0, 1]: string
+                system-out[0, 1]: string
+                system-err[0, 1]: string
+                value[0, 1]: string
+            flakyError[0, None]:
+                message[0, 1]: string
+                type[0, 1]: string
+                stackTrace[0, 1]: string
+                system-out[0, 1]: string
+                system-err[0, 1]: string
+                value[0, 1]: string
+            system-out[0, None]: string
+            system-err[0, None]: string
+        system-out[0, None]: string
+        system-err[0, None]: string

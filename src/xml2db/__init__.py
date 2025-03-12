@@ -1,5 +1,5 @@
-from .model import DataModel
 from .document import Document
+from .model import DataModel
 from .table import (
     DataModelTable,
     DataModelTableReused,

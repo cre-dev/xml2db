@@ -1,9 +1,9 @@
 from typing import Union, List, Tuple
 
-from ..exceptions import DataModelConfigError
 from .column import DataModelColumn
 from .relations import DataModelRelation1, DataModelRelationN
 from .table import DataModelTable
+from ..model_config import DataModelConfigError
 
 
 class DataModelTableTransformed(DataModelTable):
