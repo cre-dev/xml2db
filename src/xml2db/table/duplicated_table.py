@@ -1,4 +1,5 @@
 from typing import Iterable, Any
+
 from sqlalchemy import (
     Table,
     Column,

@@ -1,6 +1,7 @@
+from typing import TYPE_CHECKING, List, Iterable, Any, Union
+
 import sqlalchemy.engine
 from sqlalchemy import Table, Column, ForeignKey, Integer, Index, select
-from typing import TYPE_CHECKING, List, Iterable, Any, Union
 
 if TYPE_CHECKING:
     from .table import DataModelTable
