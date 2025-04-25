@@ -1,3 +1,5 @@
+from hashlib import sha1
+
 from sqlalchemy import (
     Table,
     Column,
@@ -10,8 +12,15 @@ from sqlalchemy import (
     Sequence,
 )
 
-from .transformed_table import DataModelTableTransformed
 from .column import DataModelColumn
+from .transformed_table import DataModelTableTransformed
+
+
+def shorten_str(x: str, max_len: int = 30) -> str:
+    if len(x) > max_len:
+        h = sha1(x.encode("utf8"))
+        return f"{x[:(max_len - 7)]}_{h.hexdigest()[1:6]}"
+    return x
 
 
 class DataModelTableReused(DataModelTableTransformed):
@@ -79,7 +88,7 @@ class DataModelTableReused(DataModelTableTransformed):
             yield from hash_col.get_sqlalchemy_column(temp)
             yield UniqueConstraint(
                 self.data_model.model_config["record_hash_column_name"],
-                name=f"{prefix if temp else ''}{self.name}_xml2db_record_hash",
+                name=f"{prefix if temp else ''}{shorten_str(self.name)}_xml2db_record_hash",
             )
 
         # build target table
