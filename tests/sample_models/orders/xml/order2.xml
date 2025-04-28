@@ -6,7 +6,7 @@
       <name>Alice</name>
       <address>string</address>
       <city>string</city>
-      <zip codingSystem="int">21093</zip>
+      <zip codingSystem="int" state="NY">21093</zip>
       <country>string</country>
       <companyId>
         <lei>198210983210983HE1209</lei>

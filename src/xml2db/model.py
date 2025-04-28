@@ -545,12 +545,15 @@ class DataModel:
             or parent_node.type.has_simple_content()
         ):
             if parent_node.type.base_type is not None:
+                parent_base_type = parent_node.type.base_type
+                while parent_base_type.base_type is not None:
+                    parent_base_type = parent_base_type.base_type
                 (
                     data_type,
                     min_length,
                     max_length,
                     allow_empty,
-                ) = recurse_parse_simple_type([parent_node.type.base_type])
+                ) = recurse_parse_simple_type([parent_base_type])
             else:
                 data_type, min_length, max_length, allow_empty = "string", 0, None, True
 

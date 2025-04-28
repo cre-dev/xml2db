@@ -36,7 +36,19 @@
     <xs:simpleType name="CoordinatesType">
         <xs:restriction base="xs:float" />
     </xs:simpleType>
-   <xs:simpleType name="CoordinatesListType">
-      <xs:list itemType="bt:CoordinatesType"/>
-   </xs:simpleType>
+    <xs:simpleType name="CoordinatesListType">
+        <xs:list itemType="bt:CoordinatesType"/>
+    </xs:simpleType>
+    <xs:simpleType name="PostalCodeType-base">
+        <xs:restriction base="bt:stringtype">
+            <xs:maxLength value="10"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="PostalCodeType">
+        <xs:simpleContent>
+            <xs:extension base="bt:PostalCodeType-base">
+                <xs:attribute name="codingSystem" type="xs:string" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
 </xs:schema>
