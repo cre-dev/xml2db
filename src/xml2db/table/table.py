@@ -224,6 +224,19 @@ class DataModelTable:
         self.fields.append(("reln", name, rel))
         other_table.parents_n.add(rel)
 
+    def __repr__(self):
+        """Build a text representation of a table recursively"""
+        lines = [f"{self.name}:"]
+        for field_type, name, field in self.fields:
+            if field_type == "col":
+                lines.append(f"    {field.name}{field.occurs}: {field.data_type}")
+            else:
+                mg = " (choice)" if field.other_table.model_group == "choice" else ""
+                lines.append(f"    {field.name}{field.occurs}{mg}:")
+                for line in str(field.other_table).split("\n")[1:]:
+                    lines.append(f"    {line}")
+        return "\n".join(lines)
+
     def compute_dependencies(self) -> None:
         """Compute the table's dependencies according to foreign keys relationships.
 
