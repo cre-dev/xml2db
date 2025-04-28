@@ -546,7 +546,7 @@ class DataModel:
         ):
             if parent_node.type.base_type is not None:
                 parent_base_type = parent_node.type.base_type
-                if parent_base_type.base_type is not None:
+                while parent_base_type.base_type is not None:
                     parent_base_type = parent_base_type.base_type
                 (
                     data_type,

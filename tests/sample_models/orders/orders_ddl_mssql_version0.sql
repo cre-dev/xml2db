@@ -6,6 +6,7 @@ CREATE TABLE orderperson (
 	address VARCHAR(1000) NULL, 
 	city VARCHAR(1000) NULL, 
 	[zip_codingSystem] VARCHAR(1000) NULL, 
+	zip_state VARCHAR(1000) NULL, 
 	zip_value VARCHAR(1000) NULL, 
 	country VARCHAR(1000) NULL, 
 	[phoneNumber] VARCHAR(8000) NULL, 

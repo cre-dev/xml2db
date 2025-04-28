@@ -11,16 +11,10 @@
         </xs:choice>
     </xs:complexType>
 
-    <xs:simpleType name="ZipCodeType-base">
-        <xs:restriction base="bt:stringtype">
-            <xs:maxLength value="10"/>
-        </xs:restriction>
-    </xs:simpleType>
-
     <xs:complexType name="ZipCodeType">
         <xs:simpleContent>
-            <xs:extension base="ZipCodeType-base">
-                <xs:attribute name="codingSystem" type="xs:string" use="required"/>
+            <xs:extension base="bt:PostalCodeType">
+                <xs:attribute name="state" type="xs:string"/>
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>

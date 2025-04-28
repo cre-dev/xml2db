@@ -36,6 +36,7 @@ erDiagram
         string address
         string city
         string zip_codingSystem
+        string zip_state
         string zip_value
         string country
         string-N phoneNumber

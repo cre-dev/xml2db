@@ -10,6 +10,7 @@ erDiagram
         string orderperson_address
         string orderperson_city
         string orderperson_zip_codingSystem
+        string orderperson_zip_state
         string orderperson_zip_value
         string orderperson_country
         string-N orderperson_phoneNumber
@@ -44,6 +45,7 @@ erDiagram
         string address
         string city
         string zip_codingSystem
+        string zip_state
         string zip_value
         string country
         string-N phoneNumber
