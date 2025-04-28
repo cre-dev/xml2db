@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xml2db"
-version = "0.12.4"
+version = "0.12.5"
 authors = [
   { name="Commission de régulation de l'énergie", email="opensource@cre.fr" },
 ]

@@ -16,7 +16,7 @@ from .conftest import models_path
         for i in range(len(model["versions"]))
     ],
 )
-def test_model_erd(test_config):
+def test_model_text_outputs(test_config):
     """A test to check if generated ERD matches saved output"""
 
     model = DataModel(
@@ -25,16 +25,23 @@ def test_model_erd(test_config):
         model_config=test_config["config"],
     )
 
-    expected = open(
-        os.path.join(
-            models_path,
-            test_config["id"],
-            f"{test_config['id']}_erd_version{test_config['version_id']}.md",
-        ),
-        "r",
-    ).read()
+    expected = [
+        open(
+            os.path.join(
+                models_path,
+                test_config["id"],
+                f"{test_config['id']}_{file_type}_version{test_config['version_id']}.{'md' if file_type == 'erd' else 'txt'}",
+            ),
+            "r",
+        ).read()
+        for file_type in ["erd", "source_tree", "target_tree"]
+    ]
 
-    actual = "```mermaid\n" + model.get_entity_rel_diagram(text_context=False) + "\n```"
+    actual = [
+        "```mermaid\n" + model.get_entity_rel_diagram(text_context=False) + "\n```",
+        model.source_tree,
+        model.target_tree,
+    ]
     assert actual == expected
 
 

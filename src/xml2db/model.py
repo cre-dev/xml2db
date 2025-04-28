@@ -230,7 +230,7 @@ class DataModel:
         )
         self.root_table = root_table.type_name
         # compute a text representation of the original data model and store it
-        self.source_tree = "\n".join(self._repr_tree(root_table))
+        self.source_tree = str(root_table)
         # check user-provided configuration for tables
         for tb_config in self.model_config.get("tables", {}):
             if tb_config not in self.names_types_map:
@@ -245,7 +245,7 @@ class DataModel:
             key: tb for key, tb in self.tables.items() if hasattr(tb, "keep_table")
         }
         # compute a text representation of the simplified data model and store it
-        self.target_tree = "\n".join(self._repr_tree(root_table))
+        self.target_tree = str(root_table)
         # add parent table information on each table when it is not reused
         # raises an error if a table is not configured as "reused" and have more than 1 parent table
         for tb in self.tables.values():
@@ -571,24 +571,6 @@ class DataModel:
             )
 
         return parent_table
-
-    def _repr_tree(
-        self,
-        parent_table: Union[DataModelTableReused, DataModelTableDuplicated],
-    ):
-        """Build a text representation of the data model tree
-
-        Args:
-            parent_table: the current data model table object
-        """
-        for field_type, name, field in parent_table.fields:
-            if field_type == "col":
-                yield f"{field.name}{field.occurs}: {field.data_type}"
-            else:
-                mg = " (choice)" if field.other_table.model_group == "choice" else ""
-                yield f"{field.name}{field.occurs}{mg}:"
-                for line in self._repr_tree(field.other_table):
-                    yield f"    {line}"
 
     def get_entity_rel_diagram(self, text_context: bool = True) -> str:
         """Build an entity relationship diagram for the data model
