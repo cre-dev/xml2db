@@ -1,0 +1,1194 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Xml2db is a Python package to load XML files into a relational database. It handles complex XML and works out of the box, without any custom mapping rules.">
+      
+      
+      
+        <link rel="canonical" href="https://cre-dev.github.io/xml2db/how_it_works/">
+      
+      
+        <link rel="prev" href="../configuring/">
+      
+      
+        <link rel="next" href="../api/overview/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
+    
+    
+      
+        <title>How it works - Xml2db Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.2afb09e1.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  <meta name="google-site-verification" content="ZzNMQmGw7RRGSr57kvJIkBXK5FW3K3PrIGk2BY2DspM" />
+
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-it-works" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Xml2db Docs" class="md-header__button md-logo" aria-label="Xml2db Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Xml2db Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              How it works
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cre-dev/xml2db" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    cre-dev/xml2db
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Xml2db Docs" class="md-nav__button md-logo" aria-label="Xml2db Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Xml2db Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cre-dev/xml2db" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    cre-dev/xml2db
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Configuring your data model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    How it works
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    How it works
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#building-a-data-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building a data model
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Building a data model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hash-based-deduplication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hash-based deduplication
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modeling-relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modeling relationships
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#duplicated-elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Duplicated elements
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caveats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Caveats
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Caveats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recursive-xsd" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recursive XSD
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mixed-content-elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mixed content elements
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loading-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      Loading process
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Loading process">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parsing-a-xml-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parsing a XML document
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computing-hashes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Computing hashes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extracting-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extracting data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loading-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Loading the data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#merging-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Merging the data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summing-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summing up
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extracting-the-data-back-to-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extracting the data back to XML
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extracting the data back to XML">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#querying-data-from-the-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      Querying data from the database
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#converting-flat-data-to-document-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      Converting flat data to document tree
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building-an-xml-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building an XML file
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Api
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Api
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/data_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    DataModel
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/document/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Document
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/xml_converter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    XMLConverter
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#building-a-data-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building a data model
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Building a data model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hash-based-deduplication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hash-based deduplication
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modeling-relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modeling relationships
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#duplicated-elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Duplicated elements
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caveats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Caveats
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Caveats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recursive-xsd" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recursive XSD
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mixed-content-elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mixed content elements
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loading-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      Loading process
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Loading process">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parsing-a-xml-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parsing a XML document
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computing-hashes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Computing hashes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extracting-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extracting data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loading-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Loading the data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#merging-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Merging the data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summing-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summing up
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extracting-the-data-back-to-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extracting the data back to XML
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extracting the data back to XML">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#querying-data-from-the-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      Querying data from the database
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#converting-flat-data-to-document-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      Converting flat data to document tree
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building-an-xml-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building an XML file
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h1>
+<p>This page covers more advanced topics to understand in depth how data models are created and how data is loaded to
+the database. This can help with troubleshooting or for advanced use cases.</p>
+<h2 id="building-a-data-model">Building a data model<a class="headerlink" href="#building-a-data-model" title="Permanent link">&para;</a></h2>
+<p>A XML document is a tree-like structure where every element is either a simple type (i.e. a scalar value) or a complex
+type which has children which can be simple types or complex types. Elements can also have attributes, which are also
+scalar values, which <code>xml2db</code> will handle just as simple type children. In this page we will call "properties" the 
+simple type children of an element or its attributes.</p>
+<p>The general idea of <code>xml2db</code> is to convert complex types to a database tables, and simple types or XML attributes into 
+columns in these tables. When a complex type has complex type children, they are themselves stored in other tables, and 
+related to their parents with a foreign key constraint, or a relationship table which holds foreign key constraints to 
+both related tables.</p>
+<p>The data model created by <code>xml2db</code> is mostly bijective with the original XML document, which can in many cases be 
+extracted and converted back to a XML document as it was loaded into the database.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>XSD specification allows multiple-root schemas. This means that XML documents conforming to this schema can have
+different root elements (XML files will always have just one root element, but they can be different between 
+different XML files conforming to the same schema).</p>
+<p><code>xml2db</code> handles this by creating a "virtual" root table, named after the <code>short_name</code> provided to the <code>DataModel</code>
+constructor, which will act as a root node in all XML files loaded in this data model.</p>
+</div>
+<h3 id="hash-based-deduplication">Hash-based deduplication<a class="headerlink" href="#hash-based-deduplication" title="Permanent link">&para;</a></h3>
+<p>By default, <code>xml2db</code> tries to reduce storage footprint in the database by storing only once every subtree from the 
+original XML document, if it is already present in the database. This deduplication process takes into account the whole
+subtree starting from a given element, and not only the direct children of an element.</p>
+<p>Taking advantage of the initial tree structure, after parsing the XML document into a python dict, we compute a hash for
+each node, which includes all its properties and all its children hash, recursively. Two nodes with the same hash are 
+thus identical, so only one of them needs to be stored, even if they appear under different parent nodes.</p>
+<p>Hash are stored in the database, with a unique constraint (as a column with binary type named <code>xml2db_record_hash</code>). The
+primary key of all databases is an auto-incremented integer column, always named <code>pk_table_name</code>, <code>table_name</code> being the
+name of the table.</p>
+<p>In some cases, especially when only few  duplicates are expected, it may be more efficient to allow duplicated nodes in 
+order to avoid extra tables to store relationships. This can be configured for each table of the data model.</p>
+<h3 id="modeling-relationships">Modeling relationships<a class="headerlink" href="#modeling-relationships" title="Permanent link">&para;</a></h3>
+<p>Within a tree, parent-child relationship can have <code>1-1</code> or <code>1-n</code> cardinality. As we want to reuse child nodes, we
+convert these relationships to <code>n-1</code> or <code>n-n</code>, respectively. Besides, some children are optional. This does not affect
+the representation of relationships in any way.</p>
+<p>A same child node (same hash) which is used under different parents will have several parents after the "recycling"
+process, while it had only one parent (because of the tree structure) in the initial dataset. This example illustrates
+a <code>1-1</code> relationship converted to <code>n-1</code> after reusing nodes:</p>
+<pre class="mermaid"><code>erDiagram
+          TRADE ||--|| CONTRACT : concerns
+          UNIQUE_TRADE }|--|| UNIQUE_CONTRACT : concerns</code></pre>
+<p>In that case, <code>UNIQUE_TRADE</code> holds a foreign key relationship with <code>UNIQUE_CONTRACT</code>, i.e. it has a column named 
+<code>fk_UNIQUE_CONTRACT</code> which contains the primary key values of related <code>UNIQUE_CONTRACT</code> table (named 
+<code>pk_UNIQUE_CONTRACT</code> in the <code>UNIQUE_CONTRACT</code> table).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The form of each end of the links in the entity relationships diagram represent the cardinality of the relationship,
+which can be exactly 1, 0 or 1, 0 or many, 1 or many. You can find the symbols <a href="https://mermaid.js.org/syntax/entityRelationshipDiagram.html#relationship-syntax">here</a>. </p>
+</div>
+<p>For <code>1-n</code> relationships, the same idea applies: a child node can have multiple parents if it was used under different
+parent nodes.</p>
+<pre class="mermaid"><code>erDiagram
+          CONTRACT ||--|{ DELIVERY_PROFILE : delivers
+          UNIQUE_CONTRACT }|--|{ UNIQUE_DELIVERY_PROFILE : delivers</code></pre>
+<p>In a SQL relational data model, <code>1-n</code> relationships can be easily represented with foreign keys. <code>n-n</code> relationships 
+require  however an additional table holding the relationship, which gives, for the last example with contracts and 
+delivery profiles:</p>
+<pre class="mermaid"><code>erDiagram
+          CONTRACT ||--|{ CONTRACT_DELIVERY_PROFILE : is_in
+          CONTRACT_DELIVERY_PROFILE }|--|| DELIVERY_PROFILE : involves</code></pre>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>By default, these <code>n-n</code> relationships which involve a third table to hold the relationship are not explicitly shown
+in the data model visualisation generated by 
+<a href="../api/data_model/#xml2db.model.DataModel.get_entity_rel_diagram"><code>DataModel.get_entity_rel_diagram</code></a>, to favor 
+readability. However, the relationships links on the diagram show an asterisk (*) when a relationship table is 
+involved. These relationship tables are named using the name of the two related tables separated with an underscore.</p>
+</div>
+<h3 id="duplicated-elements">Duplicated elements<a class="headerlink" href="#duplicated-elements" title="Permanent link">&para;</a></h3>
+<p>As explained previously, deduplication can be opted out to avoid the complexity of an intermediary table holding a <code>n-n</code>
+relationship. In that case, the relationship will stay a <code>1-n</code> relationship, which will be modeled with the child 
+element holding a foreign key relationship to its parent.</p>
+<p>In that case, no hash is stored for the children as there are effectively duplicated elements. The column 
+<code>fk_parent_tablename</code> in the child table holds the primary keys of associated parent rows in the parent table 
+<code>tablename</code>.</p>
+<p>This choice is made for each table individually, and children of a duplicated element can effectively be themselves 
+stored as deduplicated elements.</p>
+<p>This means that as the end, there can be both <code>1-n</code> and <code>n-1</code> relationships involved to represent a tree structure,
+which means that the order of dependencies of the resulting tables will not be the same as the original tree structure.
+For instance, when we want to make sure to process all dependent tables before processing a table, we won't likely
+start with the root table of the tree, as it would be expected without the de-duplication process.</p>
+<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">&para;</a></h2>
+<p><code>xml2db</code> handles a variety of data models, but does not cover all possible schemas allowed by the <a href="https://en.wikipedia.org/wiki/XML_Schema_(W3C)">XML schema documents
+specification</a>.</p>
+<p>Some known cases which are not supported by <code>xml2db</code> are described below. Other cases can fail and may require some
+adjustments to work. We recommend thorough testing for more "exotic" schemas; for instance it is possible to implement
+"round-trip" tests from sample XML files to database and back to XML, and compare the resulting XML file with the 
+original one.</p>
+<h3 id="recursive-xsd">Recursive XSD<a class="headerlink" href="#recursive-xsd" title="Permanent link">&para;</a></h3>
+<p>Recursive XML schemas are not fully supported, because they result in cycles in tables dependencies, which would make
+the process much more complex. Whenever a field which would introduce a dependency cycle is detected in the XSD, it is 
+discarded with a warning, which means that the corresponding data in XML files will not be imported. The rest of the
+data should be processed correctly.</p>
+<h3 id="mixed-content-elements">Mixed content elements<a class="headerlink" href="#mixed-content-elements" title="Permanent link">&para;</a></h3>
+<p>XML elements with mixed content can contain both text and children elements (tags). <code>xml2db</code> offers partial support for
+this: the text value will be stored in a specific column named <code>value</code>, but it will not record the specific sequence of
+text and children elements within a node. When using 
+<a href="../api/document/#xml2db.document.Document.to_xml"><code>Document.to_xml</code></a>, text value will always appear before children 
+elements.</p>
+<h2 id="loading-process">Loading process<a class="headerlink" href="#loading-process" title="Permanent link">&para;</a></h2>
+<p>This section gives more detailed explanations on how parsing and loading data work. The integration of an XML file can 
+be decomposed in lower level steps described below.</p>
+<h3 id="parsing-a-xml-document">Parsing a XML document<a class="headerlink" href="#parsing-a-xml-document" title="Permanent link">&para;</a></h3>
+<p>First, we load all the XML document in memory using <code>lxml</code> and extract the data as a nested <code>dict</code>, where each node
+keeps a reference of its type, and store its data content. This task is achieved by the function 
+<a href="../api/xml_converter/#xml2db.xml_converter.XMLConverter.parse_xml"><code>XMLConverter.parse_xml</code></a>.</p>
+<p>This limits the size of files that can be loaded, due to memory limitations. The merging database transaction also 
+limits the size of the files that can be loaded, depending on the server performance. On the other hand, handling data
+in memory makes the processing way simpler and faster. We handle files with a size around 500 MB without any issue.</p>
+<h3 id="computing-hashes">Computing hashes<a class="headerlink" href="#computing-hashes" title="Permanent link">&para;</a></h3>
+<p>We compute tree hashes  recursively by adding to each node's hash the hashes of its children element, be it simple 
+types, attributes or complex types. Children are processed in the specific order they appeared in the XSD schema, 
+so that hashing is really deterministic.</p>
+<p>Right after this step, a hook function is called if provided in the configuration (top-level <code>document_tree_hook</code> option
+in the configuration <code>dict</code>), which gives direct access to the underlying tree data structure just before it is 
+extracted to be loaded to the database. This can be used, for instance, to prune or modify some parts of the document 
+tree.</p>
+<h3 id="extracting-data">Extracting data<a class="headerlink" href="#extracting-data" title="Permanent link">&para;</a></h3>
+<p>We extract data from the tree structure based on the type (table name) they belong to, walking the data tree down.
+Doing so, we create temporary incremental primary keys for each row and perform deduplication when it is needed, using 
+the hashes previously computed. We store relationship as they will be stored in the database, using the temporary 
+primary key of the other table related rows in a foreign key column.</p>
+<p>At this stage, we have a data representation that matches the one we will find in the database, except that it contains 
+only the data from the XML file we just parsed, and the final primary keys and foreign keys won't be the same.</p>
+<h3 id="loading-the-data">Loading the data<a class="headerlink" href="#loading-the-data" title="Permanent link">&para;</a></h3>
+<p>The data we converted is then loaded to the database in a separate set of tables, which have the same names that the 
+target tables, but prefixed with <code>temp_XXX</code> (with <code>XXX</code> being a random 8 characters <code>uuid</code> string, by default).</p>
+<p>We keep the primary keys from the flat data model created at the previous stage, as temporary keys.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>The <code>temp_prefix</code> argument can be passed to the constructor of <code>DataModel</code> to use a specific prefix instead of the 
+random one, which can be useful if you want to decompose the process of loading data and merging it with the target
+tables later, for instance to gain a finer control over concurrency.</p>
+</div>
+<h3 id="merging-the-data">Merging the data<a class="headerlink" href="#merging-the-data" title="Permanent link">&para;</a></h3>
+<p>The last step is to merge the temporary tables data into the target tables, while enforcing deduplication, keeping 
+relationships, etc.</p>
+<p>This is done by issuing a sequence of <code>update</code> and <code>insert</code> SQL statements using <code>sqlalchemy</code>, in a single transaction
+(default) or in multiple transactions.</p>
+<p>The process boils down to:</p>
+<ul>
+<li>inserting missing records into the target tables, </li>
+<li>getting back the auto-incremented primary keys into the temporary tables,</li>
+<li>updating relationship to use target primary keys instead of temporary primary keys,</li>
+<li>continue with the next table.</li>
+</ul>
+<h3 id="summing-up">Summing up<a class="headerlink" href="#summing-up" title="Permanent link">&para;</a></h3>
+<p>The whole loading process can be achieved by the high level functions 
+<a href="../api/data_model/#xml2db.model.DataModel.parse_xml"><code>DataModel.parse_xml</code></a> and 
+<a href="../api/document/#xml2db.document.Document.insert_into_target_tables"><code>Document.insert_into_target_tables</code></a>. However, 
+the later can be decomposed in lower level function calls, for instance if you want to separate the loading to the 
+temporary tables and the merge operation into the target tables. You can have a look at 
+<a href="../api/document/#xml2db.document.Document.insert_into_target_tables"><code>Document.insert_into_target_tables</code></a> 
+source code to see how the lower level steps are stitched together.</p>
+<h2 id="extracting-the-data-back-to-xml">Extracting the data back to XML<a class="headerlink" href="#extracting-the-data-back-to-xml" title="Permanent link">&para;</a></h2>
+<p>Extracting the data from the database and converting it back to XML follow similar steps, in reverse order.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>Extracting the data from the database is not very optimized and is actually currently quite slow, mostly due to
+complex join queries to retrieve data based on a filter only on the top node. This feature is currently useful
+for roundtrip test, but has limited value otherwise, because of its poor performance compared to loading.</p>
+</div>
+<h3 id="querying-data-from-the-database">Querying data from the database<a class="headerlink" href="#querying-data-from-the-database" title="Permanent link">&para;</a></h3>
+<p>Walking through the data model tree, we query all tables using a chain of joins to the root table, on which we apply the
+where clause provided to the function 
+<a href="../api/data_model/#xml2db.model.DataModel.extract_from_database"><code>DataModel.extract_from_database</code></a>. Results are stored 
+in a <a href="../api/document/#xml2db.document.Document"><code>Document</code></a> instance in flat tables, with their primary keys and foreign
+keys taken from the database.</p>
+<h3 id="converting-flat-data-to-document-tree">Converting flat data to document tree<a class="headerlink" href="#converting-flat-data-to-document-tree" title="Permanent link">&para;</a></h3>
+<p>Starting from the flat data representation, we build a document tree recursively. This is done by the function 
+<a href="../api/document/#xml2db.document.Document.flat_data_to_doc_tree"><code>Document.flat_data_to_doc_tree</code></a>, which performs the 
+opposite conversion as <a href="../api/document/#xml2db.document.Document.doc_tree_to_flat_data"><code>Document.doc_tree_to_flat_data</code></a>.</p>
+<h3 id="building-an-xml-file">Building an XML file<a class="headerlink" href="#building-an-xml-file" title="Permanent link">&para;</a></h3>
+<p>From the document tree, we build an XML file using 
+<a href="../api/xml_converter/#xml2db.xml_converter.XMLConverter.to_xml"><code>XMLConverter.to_xml</code></a>. This conversion is reversible 
+with some caveat, regarding mostly the formatting of numbers and dates.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../configuring/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Configuring your data model">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Configuring your data model
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../api/overview/" class="md-footer__link md-footer__link--next" aria-label="Next: API Overview">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                API Overview
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2024 Commission de régulation de l'énergie
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.tracking", "navigation.footer", "navigation.top", "navigation.expand", "toc.follow"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
