@@ -5,7 +5,6 @@ from .column import DataModelColumn
 from .relations import DataModelRelation1, DataModelRelationN
 from .table import DataModelTable
 
-
 class DataModelTableTransformed(DataModelTable):
     """A class extending DataModelTable with transformations
 
