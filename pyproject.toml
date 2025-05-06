@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xml2db"
-version = "0.12.5"
+version = "0.12.6"
 authors = [
   { name="Commission de régulation de l'énergie", email="opensource@cre.fr" },
 ]
@@ -36,3 +36,6 @@ markers = [
     "dbtest: marks tests as integration tests requiring a database backend (deselect with '-m \"not dbtest\"')",
 ]
 junit_family = "xunit2"
+
+[tool.uv]
+package = true
