@@ -9,7 +9,7 @@ on:
 
 jobs:
   integration-tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     services:
       mysql:
         image: mysql:8.0
@@ -46,4 +46,4 @@ jobs:
         run: |
           pytest tests -x
         env:
-          DB_STRING: mysql+pymysql://root:secretroot@127.0.0.1:3306/test_db
+          DB_STRING: mysql+pymysql://root:secretroot@localhost:3306/test_db
