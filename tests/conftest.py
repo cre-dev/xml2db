@@ -37,8 +37,4 @@ def setup_db_model(conn_string, model_config):
 
     yield model
 
-    try:
-        model.drop_all_tables()
-    except Exception as e:
-        print(f"Unable to drop all tables: {e}")
-        pass
+    model.drop_all_tables()

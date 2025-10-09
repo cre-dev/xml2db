@@ -1,5 +1,5 @@
 import hashlib
-import base64
+import re
 from typing import Iterable, List, Any, Union, TYPE_CHECKING
 import logging
 import sqlalchemy
@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from ..model import DataModel
 
 logger = logging.getLogger(__name__)
+
 
 class DataModelTable:
     """A class representing a database table translated from an XML schema complex type
@@ -100,8 +101,9 @@ class DataModelTable:
         config = {
             "reuse": check_type(cfg, "reuse", bool, True),
             "as_columnstore": check_type(cfg, "as_columnstore", bool, False),
-            "shorten_temp_table_names": check_type(cfg, "shorten_temp_table_names", bool, False),
-            "shorten_rel_table_names": check_type(cfg, "shorten_rel_table_names", bool, False)
+            "shorten_table_names": check_type(
+                cfg, "shorten_table_names", bool, db_type == "postgresql"
+            ),
         }
         if "extra_args" in cfg and not (
             isinstance(cfg["extra_args"], list)
@@ -120,7 +122,7 @@ class DataModelTable:
             logger.warning(
                 "Clustered columnstore indexes are only supported with MS SQL Server database"
             )
-        
+
         config["fields"] = cfg.get("fields", {})
 
         return config
@@ -409,28 +411,33 @@ class DataModelTable:
             + ["}"]
         )
         return [f"    {line}" for line in out]
-    
+
     def truncate_long_name(self, table_name: str) -> str:
-        max_len = 63 #both postgres and mysql safe table name len
+        max_len = 63  # both postgres and mysql safe table name len
         new_name = table_name
-        
-        short_name = ""
-        shorter_name = ""
+
         is_tmp = "temp" in table_name
         suffix = f"_{hashlib.md5(table_name.encode('utf-8')).hexdigest()}"
 
         if len(table_name) > max_len:
-            words = table_name.split("_")
+            # extract words for camelCase and snake_case identifiers
+            s = re.sub(r"(?<=[a-z0-9])([A-Z])", r"_\1", table_name)
+            s = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", s)
+            words = [word for word in s.split("_") if word]
 
+            short_name = ""
+            shorter_name = ""
             for word in words:
-                if len(short_name) + len(word)<= (max_len - 1):
-                    if len(short_name) > 0: short_name += "_"
+                if len(short_name) + len(word) <= (max_len - 1):
+                    if len(short_name) > 0:
+                        short_name += "_"
                     short_name += f"{word}"
                 if len(shorter_name) + len(word) <= (max_len - 10):
-                    if len(shorter_name) > 0: shorter_name += "_"
+                    if len(shorter_name) > 0:
+                        shorter_name += "_"
                     shorter_name += f"{word}"
 
-            #check if sliced name already exists:
+            # check if sliced name already exists:
             sentinel = False
             if is_tmp:
                 # just cut the name up and append the full suffix
@@ -446,8 +453,8 @@ class DataModelTable:
                         if relation.rel_table_name == short_name:
                             sentinel = True
                             break
-            
-            # an existing table or relation was found: append a 
+
+            # an existing table or relation was found: append a
             # random-ish suffix to help prevent name collisions
             if sentinel:
                 # create a more useable/legible short table name

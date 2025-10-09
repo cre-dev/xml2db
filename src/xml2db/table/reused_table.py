@@ -15,11 +15,13 @@ from sqlalchemy import (
 from .column import DataModelColumn
 from .transformed_table import DataModelTableTransformed
 
+
 def shorten_str(x: str, max_len: int = 30) -> str:
     if len(x) > max_len:
         h = sha1(x.encode("utf8"))
         return f"{x[:(max_len - 7)]}_{h.hexdigest()[1:6]}"
     return x
+
 
 class DataModelTableReused(DataModelTableTransformed):
     """A table data model which de-duplicates records in the database based on their hash value.
@@ -132,8 +134,12 @@ class DataModelTableReused(DataModelTableTransformed):
                 )
             )
 
-        temp_table_name = f"{prefix}{self.name}" 
-        temp_table_name = self.truncate_long_name(temp_table_name) if self.config.get("shorten_temp_table_names") else temp_table_name
+        temp_table_name = f"{prefix}{self.name}"
+        temp_table_name = (
+            self.truncate_long_name(temp_table_name)
+            if self.config.get("shorten_temp_table_names")
+            else temp_table_name
+        )
 
         # build temporary table
         self.temp_table = Table(

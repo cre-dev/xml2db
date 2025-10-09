@@ -196,8 +196,12 @@ class DataModel:
             A data model instance.
         """
         table_config = self.tables_config.get(table_name, {})
-        table_config["shorten_temp_table_names"] = self.model_config["shorten_temp_table_names"]
-        table_config["shorten_rel_table_names"] = self.model_config["shorten_rel_table_names"]
+        table_config["shorten_temp_table_names"] = self.model_config[
+            "shorten_temp_table_names"
+        ]
+        table_config["shorten_rel_table_names"] = self.model_config[
+            "shorten_rel_table_names"
+        ]
         if table_config.get("reuse", True):
             return DataModelTableReused(
                 table_name,
