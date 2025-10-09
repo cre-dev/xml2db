@@ -8,3 +8,5 @@ venv
 .spyproject
 .idea
 site
+.env
+uv.lock
