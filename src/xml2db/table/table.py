@@ -1,3 +1,5 @@
+import hashlib
+import re
 from typing import Iterable, List, Any, Union, TYPE_CHECKING
 import logging
 import sqlalchemy
@@ -99,6 +101,9 @@ class DataModelTable:
         config = {
             "reuse": check_type(cfg, "reuse", bool, True),
             "as_columnstore": check_type(cfg, "as_columnstore", bool, False),
+            "shorten_table_names": check_type(
+                cfg, "shorten_table_names", bool, db_type == "postgresql"
+            ),
         }
         if "extra_args" in cfg and not (
             isinstance(cfg["extra_args"], list)
@@ -324,10 +329,13 @@ class DataModelTable:
             temp: if True, create temporary (prefixed) tables
         """
         if temp:
+            logging.info(f"Creating temp table: {self.temp_table.name}")
             self.temp_table.create(engine, checkfirst=True)
         else:
+            logging.info(f"Creating table: {self.table.name}")
             self.table.create(engine, checkfirst=True)
         for relation in self.relations_n.values():
+            logging.info(f"Creating relation: {relation.name}")
             relation.create_table(engine, temp)
 
     def get_insert_temp_records_statements(
@@ -403,3 +411,60 @@ class DataModelTable:
             + ["}"]
         )
         return [f"    {line}" for line in out]
+
+    def truncate_long_name(self, table_name: str) -> str:
+        max_len = 63  # both postgres and mysql safe table name len
+        new_name = table_name
+
+        is_tmp = "temp" in table_name
+        suffix = f"_{hashlib.md5(table_name.encode('utf-8')).hexdigest()}"
+
+        if len(table_name) > max_len:
+            # extract words for camelCase and snake_case identifiers
+            s = re.sub(r"(?<=[a-z0-9])([A-Z])", r"_\1", table_name)
+            s = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", s)
+            words = [word for word in s.split("_") if word]
+
+            short_name = ""
+            shorter_name = ""
+            for word in words:
+                if len(short_name) + len(word) <= (max_len - 1):
+                    if len(short_name) > 0:
+                        short_name += "_"
+                    short_name += f"{word}"
+                if len(shorter_name) + len(word) <= (max_len - 10):
+                    if len(shorter_name) > 0:
+                        shorter_name += "_"
+                    shorter_name += f"{word}"
+
+            # check if sliced name already exists:
+            sentinel = False
+            if is_tmp:
+                # just cut the name up and append the full suffix
+                # this doesn't need to be human readable / usable
+                short_name = short_name[:30]
+                sentinel = True
+            else:
+                for tbl in self.data_model.tables.values():
+                    if sentinel or tbl.name == short_name:
+                        sentinel = True
+                        break
+                    for relation in tbl.relations_n.values():
+                        if relation.rel_table_name == short_name:
+                            sentinel = True
+                            break
+
+            # an existing table or relation was found: append a
+            # random-ish suffix to help prevent name collisions
+            if sentinel:
+                # create a more useable/legible short table name
+                suffix = f"_{suffix[:8]}"
+                short_name = shorter_name
+            else:
+                # nothing was found so we can just run with the short name
+                suffix = ""
+
+            # finalize the new shortened name
+            new_name = f"{short_name}{suffix}"
+
+        return new_name

@@ -119,9 +119,16 @@ class DataModelTableDuplicated(DataModelTableTransformed):
                 )
             )
 
+        temp_table_name = f"{prefix}{self.name}"
+        temp_table_name = (
+            self.truncate_long_name(temp_table_name)
+            if self.config.get("shorten_table_names")
+            else temp_table_name
+        )
+
         # build temporary table
         self.temp_table = Table(
-            f"{prefix}{self.name}",
+            temp_table_name,
             self.metadata,
             Column(f"pk_{self.name}", Integer),
             *get_col(temp=True),
