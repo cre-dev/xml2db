@@ -101,8 +101,15 @@ class DataModelRelationN(DataModelRelation):
         )
         prefix = f"temp_{self.table.temp_prefix}_"
         if self.other_table.is_reused:
+            temp_table_name = f"{prefix}{self.rel_table_name}"
+            temp_table_name = (
+                self.table.truncate_long_name(temp_table_name)
+                if self.table.config.get("shorten_temp_table_names")
+                else temp_table_name
+            )
+
             self.temp_rel_table = Table(
-                f"{prefix}{self.rel_table_name}",
+                temp_table_name,
                 self.table.metadata,
                 Column(f"temp_fk_{self.table.name}", Integer, nullable=False),
                 Column(f"fk_{self.table.name}", Integer),
@@ -132,8 +139,13 @@ class DataModelRelationN(DataModelRelation):
                     ),
                 )
 
+            table_name = (
+                self.table.truncate_long_name(self.rel_table_name)
+                if self.table.config.get("shorten_rel_table_names")
+                else self.rel_table_name
+            )
             self.rel_table = Table(
-                self.rel_table_name,
+                table_name,
                 self.table.metadata,
                 Column(
                     f"fk_{self.table.name}",
