@@ -194,6 +194,8 @@ class DataModel:
             A data model instance.
         """
         table_config = self.tables_config.get(table_name, {})
+        if table_config is None:
+            table_config = {}
         if table_config.get("reuse", True):
             return DataModelTableReused(
                 table_name,
