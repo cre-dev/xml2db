@@ -20,6 +20,7 @@ orders:
                 bic[0, 1]: string
                 lei[0, 1]: string
             coordinates[0, 1]: string
+            extra[0, 1]:
         shipto[0, 1]:
             name_attr[0, 1]: string
             name[1, 1]: string
@@ -36,6 +37,7 @@ orders:
                 bic[0, 1]: string
                 lei[0, 1]: string
             coordinates[0, 1]: string
+            extra[0, 1]:
         item[1, None]:
             product[1, 1]:
                 name[1, 1]: string

@@ -537,6 +537,10 @@ class DataModel:
                             )
                 else:
                     raise ValueError("unknown case; please check")
+            elif type(child) is xmlschema.validators.wildcards.XsdAnyElement:
+                logger.warning(
+                    f"type '{parent_type}' contains a xsd:any child, which is ignored"
+                )
             else:
                 raise ValueError("unknown case; please check (child not an XsdElement)")
 
