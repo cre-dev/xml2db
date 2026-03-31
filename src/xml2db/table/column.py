@@ -210,6 +210,8 @@ class DataModelColumn:
                 "dateTime",
                 "NMTOKEN",
                 "time",
+                "base64Binary",  # was added as a fix for accepting more schemas, but not ideal
+                "decimal",  # was added as a fix for accepting more schemas, but not ideal
             ):
                 return True
             raise ValueError(

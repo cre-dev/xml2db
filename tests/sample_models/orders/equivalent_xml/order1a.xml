@@ -13,6 +13,9 @@
       <companyId>
         <bic>JIDAZIO786DAZH</bic>
       </companyId>
+      <extra>
+        <profileName>profile 1</profileName>
+      </extra>
     </orderperson>
     <item>
       <product>
