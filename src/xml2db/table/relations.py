@@ -1,5 +1,5 @@
 import sqlalchemy.engine
-from sqlalchemy import Table, Column, ForeignKey, Integer, Index, select
+from sqlalchemy import Table, Column, ForeignKey, Integer, select
 from typing import TYPE_CHECKING, List, Iterable, Any, Union
 
 if TYPE_CHECKING:
@@ -59,14 +59,17 @@ class DataModelRelation1(DataModelRelation):
             if not self.name.endswith(self.other_table.name)
             else f"fk_{self.name}"
         )
+        d = self.data_model.dialect
         if temp:
-            yield Column(f"temp_{self.field_name}", Integer)
-            yield Column(self.field_name, Integer)
+            temp_logical = f"temp_{self.field_name}"
+            yield Column(d.db_identifier(temp_logical), Integer, key=temp_logical)
+            yield Column(d.db_identifier(self.field_name), Integer, key=self.field_name)
         else:
             yield Column(
-                self.field_name,
+                d.db_identifier(self.field_name),
                 Integer,
-                ForeignKey(f"{self.other_table.name}.pk_{self.other_table.name}"),
+                ForeignKey(d.fk_ref(self.other_table.name, f"pk_{self.other_table.name}")),
+                key=self.field_name,
             )
 
     def get_merge_temp_records_statements(self) -> Iterable[Any]:
@@ -101,13 +104,20 @@ class DataModelRelationN(DataModelRelation):
         )
         prefix = f"temp_{self.table.temp_prefix}_"
         if self.other_table.is_reused:
+            d = self.data_model.dialect
+            db_rel = d.db_identifier(self.rel_table_name)
+            fk_self_logical = f"fk_{self.table.name}"
+            fk_other_logical = f"fk_{self.other_table.name}"
+            temp_fk_self_logical = f"temp_fk_{self.table.name}"
+            temp_fk_other_logical = f"temp_fk_{self.other_table.name}"
+
             self.temp_rel_table = Table(
-                f"{prefix}{self.rel_table_name}",
+                f"{prefix}{db_rel}",
                 self.table.metadata,
-                Column(f"temp_fk_{self.table.name}", Integer, nullable=False),
-                Column(f"fk_{self.table.name}", Integer),
-                Column(f"temp_fk_{self.other_table.name}", Integer, nullable=False),
-                Column(f"fk_{self.other_table.name}", Integer),
+                Column(d.db_identifier(temp_fk_self_logical), Integer, nullable=False, key=temp_fk_self_logical),
+                Column(d.db_identifier(fk_self_logical), Integer, key=fk_self_logical),
+                Column(d.db_identifier(temp_fk_other_logical), Integer, nullable=False, key=temp_fk_other_logical),
+                Column(d.db_identifier(fk_other_logical), Integer, key=fk_other_logical),
                 *(
                     (
                         Column(
@@ -120,34 +130,33 @@ class DataModelRelationN(DataModelRelation):
                     else ()
                 ),
             )
-            cl_index = tuple()
-            if self.data_model.db_type == "mssql":
-                # n-n relation tables don't have a primary key, so we define a clustered index on the first FK
-                cl_index = (
-                    Index(
-                        f"ix_fk_{self.rel_table_name}",
-                        f"fk_{self.table.name}",
-                        f"fk_{self.other_table.name}",
-                        mssql_clustered=True,
-                    ),
-                )
+
+            # n-n relation tables don't have a primary key; get backend-specific clustered index
+            cl_index = d.relation_extra_indexes(
+                self.rel_table_name,
+                fk_self_logical,
+                fk_other_logical,
+                self.table.config,
+            )
 
             self.rel_table = Table(
-                self.rel_table_name,
+                db_rel,
                 self.table.metadata,
                 Column(
-                    f"fk_{self.table.name}",
+                    d.db_identifier(fk_self_logical),
                     Integer,
-                    ForeignKey(f"{self.table.name}.pk_{self.table.name}"),
+                    ForeignKey(d.fk_ref(self.table.name, f"pk_{self.table.name}")),
                     nullable=False,
-                    index=(cl_index == tuple()),
+                    index=(len(cl_index) == 0),
+                    key=fk_self_logical,
                 ),
                 Column(
-                    f"fk_{self.other_table.name}",
+                    d.db_identifier(fk_other_logical),
                     Integer,
-                    ForeignKey(f"{self.other_table.name}.pk_{self.other_table.name}"),
+                    ForeignKey(d.fk_ref(self.other_table.name, f"pk_{self.other_table.name}")),
                     nullable=False,
                     index=True,
+                    key=fk_other_logical,
                 ),
                 *(
                     (

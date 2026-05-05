@@ -181,15 +181,6 @@ class DataModelColumn:
         self.model_config = model_config
         self.data_model = data_model
         self.other_table = None  # just to avoid a linting warning
-        self.types_mapping = (
-            types_mapping_mssql
-            if data_model.db_type == "mssql"
-            else (
-                types_mapping_mysql
-                if data_model.db_type == "mysql"
-                else types_mapping_default
-            )
-        )
 
     @property
     def can_join_values_as_string(self):
@@ -228,6 +219,6 @@ class DataModelColumn:
         # use type specified in config if exists
         column_type = self.model_config.get("fields", {}).get(self.name, {}).get(
             "type"
-        ) or self.types_mapping(temp, self)
-
-        yield Column(self.name, column_type)
+        ) or self.data_model.dialect.column_type(self, temp)
+        db_col = self.data_model.dialect.db_identifier(self.name)
+        yield Column(db_col, column_type, key=self.name)

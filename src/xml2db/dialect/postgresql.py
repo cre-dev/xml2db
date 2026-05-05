@@ -4,10 +4,10 @@ from .base import DatabaseDialect
 class PostgreSQLDialect(DatabaseDialect):
     """Dialect for PostgreSQL.
 
-    PostgreSQL enforces a 63-character limit on identifiers. The
-    :meth:`db_identifier` override that applies hash-suffix truncation will be
-    added in migration step 5. The attribute is set here for documentation
-    purposes and so tooling can query it.
+    PostgreSQL enforces a 63-character limit on identifiers. Names exceeding
+    this limit are truncated with a hash suffix by the base
+    :meth:`~DatabaseDialect.db_identifier` implementation, which uses
+    :attr:`MAX_IDENTIFIER_LENGTH` to decide when to truncate.
     """
 
     MAX_IDENTIFIER_LENGTH: int = 63

@@ -5,11 +5,9 @@ from sqlalchemy import (
     Integer,
     ForeignKey,
     PrimaryKeyConstraint,
-    Index,
     Boolean,
     select,
     and_,
-    Sequence,
 )
 
 from .transformed_table import DataModelTableTransformed
@@ -48,23 +46,30 @@ class DataModelTableDuplicated(DataModelTableTransformed):
             Args:
                 temp: are we targeting temp or target table?
             """
+            d = self.data_model.dialect
             # temp primary key which is used also in the final table to update back target pk
             if temp or self.referenced_as_fk:
+                logical = f"temp_pk_{self.name}"
                 yield Column(
-                    f"temp_pk_{self.name}",
+                    d.db_identifier(logical),
                     Integer,
                     primary_key=temp,
                     autoincrement=False,
+                    key=logical,
                 )
             # foreign key column to link with parent
             if temp:
-                yield Column(f"temp_fk_parent_{self.parent.name}", Integer)
-                yield Column(f"fk_parent_{self.parent.name}", Integer)
+                logical_tmp = f"temp_fk_parent_{self.parent.name}"
+                yield Column(d.db_identifier(logical_tmp), Integer, key=logical_tmp)
+                logical_fk = f"fk_parent_{self.parent.name}"
+                yield Column(d.db_identifier(logical_fk), Integer, key=logical_fk)
             else:
+                logical_fk = f"fk_parent_{self.parent.name}"
                 yield Column(
-                    f"fk_parent_{self.parent.name}",
+                    d.db_identifier(logical_fk),
                     Integer,
-                    ForeignKey(f"{self.parent.name}.pk_{self.parent.name}"),
+                    ForeignKey(d.fk_ref(self.parent.name, f"pk_{self.parent.name}")),
+                    key=logical_fk,
                 )
             # row_number if needed
             if self.data_model.model_config["row_numbers"]:
@@ -84,46 +89,29 @@ class DataModelTableDuplicated(DataModelTableTransformed):
             if callable(self.config.get("extra_args", []))
             else self.config.get("extra_args", [])
         )
-        if self.data_model.db_type == "duckdb":
-            pk_sequence = Sequence(f"pk_sequ_{self.name}")
-            pk_col = Column(
-                f"pk_{self.name}",
-                Integer,
-                pk_sequence,
-                server_default=pk_sequence.next_value(),
-                primary_key=True,
-            )
-        else:
-            pk_col = Column(
-                f"pk_{self.name}", Integer, primary_key=True, autoincrement=True
-            )
+        pk_col = self.data_model.dialect.pk_column(self.name)
         self.table = Table(
-            self.name,
+            self.db_name(),
             self.metadata,
             pk_col,
             PrimaryKeyConstraint(
-                name=f"cx_pk_{self.name}",
+                name=self.db_col_name(f"cx_pk_{self.name}"),
                 mssql_clustered=not self.config["as_columnstore"],
             ),
             *get_col(),
             *extra_args,
         )
 
-        # set columnstore index
-        if self.config["as_columnstore"]:
-            self.table.append_constraint(
-                Index(
-                    f"idx_{self.name}_columnstore",
-                    mssql_clustered=True,
-                    mssql_columnstore=True,
-                )
-            )
+        # set backend-specific extra indexes (e.g. columnstore)
+        for idx in self.data_model.dialect.extra_indexes(self.name, self.config):
+            self.table.append_constraint(idx)
 
         # build temporary table
+        logical_pk = f"pk_{self.name}"
         self.temp_table = Table(
-            f"{prefix}{self.name}",
+            f"{prefix}{self.db_name()}",
             self.metadata,
-            Column(f"pk_{self.name}", Integer),
+            Column(self.db_col_name(logical_pk), Integer, key=logical_pk),
             *get_col(temp=True),
             Column("temp_exists", Boolean, default=False),
         )

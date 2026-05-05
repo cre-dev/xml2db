@@ -1,8 +1,20 @@
+import hashlib
 import logging
 from typing import Any, TYPE_CHECKING
 
-from sqlalchemy import Column, Integer, PrimaryKeyConstraint, Index, Sequence
-from sqlalchemy.exc import ProgrammingError
+from sqlalchemy import (
+    Column,
+    Integer,
+    PrimaryKeyConstraint,
+    Index,
+    String,
+    Double,
+    DateTime,
+    Boolean,
+    SmallInteger,
+    BigInteger,
+    LargeBinary,
+)
 from sqlalchemy import inspect as sqlalchemy_inspect
 import sqlalchemy.schema
 
@@ -34,10 +46,9 @@ class DatabaseDialect:
     def db_identifier(self, logical_name: str) -> str:
         """Return the physical database identifier for a logical name.
 
-        The base implementation is an identity function — it returns the name
-        unchanged. Subclasses that enforce a shorter identifier limit (e.g.
-        PostgreSQL's 63-character limit) should override this method to apply
-        deterministic truncation.
+        Names longer than :attr:`MAX_IDENTIFIER_LENGTH` are truncated using a
+        7-character MD5 hash suffix, guaranteeing both uniqueness and stability
+        across runs. Names within the limit are returned unchanged.
 
         Args:
             logical_name: The full logical name used inside the Python model
@@ -47,7 +58,10 @@ class DatabaseDialect:
             A string that is safe to use as a database identifier for this
             backend. Guaranteed to be stable across calls with the same input.
         """
-        return logical_name
+        if len(logical_name) <= self.MAX_IDENTIFIER_LENGTH:
+            return logical_name
+        suffix = "_" + hashlib.md5(logical_name.encode()).hexdigest()[:7]
+        return logical_name[: self.MAX_IDENTIFIER_LENGTH - len(suffix)] + suffix
 
     def fk_ref(self, table_logical: str, col_logical: str) -> str:
         """Return a ``"table.column"`` string using physical database names.
@@ -73,10 +87,8 @@ class DatabaseDialect:
     def column_type(self, col: "DataModelColumn", temp: bool) -> Any:
         """Return the SQLAlchemy type for a given column.
 
-        Subclasses should override this to provide backend-specific type
-        mappings. The base implementation raises ``NotImplementedError`` and
-        will be replaced in step 3 of the migration with the logic currently
-        in ``types_mapping_default``.
+        The base implementation provides backend-agnostic defaults. Subclasses
+        may override this to provide backend-specific type mappings.
 
         Args:
             col: The :class:`~xml2db.table.column.DataModelColumn` whose type
@@ -88,10 +100,45 @@ class DatabaseDialect:
         Returns:
             A SQLAlchemy type class or instance.
         """
-        raise NotImplementedError(
-            f"{type(self).__name__} does not implement column_type(). "
-            "This will be wired up in migration step 3."
+        if col.occurs[1] != 1:
+            return String(8000)
+        if col.data_type in ["decimal", "float", "double"]:
+            return Double
+        if col.data_type == "dateTime":
+            return DateTime(timezone=True)
+        if col.data_type in [
+            "integer",
+            "int",
+            "nonPositiveInteger",
+            "nonNegativeInteger",
+            "positiveInteger",
+            "negativeInteger",
+        ]:
+            return Integer
+        if col.data_type == "boolean":
+            return Boolean
+        if col.data_type in ["short", "byte"]:
+            return SmallInteger
+        if col.data_type == "long":
+            return BigInteger
+        if col.data_type == "date":
+            return String(16)
+        if col.data_type == "time":
+            return String(18)
+        if col.data_type in ["string", "NMTOKEN", "duration", "token"]:
+            if col.max_length is None:
+                return String(1000)
+            min_length = 0 if col.min_length is None else col.min_length
+            if min_length >= col.max_length - 1 and not col.allow_empty:
+                return String(col.max_length)
+            return String(col.max_length)
+        if col.data_type == "binary":
+            return LargeBinary(col.max_length)
+        logger.warning(
+            f"unknown type '{col.data_type}' for column '{col.name}', defaulting to VARCHAR(1000) "
+            f"(this can be overridden by providing a field type in the configuration)"
         )
+        return String(1000)
 
     # ------------------------------------------------------------------
     # DDL: primary key
@@ -114,7 +161,8 @@ class DatabaseDialect:
             A SQLAlchemy :class:`~sqlalchemy.Column` configured as the
             primary key.
         """
-        return Column(f"pk_{table_name}", Integer, primary_key=True, autoincrement=True)
+        logical = f"pk_{table_name}"
+        return Column(self.db_identifier(logical), Integer, key=logical, primary_key=True, autoincrement=True)
 
     def pk_constraint(self, table_name: str, **kwargs: Any) -> PrimaryKeyConstraint:
         """Return the ``PrimaryKeyConstraint`` for a target table.
@@ -158,6 +206,25 @@ class DatabaseDialect:
             ``table.append_constraint(...)``.
         """
         return []
+
+    def relation_extra_indexes(
+        self, rel_table_name: str, fk_self_col: str, fk_other_col: str, config: dict
+    ) -> tuple:
+        """Return any backend-specific indexes to append to a relation table.
+
+        The base implementation returns an empty tuple. The MSSQL dialect
+        overrides this to return a clustered index on the FK columns.
+
+        Args:
+            rel_table_name: The *logical* relation table name.
+            fk_self_col: The logical name of the FK column referencing the parent table.
+            fk_other_col: The logical name of the FK column referencing the other table.
+            config: The validated per-table configuration dict.
+
+        Returns:
+            A (possibly empty) tuple of SQLAlchemy :class:`~sqlalchemy.Index` objects.
+        """
+        return tuple()
 
     # ------------------------------------------------------------------
     # DDL: schema management

@@ -62,7 +62,8 @@ class DataModelTable:
         self.is_root_table = is_root_table
         self.is_virtual_node = is_virtual_node
         self.model_group = "sequence"
-        self.config = self._validate_config(config, data_model.db_type)
+        self.data_model = data_model
+        self.config = self._validate_config(config)
         self.db_schema = db_schema
         self.temp_prefix = temp_prefix
 
@@ -90,9 +91,8 @@ class DataModelTable:
         self.metadata = metadata
         self.table = None
         self.temp_table = None
-        self.data_model = data_model
 
-    def _validate_config(self, cfg, db_type):
+    def _validate_config(self, cfg):
         if cfg is None:
             cfg = {}
 
@@ -112,16 +112,17 @@ class DataModelTable:
                 cfg, "choice_transform", bool, False
             )
 
-        if config["as_columnstore"] and not db_type == "mssql":
-            config["as_columnstore"] = False
-            logger.warning(
-                "Clustered columnstore indexes are only supported with MS SQL Server database"
-            )
-
         config["fields"] = cfg.get("fields", {})
+        config = self.data_model.dialect.validate_table_config(config)
 
         return config
 
+    def db_name(self) -> str:
+        return self.data_model.dialect.db_identifier(self.name)
+
+    def db_col_name(self, logical: str) -> str:
+        return self.data_model.dialect.db_identifier(logical)
+    
     def add_column(
         self,
         name: str,
