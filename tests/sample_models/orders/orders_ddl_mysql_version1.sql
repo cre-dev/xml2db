@@ -14,6 +14,7 @@ CREATE TABLE orderperson (
 	`companyId_bic` VARCHAR(255), 
 	`companyId_lei` VARCHAR(255), 
 	coordinates VARCHAR(255), 
+	a_very_long_field_type_that_makes_col_name_exceeds_max_i_223ada0 VARCHAR(255), 
 	record_hash BINARY(16), 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY (pk_orderperson), 
 	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (record_hash)

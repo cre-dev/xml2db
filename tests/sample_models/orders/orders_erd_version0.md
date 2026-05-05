@@ -43,5 +43,6 @@ erDiagram
         string companyId_type
         string companyId_value
         string coordinates
+        string a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length
     }
 ```

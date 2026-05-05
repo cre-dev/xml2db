@@ -17,6 +17,7 @@ erDiagram
         string orderperson_companyId_type
         string orderperson_companyId_value
         string orderperson_coordinates
+        string orderperson_a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length
     }
     item ||--|| product : "product"
     item {
@@ -52,6 +53,7 @@ erDiagram
         string companyId_type
         string companyId_value
         string coordinates
+        string a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length
     }
     orders ||--o{ shiporder : "shiporder"
     orders {

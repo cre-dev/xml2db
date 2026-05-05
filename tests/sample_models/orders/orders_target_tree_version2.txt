@@ -16,6 +16,7 @@ orders:
         orderperson_companyId_type[0, 1]: string
         orderperson_companyId_value[0, 1]: string
         orderperson_coordinates[0, 1]: string
+        orderperson_a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length[0, 1]: string
         shipto[0, 1]:
             name_attr[0, 1]: string
             name[1, 1]: string
@@ -29,6 +30,7 @@ orders:
             companyId_type[0, 1]: string
             companyId_value[0, 1]: string
             coordinates[0, 1]: string
+            a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length[0, 1]: string
         item[1, None]:
             product[1, 1]:
                 name[1, 1]: string

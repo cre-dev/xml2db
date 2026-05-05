@@ -64,21 +64,24 @@ class DatabaseDialect:
         return logical_name[: self.MAX_IDENTIFIER_LENGTH - len(suffix)] + suffix
 
     def fk_ref(self, table_logical: str, col_logical: str) -> str:
-        """Return a ``"table.column"`` string using physical database names.
+        """Return a ``"table.column"`` string for use in a ``ForeignKey(...)`` call.
 
-        This is a convenience wrapper around :meth:`db_identifier` for building
-        the string argument to SQLAlchemy's ``ForeignKey(...)`` constructor,
-        which requires physical names.
+        SQLAlchemy resolves the table part of a ForeignKey string against
+        ``metadata.tables``, which is indexed by the physical table name (the
+        first argument to ``Table()``). The column part is resolved via
+        ``table.c.get()``, which uses the column *key* (the logical name when
+        ``key=`` is set). So the table name must be physical and the column
+        name must be logical.
 
         Args:
             table_logical: Logical name of the referenced table.
             col_logical: Logical name of the referenced column.
 
         Returns:
-            A ``"db_table_name.db_column_name"`` string ready for use in a
+            A ``"physical_table.logical_col"`` string ready for use in a
             ``ForeignKey(...)`` call.
         """
-        return f"{self.db_identifier(table_logical)}.{self.db_identifier(col_logical)}"
+        return f"{self.db_identifier(table_logical)}.{col_logical}"
 
     # ------------------------------------------------------------------
     # Column type mapping

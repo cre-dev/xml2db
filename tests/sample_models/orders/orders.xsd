@@ -36,6 +36,7 @@
             <xs:element name="companyId" type="companyIdType" minOccurs="0" maxOccurs="1"/>
             <xs:element name="coordinates" type="bt:CoordinatesListType" minOccurs="0"/>
             <xs:element name="extra" type="Extra" minOccurs="0"/>
+            <xs:element name="a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length" type="bt:stringtype" minOccurs="0"/>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required"/>
     </xs:complexType>

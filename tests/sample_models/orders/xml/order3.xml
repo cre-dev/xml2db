@@ -21,6 +21,7 @@
         <bic>JIDAZIO786DAZH</bic>
       </companyId>
       <coordinates>48.87271337163929 2.323433844198471</coordinates>
+      <a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length>test</a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length>
     </shipto>
     <item>
       <product>

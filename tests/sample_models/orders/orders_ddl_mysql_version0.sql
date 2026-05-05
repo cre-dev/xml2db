@@ -13,6 +13,7 @@ CREATE TABLE orderperson (
 	`companyId_type` VARCHAR(3), 
 	`companyId_value` VARCHAR(255), 
 	coordinates VARCHAR(255), 
+	a_very_long_field_type_that_makes_col_name_exceeds_max_i_223ada0 VARCHAR(255), 
 	record_hash BINARY(20), 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY (pk_orderperson), 
 	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (record_hash)

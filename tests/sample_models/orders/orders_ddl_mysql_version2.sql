@@ -24,6 +24,7 @@ CREATE TABLE orderperson (
 	`companyId_type` VARCHAR(3), 
 	`companyId_value` VARCHAR(255), 
 	coordinates VARCHAR(255), 
+	a_very_long_field_type_that_makes_col_name_exceeds_max_i_223ada0 VARCHAR(255), 
 	xml2db_record_hash BINARY(20), 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY (pk_orderperson), 
 	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (xml2db_record_hash)
@@ -108,6 +109,7 @@ CREATE TABLE shiporder (
 	`orderperson_companyId_type` VARCHAR(3), 
 	`orderperson_companyId_value` VARCHAR(255), 
 	orderperson_coordinates VARCHAR(255), 
+	orderperson_a_very_long_field_type_that_makes_col_name_e_ee3c2ee VARCHAR(255), 
 	shipto_fk_orderperson INTEGER, 
 	CONSTRAINT cx_pk_shiporder PRIMARY KEY (pk_shiporder), 
 	FOREIGN KEY(fk_parent_orders) REFERENCES orders (pk_orders), 
