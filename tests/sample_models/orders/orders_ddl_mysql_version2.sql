@@ -24,19 +24,19 @@ CREATE TABLE orderperson (
 	`companyId_type` VARCHAR(3), 
 	`companyId_value` VARCHAR(255), 
 	coordinates VARCHAR(255), 
-	a_very_long_field_type_that_makes_col_name_exceeds_max_i_223ada0 VARCHAR(255), 
+	a_very_long_field_type_that_makes_col_name_excee_223ada0 VARCHAR(255), 
 	xml2db_record_hash BINARY(20), 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY (pk_orderperson), 
 	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
-CREATE TABLE intfeature_with_peculiarly_long_suffix_which_overflow_max_length (
-	pk_intfeature_with_peculiarly_long_suffix_which_overflow_85b659b INTEGER NOT NULL AUTO_INCREMENT, 
+CREATE TABLE intfeature_with_peculiarly_long_suffix_which_ove_5868736 (
+	pk_intfeature_with_peculiarly_long_suffix_which__85b659b INTEGER NOT NULL AUTO_INCREMENT, 
 	id VARCHAR(255), 
 	value INTEGER, 
 	xml2db_record_hash BINARY(20), 
-	CONSTRAINT cx_pk_intfeature_with_peculiarly_long_suffix_which_overf_ecb17be PRIMARY KEY (pk_intfeature_with_peculiarly_long_suffix_which_overflow_85b659b), 
+	CONSTRAINT cx_pk_intfeature_with_peculiarly_long_suffix_whi_ecb17be PRIMARY KEY (pk_intfeature_with_peculiarly_long_suffix_which__85b659b), 
 	CONSTRAINT intfeature_with_peculia_0c087_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
@@ -61,11 +61,11 @@ CREATE TABLE product (
 )
 
 
-CREATE TABLE product_features_intfeature_with_peculiarly_long_suffix__82a4847 (
+CREATE TABLE product_features_intfeature_with_peculiarly_long_82a4847 (
 	fk_product INTEGER NOT NULL, 
-	fk_intfeature_with_peculiarly_long_suffix_which_overflow_00590e9 INTEGER NOT NULL, 
+	fk_intfeature_with_peculiarly_long_suffix_which__00590e9 INTEGER NOT NULL, 
 	FOREIGN KEY(fk_product) REFERENCES product (pk_product), 
-	FOREIGN KEY(fk_intfeature_with_peculiarly_long_suffix_which_overflow_00590e9) REFERENCES intfeature_with_peculiarly_long_suffix_which_overflow_max_length (pk_intfeature_with_peculiarly_long_suffix_which_overflow_85b659b)
+	FOREIGN KEY(fk_intfeature_with_peculiarly_long_suffix_which__00590e9) REFERENCES intfeature_with_peculiarly_long_suffix_which_ove_5868736 (pk_intfeature_with_peculiarly_long_suffix_which__85b659b)
 )
 
 
@@ -109,7 +109,7 @@ CREATE TABLE shiporder (
 	`orderperson_companyId_type` VARCHAR(3), 
 	`orderperson_companyId_value` VARCHAR(255), 
 	orderperson_coordinates VARCHAR(255), 
-	orderperson_a_very_long_field_type_that_makes_col_name_e_ee3c2ee VARCHAR(255), 
+	orderperson_a_very_long_field_type_that_makes_co_ee3c2ee VARCHAR(255), 
 	shipto_fk_orderperson INTEGER, 
 	CONSTRAINT cx_pk_shiporder PRIMARY KEY (pk_shiporder), 
 	FOREIGN KEY(fk_parent_orders) REFERENCES orders (pk_orders), 
@@ -124,9 +124,9 @@ CREATE TABLE shiporder_item (
 	FOREIGN KEY(fk_item) REFERENCES item (pk_item)
 )
 
-CREATE INDEX ix_product_features_intfeature_with_peculiarly_long_suff_b047 ON product_features_intfeature_with_peculiarly_long_suffix__82a4847 (fk_intfeature_with_peculiarly_long_suffix_which_overflow_00590e9)
+CREATE INDEX ix_product_features_intfeature_with_peculiarly_long_82a4_da9b ON product_features_intfeature_with_peculiarly_long_82a4847 (fk_intfeature_with_peculiarly_long_suffix_which__00590e9)
 
-CREATE INDEX ix_product_features_intfeature_with_peculiarly_long_suff_f76d ON product_features_intfeature_with_peculiarly_long_suffix__82a4847 (fk_product)
+CREATE INDEX ix_product_features_intfeature_with_peculiarly_long_82a4_6910 ON product_features_intfeature_with_peculiarly_long_82a4847 (fk_product)
 
 CREATE INDEX ix_product_features_stringfeature_fk_product ON product_features_stringfeature (fk_product)
 

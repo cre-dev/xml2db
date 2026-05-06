@@ -13,19 +13,19 @@ CREATE TABLE orderperson (
 	`companyId_type` VARCHAR(3), 
 	`companyId_value` VARCHAR(255), 
 	coordinates VARCHAR(255), 
-	a_very_long_field_type_that_makes_col_name_exceeds_max_i_223ada0 VARCHAR(255), 
+	a_very_long_field_type_that_makes_col_name_excee_223ada0 VARCHAR(255), 
 	record_hash BINARY(20), 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY (pk_orderperson), 
 	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (record_hash)
 )
 
 
-CREATE TABLE intfeature_with_peculiarly_long_suffix_which_overflow_max_length (
-	pk_intfeature_with_peculiarly_long_suffix_which_overflow_85b659b INTEGER NOT NULL AUTO_INCREMENT, 
+CREATE TABLE intfeature_with_peculiarly_long_suffix_which_ove_5868736 (
+	pk_intfeature_with_peculiarly_long_suffix_which__85b659b INTEGER NOT NULL AUTO_INCREMENT, 
 	id VARCHAR(255), 
 	value INTEGER, 
 	record_hash BINARY(20), 
-	CONSTRAINT cx_pk_intfeature_with_peculiarly_long_suffix_which_overf_ecb17be PRIMARY KEY (pk_intfeature_with_peculiarly_long_suffix_which_overflow_85b659b), 
+	CONSTRAINT cx_pk_intfeature_with_peculiarly_long_suffix_whi_ecb17be PRIMARY KEY (pk_intfeature_with_peculiarly_long_suffix_which__85b659b), 
 	CONSTRAINT intfeature_with_peculia_0c087_xml2db_record_hash UNIQUE (record_hash)
 )
 
@@ -54,11 +54,11 @@ CREATE TABLE item (
 )
 
 
-CREATE TABLE item_product_features_intfeature_with_peculiarly_long_su_779d1ac (
+CREATE TABLE item_product_features_intfeature_with_peculiarly_779d1ac (
 	fk_item INTEGER NOT NULL, 
-	fk_intfeature_with_peculiarly_long_suffix_which_overflow_00590e9 INTEGER NOT NULL, 
+	fk_intfeature_with_peculiarly_long_suffix_which__00590e9 INTEGER NOT NULL, 
 	FOREIGN KEY(fk_item) REFERENCES item (pk_item), 
-	FOREIGN KEY(fk_intfeature_with_peculiarly_long_suffix_which_overflow_00590e9) REFERENCES intfeature_with_peculiarly_long_suffix_which_overflow_max_length (pk_intfeature_with_peculiarly_long_suffix_which_overflow_85b659b)
+	FOREIGN KEY(fk_intfeature_with_peculiarly_long_suffix_which__00590e9) REFERENCES intfeature_with_peculiarly_long_suffix_which_ove_5868736 (pk_intfeature_with_peculiarly_long_suffix_which__85b659b)
 )
 
 
@@ -110,9 +110,9 @@ CREATE TABLE orders_shiporder (
 	FOREIGN KEY(fk_shiporder) REFERENCES shiporder (pk_shiporder)
 )
 
-CREATE INDEX ix_item_product_features_intfeature_with_peculiarly_long_eab0 ON item_product_features_intfeature_with_peculiarly_long_su_779d1ac (fk_intfeature_with_peculiarly_long_suffix_which_overflow_00590e9)
+CREATE INDEX ix_item_product_features_intfeature_with_peculiarly_779d_b099 ON item_product_features_intfeature_with_peculiarly_779d1ac (fk_intfeature_with_peculiarly_long_suffix_which__00590e9)
 
-CREATE INDEX ix_item_product_features_intfeature_with_peculiarly_long_ad39 ON item_product_features_intfeature_with_peculiarly_long_su_779d1ac (fk_item)
+CREATE INDEX ix_item_product_features_intfeature_with_peculiarly_779d_4520 ON item_product_features_intfeature_with_peculiarly_779d1ac (fk_item)
 
 CREATE INDEX ix_item_product_features_stringfeature_fk_item ON item_product_features_stringfeature (fk_item)
 
