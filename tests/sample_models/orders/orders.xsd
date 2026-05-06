@@ -57,7 +57,7 @@
 
     <xs:complexType name="productfeaturestype">
         <xs:sequence maxOccurs="unbounded">
-            <xs:element minOccurs="0" maxOccurs="unbounded" name="intfeature" type="intfeaturetype"/>
+            <xs:element minOccurs="0" maxOccurs="unbounded" name="intfeature_with_peculiarly_long_suffix_which_overflow_max_length" type="intfeaturetype"/>
             <xs:element minOccurs="0" maxOccurs="unbounded" name="stringfeature" type="stringfeaturetype"/>
         </xs:sequence>
     </xs:complexType>

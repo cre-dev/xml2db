@@ -68,7 +68,9 @@ class DataModelRelation1(DataModelRelation):
             yield Column(
                 d.db_identifier(self.field_name),
                 Integer,
-                ForeignKey(d.fk_ref(self.other_table.name, f"pk_{self.other_table.name}")),
+                ForeignKey(
+                    d.fk_ref(self.other_table.name, f"pk_{self.other_table.name}")
+                ),
                 key=self.field_name,
             )
 
@@ -105,19 +107,30 @@ class DataModelRelationN(DataModelRelation):
         prefix = f"temp_{self.table.temp_prefix}_"
         if self.other_table.is_reused:
             d = self.data_model.dialect
-            db_rel = d.db_identifier(self.rel_table_name)
             fk_self_logical = f"fk_{self.table.name}"
             fk_other_logical = f"fk_{self.other_table.name}"
             temp_fk_self_logical = f"temp_fk_{self.table.name}"
             temp_fk_other_logical = f"temp_fk_{self.other_table.name}"
 
             self.temp_rel_table = Table(
-                f"{prefix}{db_rel}",
+                d.db_identifier(f"{prefix}{self.rel_table_name}"),
                 self.table.metadata,
-                Column(d.db_identifier(temp_fk_self_logical), Integer, nullable=False, key=temp_fk_self_logical),
+                Column(
+                    d.db_identifier(temp_fk_self_logical),
+                    Integer,
+                    nullable=False,
+                    key=temp_fk_self_logical,
+                ),
                 Column(d.db_identifier(fk_self_logical), Integer, key=fk_self_logical),
-                Column(d.db_identifier(temp_fk_other_logical), Integer, nullable=False, key=temp_fk_other_logical),
-                Column(d.db_identifier(fk_other_logical), Integer, key=fk_other_logical),
+                Column(
+                    d.db_identifier(temp_fk_other_logical),
+                    Integer,
+                    nullable=False,
+                    key=temp_fk_other_logical,
+                ),
+                Column(
+                    d.db_identifier(fk_other_logical), Integer, key=fk_other_logical
+                ),
                 *(
                     (
                         Column(
@@ -140,7 +153,7 @@ class DataModelRelationN(DataModelRelation):
             )
 
             self.rel_table = Table(
-                db_rel,
+                d.db_identifier(self.rel_table_name),
                 self.table.metadata,
                 Column(
                     d.db_identifier(fk_self_logical),
@@ -153,7 +166,9 @@ class DataModelRelationN(DataModelRelation):
                 Column(
                     d.db_identifier(fk_other_logical),
                     Integer,
-                    ForeignKey(d.fk_ref(self.other_table.name, f"pk_{self.other_table.name}")),
+                    ForeignKey(
+                        d.fk_ref(self.other_table.name, f"pk_{self.other_table.name}")
+                    ),
                     nullable=False,
                     index=True,
                     key=fk_other_logical,

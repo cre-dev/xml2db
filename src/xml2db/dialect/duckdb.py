@@ -20,7 +20,8 @@ class DuckDBDialect(DatabaseDialect):
       around ``CREATE SCHEMA``.
     """
 
-    MAX_IDENTIFIER_LENGTH: int = 1024
+    # this limit comes from the implementation with SQLAlchemy and not a constraint of duckdb per se
+    MAX_IDENTIFIER_LENGTH: int = 63
 
     def pk_column(self, table_name: str) -> Column:
         """Return a Sequence-based primary key column for DuckDB."""
@@ -37,6 +38,7 @@ class DuckDBDialect(DatabaseDialect):
 
     def create_schema(self, engine: Any, schema_name: str) -> None:
         """Create a schema using try/except, as required by DuckDB."""
+
         def do_create() -> None:
             with engine.connect() as conn:
                 conn.execute(sqlalchemy.schema.CreateSchema(schema_name))

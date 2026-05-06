@@ -79,16 +79,16 @@ table, or a child table.
 ### Data types
 
 By default, the data type defined in the database table for each column is based on a mapping between the data type 
-indicated in the XSD and a corresponding `sqlalchemy` type implemented in the following three functions:
+indicated in the XSD and a corresponding `sqlalchemy` type implemented in the following three methods:
 
-??? info "Default: `types_mapping_default`"
-    ::: xml2db.table.column.types_mapping_default
+??? info "Default: `DatabaseDialect.column_type`"
+    ::: xml2db.dialect.base.DatabaseDialect.column_type
 
-??? info "MySQL: `types_mapping_mysql`"
-    ::: xml2db.table.column.types_mapping_mysql
+??? info "MySQL: `MySQLDialect.column_type`"
+    ::: xml2db.dialect.mysql.MySQLDialect.column_type
 
-??? info "MSSQL: `types_mapping_mssql`"
-    ::: xml2db.table.column.types_mapping_mssql
+??? info "MSSQL: `MSSQLDialect.column_type`"
+    ::: xml2db.dialect.mssql.MSSQLDialect.column_type
 
 You may override this mapping by specifying a column type for any field in the model config. Custom column types are 
 defined as `sqlalchemy` types and will be passed to the `sqlalchemy.Column` constructor as is.

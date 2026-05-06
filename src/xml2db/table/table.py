@@ -117,12 +117,6 @@ class DataModelTable:
 
         return config
 
-    def db_name(self) -> str:
-        return self.data_model.dialect.db_identifier(self.name)
-
-    def db_col_name(self, logical: str) -> str:
-        return self.data_model.dialect.db_identifier(logical)
-    
     def add_column(
         self,
         name: str,

@@ -31,13 +31,13 @@ CREATE TABLE orderperson (
 )
 
 
-CREATE TABLE intfeature (
-	pk_intfeature INTEGER NOT NULL IDENTITY, 
+CREATE TABLE intfeature_with_peculiarly_long_suffix_which_overflow_max_length (
+	pk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length INTEGER NOT NULL IDENTITY, 
 	id VARCHAR(1000) NULL, 
 	value INTEGER NULL, 
 	xml2db_record_hash BINARY(20) NULL, 
-	CONSTRAINT cx_pk_intfeature PRIMARY KEY CLUSTERED (pk_intfeature), 
-	CONSTRAINT intfeature_xml2db_record_hash UNIQUE (xml2db_record_hash)
+	CONSTRAINT cx_pk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length PRIMARY KEY CLUSTERED (pk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length), 
+	CONSTRAINT intfeature_with_peculia_0c087_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -61,11 +61,11 @@ CREATE TABLE product (
 )
 
 
-CREATE TABLE product_features_intfeature (
+CREATE TABLE product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length (
 	fk_product INTEGER NOT NULL, 
-	fk_intfeature INTEGER NOT NULL, 
+	fk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length INTEGER NOT NULL, 
 	FOREIGN KEY(fk_product) REFERENCES product (pk_product), 
-	FOREIGN KEY(fk_intfeature) REFERENCES intfeature (pk_intfeature)
+	FOREIGN KEY(fk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length) REFERENCES intfeature_with_peculiarly_long_suffix_which_overflow_max_length (pk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length)
 )
 
 
@@ -124,9 +124,9 @@ CREATE TABLE shiporder_item (
 	FOREIGN KEY(fk_item) REFERENCES item (pk_item)
 )
 
-CREATE CLUSTERED INDEX ix_fk_product_features_intfeature ON product_features_intfeature (fk_product, fk_intfeature)
+CREATE CLUSTERED INDEX ix_fk_product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length ON product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length (fk_product, fk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length)
 
-CREATE INDEX ix_product_features_intfeature_fk_intfeature ON product_features_intfeature (fk_intfeature)
+CREATE INDEX ix_product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length_fk_intfeature_with_peculiarly_long__3ab3 ON product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length (fk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length)
 
 CREATE CLUSTERED INDEX ix_fk_product_features_stringfeature ON product_features_stringfeature (fk_product, fk_stringfeature)
 

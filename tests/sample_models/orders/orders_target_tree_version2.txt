@@ -35,7 +35,7 @@ orders:
             product[1, 1]:
                 name[1, 1]: string
                 version[1, 1]: string
-                features_intfeature[0, None]:
+                features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length[0, None]:
                     id[1, 1]: string
                     value[1, 1]: integer
                 features_stringfeature[0, None]:

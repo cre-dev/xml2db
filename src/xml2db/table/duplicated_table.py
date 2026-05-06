@@ -39,6 +39,7 @@ class DataModelTableDuplicated(DataModelTableTransformed):
             return
 
         prefix = f"temp_{self.temp_prefix}_"
+        d = self.data_model.dialect
 
         def get_col(temp=False) -> Iterable[Column]:
             """Generator function to build sqlalchemy Column objects
@@ -46,7 +47,7 @@ class DataModelTableDuplicated(DataModelTableTransformed):
             Args:
                 temp: are we targeting temp or target table?
             """
-            d = self.data_model.dialect
+
             # temp primary key which is used also in the final table to update back target pk
             if temp or self.referenced_as_fk:
                 logical = f"temp_pk_{self.name}"
@@ -91,11 +92,11 @@ class DataModelTableDuplicated(DataModelTableTransformed):
         )
         pk_col = self.data_model.dialect.pk_column(self.name)
         self.table = Table(
-            self.db_name(),
+            d.db_identifier(self.name),
             self.metadata,
             pk_col,
             PrimaryKeyConstraint(
-                name=self.db_col_name(f"cx_pk_{self.name}"),
+                name=d.db_identifier(f"cx_pk_{self.name}"),
                 mssql_clustered=not self.config["as_columnstore"],
             ),
             *get_col(),
@@ -109,9 +110,9 @@ class DataModelTableDuplicated(DataModelTableTransformed):
         # build temporary table
         logical_pk = f"pk_{self.name}"
         self.temp_table = Table(
-            f"{prefix}{self.db_name()}",
+            d.db_identifier(f"{prefix}{self.name}"),
             self.metadata,
-            Column(self.db_col_name(logical_pk), Integer, key=logical_pk),
+            Column(d.db_identifier(logical_pk), Integer, key=logical_pk),
             *get_col(temp=True),
             Column("temp_exists", Boolean, default=False),
         )

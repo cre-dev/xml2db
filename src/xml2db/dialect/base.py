@@ -43,7 +43,7 @@ class DatabaseDialect:
     # Identifier handling
     # ------------------------------------------------------------------
 
-    def db_identifier(self, logical_name: str) -> str:
+    def db_identifier(self, logical_name: str, temp_prefix: bool = False) -> str:
         """Return the physical database identifier for a logical name.
 
         Names longer than :attr:`MAX_IDENTIFIER_LENGTH` are truncated using a
@@ -53,15 +53,20 @@ class DatabaseDialect:
         Args:
             logical_name: The full logical name used inside the Python model
                 (e.g. ``"very_long_table_name_derived_from_xsd"``).
+            temp_prefix: Should we save 14 more characters for the temp prefix?
 
         Returns:
             A string that is safe to use as a database identifier for this
             backend. Guaranteed to be stable across calls with the same input.
         """
-        if len(logical_name) <= self.MAX_IDENTIFIER_LENGTH:
+        max_len = self.MAX_IDENTIFIER_LENGTH
+        if temp_prefix:
+            max_len += 14
+
+        if len(logical_name) <= max_len:
             return logical_name
         suffix = "_" + hashlib.md5(logical_name.encode()).hexdigest()[:7]
-        return logical_name[: self.MAX_IDENTIFIER_LENGTH - len(suffix)] + suffix
+        return logical_name[: max_len - len(suffix)] + suffix
 
     def fk_ref(self, table_logical: str, col_logical: str) -> str:
         """Return a ``"table.column"`` string for use in a ``ForeignKey(...)`` call.
@@ -165,7 +170,13 @@ class DatabaseDialect:
             primary key.
         """
         logical = f"pk_{table_name}"
-        return Column(self.db_identifier(logical), Integer, key=logical, primary_key=True, autoincrement=True)
+        return Column(
+            self.db_identifier(logical),
+            Integer,
+            key=logical,
+            primary_key=True,
+            autoincrement=True,
+        )
 
     def pk_constraint(self, table_name: str, **kwargs: Any) -> PrimaryKeyConstraint:
         """Return the ``PrimaryKeyConstraint`` for a target table.

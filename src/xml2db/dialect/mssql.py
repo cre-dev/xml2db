@@ -1,6 +1,6 @@
 from typing import Any, List, TYPE_CHECKING
 
-from sqlalchemy import Column, Integer, Index
+from sqlalchemy import Index
 from sqlalchemy.dialects import mssql as mssql_dialect
 
 from .base import DatabaseDialect
@@ -53,11 +53,13 @@ class MSSQLDialect(DatabaseDialect):
 
     def extra_indexes(self, table_name: str, config: dict) -> List[Index]:
         if config.get("as_columnstore"):
-            return [Index(
-                self.db_identifier(f"idx_{table_name}_columnstore"),
-                mssql_clustered=True,
-                mssql_columnstore=True,
-            )]
+            return [
+                Index(
+                    self.db_identifier(f"idx_{table_name}_columnstore"),
+                    mssql_clustered=True,
+                    mssql_columnstore=True,
+                )
+            ]
         return []
 
     def relation_extra_indexes(

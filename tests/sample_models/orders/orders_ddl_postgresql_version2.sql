@@ -31,13 +31,13 @@ CREATE TABLE orderperson (
 )
 
 
-CREATE TABLE intfeature (
-	pk_intfeature SERIAL NOT NULL, 
+CREATE TABLE intfeature_with_peculiarly_long_suffix_which_overflow_m_5868736 (
+	pk_intfeature_with_peculiarly_long_suffix_which_overflo_85b659b SERIAL NOT NULL, 
 	id VARCHAR(1000), 
 	value INTEGER, 
 	xml2db_record_hash BYTEA, 
-	CONSTRAINT cx_pk_intfeature PRIMARY KEY (pk_intfeature), 
-	CONSTRAINT intfeature_xml2db_record_hash UNIQUE (xml2db_record_hash)
+	CONSTRAINT cx_pk_intfeature_with_peculiarly_long_suffix_which_over_ecb17be PRIMARY KEY (pk_intfeature_with_peculiarly_long_suffix_which_overflo_85b659b), 
+	CONSTRAINT intfeature_with_peculia_0c087_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -61,11 +61,11 @@ CREATE TABLE product (
 )
 
 
-CREATE TABLE product_features_intfeature (
+CREATE TABLE product_features_intfeature_with_peculiarly_long_suffix_82a4847 (
 	fk_product INTEGER NOT NULL, 
-	fk_intfeature INTEGER NOT NULL, 
+	fk_intfeature_with_peculiarly_long_suffix_which_overflo_00590e9 INTEGER NOT NULL, 
 	FOREIGN KEY(fk_product) REFERENCES product (pk_product), 
-	FOREIGN KEY(fk_intfeature) REFERENCES intfeature (pk_intfeature)
+	FOREIGN KEY(fk_intfeature_with_peculiarly_long_suffix_which_overflo_00590e9) REFERENCES intfeature_with_peculiarly_long_suffix_which_overflow_m_5868736 (pk_intfeature_with_peculiarly_long_suffix_which_overflo_85b659b)
 )
 
 
@@ -124,9 +124,9 @@ CREATE TABLE shiporder_item (
 	FOREIGN KEY(fk_item) REFERENCES item (pk_item)
 )
 
-CREATE INDEX ix_product_features_intfeature_fk_intfeature ON product_features_intfeature (fk_intfeature)
+CREATE INDEX ix_product_features_intfeature_with_peculiarly_long_suf_63f4 ON product_features_intfeature_with_peculiarly_long_suffix_82a4847 (fk_intfeature_with_peculiarly_long_suffix_which_overflo_00590e9)
 
-CREATE INDEX ix_product_features_intfeature_fk_product ON product_features_intfeature (fk_product)
+CREATE INDEX ix_product_features_intfeature_with_peculiarly_long_suf_0375 ON product_features_intfeature_with_peculiarly_long_suffix_82a4847 (fk_product)
 
 CREATE INDEX ix_product_features_stringfeature_fk_product ON product_features_stringfeature (fk_product)
 

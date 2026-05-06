@@ -26,7 +26,7 @@ erDiagram
         decimal price
         string currency
     }
-    product ||--o{ intfeature : "features_intfeature*"
+    product ||--o{ intfeature_with_peculiarly_long_suffix_which_overflow_max_length : "features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length*"
     product ||--o{ stringfeature : "features_stringfeature*"
     product {
         string name
@@ -36,7 +36,7 @@ erDiagram
         string id
         string value
     }
-    intfeature {
+    intfeature_with_peculiarly_long_suffix_which_overflow_max_length {
         string id
         integer value
     }

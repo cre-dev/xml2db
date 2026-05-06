@@ -12,7 +12,7 @@ erDiagram
         string orderid
         dateTime processed_at
     }
-    item ||--o{ intfeature : "product_features_intfeature*"
+    item ||--o{ intfeature_with_peculiarly_long_suffix_which_overflow_max_length : "product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length*"
     item ||--o{ stringfeature : "product_features_stringfeature*"
     item {
         string product_name
@@ -26,7 +26,7 @@ erDiagram
         string id
         string value
     }
-    intfeature {
+    intfeature_with_peculiarly_long_suffix_which_overflow_max_length {
         string id
         integer value
     }

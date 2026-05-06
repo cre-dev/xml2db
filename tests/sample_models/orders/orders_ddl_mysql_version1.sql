@@ -21,13 +21,13 @@ CREATE TABLE orderperson (
 )
 
 
-CREATE TABLE intfeature (
-	pk_intfeature INTEGER NOT NULL AUTO_INCREMENT, 
+CREATE TABLE intfeature_with_peculiarly_long_suffix_which_overflow_max_length (
+	pk_intfeature_with_peculiarly_long_suffix_which_overflow_85b659b INTEGER NOT NULL AUTO_INCREMENT, 
 	id VARCHAR(255), 
 	value INTEGER, 
 	record_hash BINARY(16), 
-	CONSTRAINT cx_pk_intfeature PRIMARY KEY (pk_intfeature), 
-	CONSTRAINT intfeature_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT cx_pk_intfeature_with_peculiarly_long_suffix_which_overf_ecb17be PRIMARY KEY (pk_intfeature_with_peculiarly_long_suffix_which_overflow_85b659b), 
+	CONSTRAINT intfeature_with_peculia_0c087_xml2db_record_hash UNIQUE (record_hash)
 )
 
 
@@ -92,12 +92,12 @@ CREATE TABLE item (
 )
 
 
-CREATE TABLE item_product_features_intfeature (
+CREATE TABLE item_product_features_intfeature_with_peculiarly_long_su_779d1ac (
 	fk_item INTEGER NOT NULL, 
-	fk_intfeature INTEGER NOT NULL, 
+	fk_intfeature_with_peculiarly_long_suffix_which_overflow_00590e9 INTEGER NOT NULL, 
 	xml2db_row_number INTEGER NOT NULL, 
 	FOREIGN KEY(fk_item) REFERENCES item (pk_item), 
-	FOREIGN KEY(fk_intfeature) REFERENCES intfeature (pk_intfeature)
+	FOREIGN KEY(fk_intfeature_with_peculiarly_long_suffix_which_overflow_00590e9) REFERENCES intfeature_with_peculiarly_long_suffix_which_overflow_max_length (pk_intfeature_with_peculiarly_long_suffix_which_overflow_85b659b)
 )
 
 
@@ -113,9 +113,9 @@ CREATE INDEX ix_orders_shiporder_fk_orders ON orders_shiporder (fk_orders)
 
 CREATE INDEX ix_orders_shiporder_fk_shiporder ON orders_shiporder (fk_shiporder)
 
-CREATE INDEX ix_item_product_features_intfeature_fk_intfeature ON item_product_features_intfeature (fk_intfeature)
+CREATE INDEX ix_item_product_features_intfeature_with_peculiarly_long_eab0 ON item_product_features_intfeature_with_peculiarly_long_su_779d1ac (fk_intfeature_with_peculiarly_long_suffix_which_overflow_00590e9)
 
-CREATE INDEX ix_item_product_features_intfeature_fk_item ON item_product_features_intfeature (fk_item)
+CREATE INDEX ix_item_product_features_intfeature_with_peculiarly_long_ad39 ON item_product_features_intfeature_with_peculiarly_long_su_779d1ac (fk_item)
 
 CREATE INDEX ix_item_product_features_stringfeature_fk_item ON item_product_features_stringfeature (fk_item)
 

@@ -45,7 +45,7 @@ orders:
                 name[1, 1]: string
                 version[1, 1]: string
                 features[0, 1]:
-                    intfeature[0, None]:
+                    intfeature_with_peculiarly_long_suffix_which_overflow_max_length[0, None]:
                         id[1, 1]: string
                         value[1, 1]: integer
                     stringfeature[0, None]:

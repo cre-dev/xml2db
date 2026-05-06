@@ -46,6 +46,7 @@ class DataModelTableReused(DataModelTableTransformed):
             return
 
         prefix = f"temp_{self.temp_prefix}_"
+        d = self.data_model.dialect
 
         # build target table and n-n relations tables
         def get_col(temp=False):
@@ -96,14 +97,14 @@ class DataModelTableReused(DataModelTableTransformed):
             else self.config.get("extra_args", [])
         )
 
-        pk_col = self.data_model.dialect.pk_column(self.name)
+        pk_col = d.pk_column(self.name)
 
         self.table = Table(
-            self.db_name(),
+            d.db_identifier(self.name),
             self.metadata,
             pk_col,
             PrimaryKeyConstraint(
-                name=self.db_col_name(f"cx_pk_{self.name}"),
+                name=d.db_identifier(f"cx_pk_{self.name}"),
                 mssql_clustered=not self.config["as_columnstore"],
             ),
             *get_col(),
@@ -118,11 +119,11 @@ class DataModelTableReused(DataModelTableTransformed):
         logical_pk = f"pk_{self.name}"
         logical_temp_pk = f"temp_pk_{self.name}"
         self.temp_table = Table(
-            f"{prefix}{self.db_name()}",
+            d.db_identifier(f"{prefix}{self.name}"),
             self.metadata,
-            Column(self.db_col_name(logical_pk), Integer, key=logical_pk),
+            Column(d.db_identifier(logical_pk), Integer, key=logical_pk),
             Column(
-                self.db_col_name(logical_temp_pk),
+                d.db_identifier(logical_temp_pk),
                 Integer,
                 primary_key=True,
                 autoincrement=False,
