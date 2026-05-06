@@ -1,131 +1,12 @@
 import logging
 from typing import List, Iterable, Any, Union, TYPE_CHECKING
 
-from sqlalchemy import (
-    Integer,
-    Double,
-    Boolean,
-    BigInteger,
-    SmallInteger,
-    Column,
-    DateTime,
-    String,
-    LargeBinary,
-)
-from sqlalchemy.dialects import mssql, mysql
+from sqlalchemy import Column
 
 if TYPE_CHECKING:
     from ..model import DataModel
 
 logger = logging.getLogger(__name__)
-
-
-def types_mapping_default(temp: bool, col: "DataModelColumn") -> Any:
-    """Defines the sqlalchemy type to use for given column properties in target tables
-
-    Args:
-        temp: are we targeting the temporary tables schema or the final tables?
-        col: an object representing a column of a table for which we are determining the SQL type to define
-
-    Returns:
-        a sqlalchemy class representing the data type to be used
-    """
-    if col.occurs[1] != 1:
-        return String(8000)
-    if col.data_type in ["decimal", "float", "double"]:
-        return Double
-    if col.data_type == "dateTime":
-        return DateTime(timezone=True)
-    if col.data_type in [
-        "integer",
-        "int",
-        "nonPositiveInteger",
-        "nonNegativeInteger",
-        "positiveInteger",
-        "negativeInteger",
-    ]:
-        return Integer
-    if col.data_type == "boolean":
-        return Boolean
-    if col.data_type in ["short", "byte"]:
-        return SmallInteger
-    if col.data_type == "long":
-        return BigInteger
-    if col.data_type == "date":
-        return String(16)
-    if col.data_type == "time":
-        return String(18)
-    if col.data_type in ["string", "NMTOKEN", "duration", "token"]:
-        if col.max_length is None:
-            return String(1000)
-        min_length = 0 if col.min_length is None else col.min_length
-        if min_length >= col.max_length - 1 and not col.allow_empty:
-            return String(col.max_length)
-        return String(col.max_length)
-    if col.data_type == "binary":
-        return LargeBinary(col.max_length)
-    else:
-        logger.warning(
-            f"unknown type '{col.data_type}' for column '{col.name}', defaulting to VARCHAR(1000) "
-            f"(this can be overridden by providing a field type in the configuration)"
-        )
-        return String(1000)
-
-
-def types_mapping_mssql(temp: bool, col: "DataModelColumn") -> Any:
-    """Defines the MSSQL type to use for given column properties in target tables
-
-    Args:
-        temp: are we targeting the temporary tables schema or the final tables?
-        col: an object representing a column of a table for which we are determining the SQL type to define
-
-    Returns:
-        a sqlalchemy class representing the data type to be used
-    """
-    if col.occurs[1] != 1:
-        return mssql.VARCHAR(8000)
-    if col.data_type == "dateTime":
-        # using the DATETIMEOFFSET directly in the temporary table caused issues when inserting data in the target
-        # table with INSERT INTO SELECT converts datetime VARCHAR to DATETIMEOFFSET without errors
-        return mssql.VARCHAR(100) if temp else mssql.DATETIMEOFFSET
-    if col.data_type == "date":
-        return mssql.VARCHAR(16)
-    if col.data_type == "time":
-        return mssql.VARCHAR(18)
-    if col.data_type in ["string", "NMTOKEN", "duration", "token"]:
-        if col.max_length is None:
-            return mssql.VARCHAR(1000)
-        min_length = 0 if col.min_length is None else col.min_length
-        if min_length >= col.max_length - 1 and not col.allow_empty:
-            return mssql.CHAR(col.max_length)
-        return mssql.VARCHAR(col.max_length)
-    if col.data_type == "binary":
-        if col.max_length == col.min_length:
-            return mssql.BINARY(col.max_length)
-        return mssql.VARBINARY(col.max_length)
-    return types_mapping_default(temp, col)
-
-
-def types_mapping_mysql(temp: bool, col: "DataModelColumn") -> Any:
-    """Defines the MySQL/sqlalchemy type to use for given column properties in target tables
-
-    Args:
-        temp: are we targeting the temporary tables schema or the final tables?
-        col: an object representing a column of a table for which we are determining the SQL type to define
-
-    Returns:
-        a sqlalchemy class representing the data type to be used
-    """
-    if col.occurs[1] != 1:
-        return String(4000)
-    if col.data_type in ["string", "NMTOKEN", "duration", "token"]:
-        if col.max_length is None:
-            return String(255)
-    if col.data_type == "binary":
-        if col.max_length == col.min_length:
-            return mysql.BINARY(col.max_length)
-        return mysql.VARBINARY(col.max_length)
-    return types_mapping_default(temp, col)
 
 
 class DataModelColumn:
@@ -181,15 +62,6 @@ class DataModelColumn:
         self.model_config = model_config
         self.data_model = data_model
         self.other_table = None  # just to avoid a linting warning
-        self.types_mapping = (
-            types_mapping_mssql
-            if data_model.db_type == "mssql"
-            else (
-                types_mapping_mysql
-                if data_model.db_type == "mysql"
-                else types_mapping_default
-            )
-        )
 
     @property
     def can_join_values_as_string(self):
@@ -228,6 +100,6 @@ class DataModelColumn:
         # use type specified in config if exists
         column_type = self.model_config.get("fields", {}).get(self.name, {}).get(
             "type"
-        ) or self.types_mapping(temp, self)
-
-        yield Column(self.name, column_type)
+        ) or self.data_model.dialect.column_type(self, temp)
+        db_col = self.data_model.dialect.db_identifier(self.name)
+        yield Column(db_col, column_type, key=self.name)

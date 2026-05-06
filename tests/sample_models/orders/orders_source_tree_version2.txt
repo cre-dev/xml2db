@@ -21,6 +21,7 @@ orders:
                 lei[0, 1]: string
             coordinates[0, 1]: string
             extra[0, 1]:
+            a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length[0, 1]: string
         shipto[0, 1]:
             name_attr[0, 1]: string
             name[1, 1]: string
@@ -38,12 +39,13 @@ orders:
                 lei[0, 1]: string
             coordinates[0, 1]: string
             extra[0, 1]:
+            a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length[0, 1]: string
         item[1, None]:
             product[1, 1]:
                 name[1, 1]: string
                 version[1, 1]: string
                 features[0, 1]:
-                    intfeature[0, None]:
+                    intfeature_with_peculiarly_long_suffix_which_overflow_max_length[0, None]:
                         id[1, 1]: string
                         value[1, 1]: integer
                     stringfeature[0, None]:

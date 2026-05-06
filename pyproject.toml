@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xml2db"
-version = "0.12.6"
+version = "0.13.0"
 authors = [
   { name="Commission de régulation de l'énergie", email="opensource@cre.fr" },
 ]
 description = "Import complex XML files to a relational database"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",

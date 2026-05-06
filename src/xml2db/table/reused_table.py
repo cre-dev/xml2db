@@ -4,12 +4,10 @@ from sqlalchemy import (
     Table,
     Column,
     Integer,
-    Index,
     PrimaryKeyConstraint,
     UniqueConstraint,
     Boolean,
     select,
-    Sequence,
 )
 
 from .column import DataModelColumn
@@ -48,6 +46,7 @@ class DataModelTableReused(DataModelTableTransformed):
             return
 
         prefix = f"temp_{self.temp_prefix}_"
+        d = self.data_model.dialect
 
         # build target table and n-n relations tables
         def get_col(temp=False):
@@ -98,49 +97,37 @@ class DataModelTableReused(DataModelTableTransformed):
             else self.config.get("extra_args", [])
         )
 
-        if self.data_model.db_type == "duckdb":
-            pk_sequence = Sequence(f"pk_sequ_{self.name}")
-            pk_col = Column(
-                f"pk_{self.name}",
-                Integer,
-                pk_sequence,
-                server_default=pk_sequence.next_value(),
-                primary_key=True,
-            )
-        else:
-            pk_col = Column(
-                f"pk_{self.name}", Integer, primary_key=True, autoincrement=True
-            )
+        pk_col = d.pk_column(self.name)
 
         self.table = Table(
-            self.name,
+            d.db_identifier(self.name),
             self.metadata,
             pk_col,
             PrimaryKeyConstraint(
-                name=f"cx_pk_{self.name}",
+                name=d.db_identifier(f"cx_pk_{self.name}"),
                 mssql_clustered=not self.config["as_columnstore"],
             ),
             *get_col(),
             *extra_args,
         )
 
-        # set columnstore index
-        if self.config["as_columnstore"]:
-            self.table.append_constraint(
-                Index(
-                    f"idx_{self.name}_columnstore",
-                    mssql_clustered=True,
-                    mssql_columnstore=True,
-                )
-            )
+        # set backend-specific extra indexes (e.g. columnstore)
+        for idx in self.data_model.dialect.extra_indexes(self.name, self.config):
+            self.table.append_constraint(idx)
 
         # build temporary table
+        logical_pk = f"pk_{self.name}"
+        logical_temp_pk = f"temp_pk_{self.name}"
         self.temp_table = Table(
-            f"{prefix}{self.name}",
+            d.db_identifier(f"{prefix}{self.name}"),
             self.metadata,
-            Column(f"pk_{self.name}", Integer),
+            Column(d.db_identifier(logical_pk), Integer, key=logical_pk),
             Column(
-                f"temp_pk_{self.name}", Integer, primary_key=True, autoincrement=False
+                d.db_identifier(logical_temp_pk),
+                Integer,
+                primary_key=True,
+                autoincrement=False,
+                key=logical_temp_pk,
             ),
             *get_col(temp=True),
             Column("temp_exists", Boolean, default=False),

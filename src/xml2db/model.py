@@ -9,11 +9,11 @@ import hashlib
 import xmlschema
 import sqlalchemy
 from lxml import etree
-from sqlalchemy import MetaData, create_engine, inspect
+from sqlalchemy import MetaData, create_engine
 from sqlalchemy.sql.ddl import CreateIndex, CreateTable
-from sqlalchemy.exc import ProgrammingError
 from graphlib import TopologicalSorter
 
+from .dialect import get_dialect
 from .document import Document
 from .exceptions import DataModelConfigError, check_type
 from .table import (
@@ -54,6 +54,7 @@ class DataModel:
         lxml_schema: The `lxml.etree.XMLSchema` object associated with this data model
         data_flow_name: A short identifier used for the data model (`short_name` argument value)
         data_flow_long_name: A longer for the data model (`long_name` argument value)
+        dialect: A dialect class to manage db-specific behaviours
         db_schema: A database schema name to store the database tables
         source_tree: A text representation of the source data model tree
         target_tree: A text representation of the simplified data model tree which will be used to create target tables
@@ -117,6 +118,8 @@ class DataModel:
                 )
             self.db_type = self.engine.dialect.name
 
+        self.dialect = get_dialect(self.db_type)
+        self.model_config = self.dialect.validate_model_config(self.model_config)
         self.db_schema = db_schema
         self.temp_prefix = str(uuid4())[:8] if temp_prefix is None else temp_prefix
 
@@ -151,12 +154,6 @@ class DataModel:
                 ("metadata_columns", list, []),
             ]
         }
-        if model_config["as_columnstore"] and self.db_type == "mssql":
-            model_config["as_columnstore"] = False
-            logger.info(
-                "Clustered columnstore indexes are only supported with MS SQL Server database, noop"
-            )
-
         return model_config
 
     @property
@@ -659,23 +656,8 @@ class DataModel:
         You do not have to call this method explicitly when using
             [`Document.insert_into_target_tables()`](document.md#xml2db.document.Document.insert_into_target_tables).
         """
-
-        def do_create_schema():
-            with self.engine.connect() as conn:
-                conn.execute(sqlalchemy.schema.CreateSchema(self.db_schema))
-                conn.commit()
-
         if self.db_schema is not None:
-            if self.db_type == "duckdb":
-                try:
-                    do_create_schema()
-                except ProgrammingError:
-                    pass
-            else:
-                inspector = inspect(self.engine)
-                if self.db_schema not in inspector.get_schema_names():
-                    do_create_schema()
-
+            self.dialect.create_schema(self.engine, self.db_schema)
             logger.info(f"Created schema: {self.db_schema}")
 
     def drop_all_tables(self):

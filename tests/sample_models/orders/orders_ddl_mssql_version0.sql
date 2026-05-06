@@ -13,19 +13,20 @@ CREATE TABLE orderperson (
 	[companyId_type] CHAR(3) NULL, 
 	[companyId_value] VARCHAR(1000) NULL, 
 	coordinates VARCHAR(1000) NULL, 
+	a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length VARCHAR(1000) NULL, 
 	record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY CLUSTERED (pk_orderperson), 
 	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (record_hash)
 )
 
 
-CREATE TABLE intfeature (
-	pk_intfeature INTEGER NOT NULL IDENTITY, 
+CREATE TABLE intfeature_with_peculiarly_long_suffix_which_overflow_max_length (
+	pk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length INTEGER NOT NULL IDENTITY, 
 	id VARCHAR(1000) NULL, 
 	value INTEGER NULL, 
 	record_hash BINARY(20) NULL, 
-	CONSTRAINT cx_pk_intfeature PRIMARY KEY CLUSTERED (pk_intfeature), 
-	CONSTRAINT intfeature_xml2db_record_hash UNIQUE (record_hash)
+	CONSTRAINT cx_pk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length PRIMARY KEY CLUSTERED (pk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length), 
+	CONSTRAINT intfeature_with_peculia_0c087_xml2db_record_hash UNIQUE (record_hash)
 )
 
 
@@ -53,11 +54,11 @@ CREATE TABLE item (
 )
 
 
-CREATE TABLE item_product_features_intfeature (
+CREATE TABLE item_product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length (
 	fk_item INTEGER NOT NULL, 
-	fk_intfeature INTEGER NOT NULL, 
+	fk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length INTEGER NOT NULL, 
 	FOREIGN KEY(fk_item) REFERENCES item (pk_item), 
-	FOREIGN KEY(fk_intfeature) REFERENCES intfeature (pk_intfeature)
+	FOREIGN KEY(fk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length) REFERENCES intfeature_with_peculiarly_long_suffix_which_overflow_max_length (pk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length)
 )
 
 
@@ -109,9 +110,9 @@ CREATE TABLE orders_shiporder (
 	FOREIGN KEY(fk_shiporder) REFERENCES shiporder (pk_shiporder)
 )
 
-CREATE CLUSTERED INDEX ix_fk_item_product_features_intfeature ON item_product_features_intfeature (fk_item, fk_intfeature)
+CREATE CLUSTERED INDEX ix_fk_item_product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length ON item_product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length (fk_item, fk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length)
 
-CREATE INDEX ix_item_product_features_intfeature_fk_intfeature ON item_product_features_intfeature (fk_intfeature)
+CREATE INDEX ix_item_product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length_fk_intfeature_with_peculiarly__7aff ON item_product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length (fk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length)
 
 CREATE CLUSTERED INDEX ix_fk_item_product_features_stringfeature ON item_product_features_stringfeature (fk_item, fk_stringfeature)
 

@@ -19,18 +19,18 @@
         <name>product 1</name>
         <version>regular</version>
         <features>
-          <intfeature>
+          <intfeature_with_peculiarly_long_suffix_which_overflow_max_length>
             <id>length</id>
             <value>60</value>
-          </intfeature>
-          <intfeature>
+          </intfeature_with_peculiarly_long_suffix_which_overflow_max_length>
+          <intfeature_with_peculiarly_long_suffix_which_overflow_max_length>
             <id>width</id>
             <value>40</value>
-          </intfeature>
-          <intfeature>
+          </intfeature_with_peculiarly_long_suffix_which_overflow_max_length>
+          <intfeature_with_peculiarly_long_suffix_which_overflow_max_length>
             <id>weight</id>
             <value>10</value>
-          </intfeature>
+          </intfeature_with_peculiarly_long_suffix_which_overflow_max_length>
           <stringfeature>
             <id>color</id>
             <value>red</value>
