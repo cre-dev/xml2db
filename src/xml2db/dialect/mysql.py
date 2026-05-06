@@ -15,7 +15,8 @@ class MySQLDialect(DatabaseDialect):
     MySQL enforces a 64-character limit on identifiers.
     """
 
-    MAX_IDENTIFIER_LENGTH: int = 64
+    # further reducing the max length because SQL Alchemy adds suffixes to foreign key names
+    MAX_IDENTIFIER_LENGTH: int = 56
 
     def column_type(self, col: "DataModelColumn", temp: bool) -> Any:
         if col.occurs[1] != 1:
