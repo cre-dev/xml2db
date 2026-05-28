@@ -56,10 +56,8 @@ class Document:
             skip_validation: Should we validate the document against the schema first?
             iterparse: Parse XML using iterative parsing, which is a bit slower but uses less memory
             recover: Should we try to parse incorrect XML? (argument passed to lxml parser)
-            flat_data: An existing `document.data` dict from a previously parsed document. When provided, records
-                from this XML file are appended to it rather than starting fresh, allowing multiple files to be
-                accumulated in memory and inserted together with a single
-                [`insert_into_target_tables`][xml2db.document.Document.insert_into_target_tables] call.
+            flat_data: A dict containing flat data if we want to add data to another dataset instead of creating
+                a new one
         """
         self.xml_file_path = xml_file[:255] if isinstance(xml_file, str) else "<stream>"
 

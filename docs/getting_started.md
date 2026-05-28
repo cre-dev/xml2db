@@ -127,8 +127,7 @@ troubleshooting if need be.
 !!! note "Loading multiple XML files in one database operation"
     By default, each `parse_xml` + `insert_into_target_tables` call is an independent database operation. When you have
     many small XML files to load, you can instead accumulate all of them in memory first and insert them in a single
-    batch. This reduces database round-trips and, for tables that use deduplication (the default), it also deduplicates
-    identical subtrees *across* all files rather than only within each file.
+    batch, which reduces the number of database round-trips.
 
     Pass the `flat_data` from the previous document into the next `parse_xml` call to accumulate records:
 
