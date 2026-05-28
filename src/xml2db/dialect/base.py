@@ -313,3 +313,22 @@ class DatabaseDialect:
                 "Clustered columnstore indexes are only supported with MS SQL Server database, noop"
             )
         return config
+
+    # ------------------------------------------------------------------
+    # Data loading
+    # ------------------------------------------------------------------
+
+    def bulk_insert(self, conn: Any, table: Any, records: list) -> None:
+        """Insert records into a staging table.
+
+        The base implementation uses SQLAlchemy's parameterised executemany,
+        which is backend-agnostic. Subclasses may override this with a
+        backend-specific bulk-loading strategy (e.g. COPY FROM CSV).
+
+        Args:
+            conn: A SQLAlchemy ``Connection`` already within a transaction.
+            table: The SQLAlchemy ``Table`` object to insert into.
+            records: A list of dicts mapping column keys to Python values.
+        """
+        if records:
+            conn.execute(table.insert(), records)

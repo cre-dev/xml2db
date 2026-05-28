@@ -393,7 +393,11 @@ class Document:
                 start_idx = 0
                 while start_idx < len(data):
                     with self.model.engine.begin() as conn:
-                        conn.execute(query, data[start_idx : (start_idx + max_lines)])
+                        self.model.dialect.bulk_insert(
+                            conn,
+                            query.table,
+                            data[start_idx : (start_idx + max_lines)],
+                        )
                     start_idx = start_idx + max_lines
 
     def merge_into_target_tables(self, single_transaction: bool = True) -> int:
