@@ -124,19 +124,29 @@ troubleshooting if need be.
     Actual values need to be passed to [`DataModel.parse_xml`](api/data_model.md#xml2db.model.DataModel.parse_xml) for 
     each parsed documents, as a `dict`, using the `metadata` argument.
 
-!!! note
-    You can also load multiple documents at the same time to the database, which could make the process faster if you 
-    have a lot of small XML files to load:
+!!! note "Loading multiple XML files in one database operation"
+    By default, each `parse_xml` + `insert_into_target_tables` call is an independent database operation. When you have
+    many small XML files to load, you can instead accumulate all of them in memory first and insert them in a single
+    batch. This reduces database round-trips and, for tables that use deduplication (the default), it also deduplicates
+    identical subtrees *across* all files rather than only within each file.
+
+    Pass the `flat_data` from the previous document into the next `parse_xml` call to accumulate records:
+
     ``` py
-    data = None
+    flat_data = None
     for xml_file in files:
         document = data_model.parse_xml(
-            xml_file="path/to/file.xml",
-            flat_data=data,
+            xml_file=xml_file,
+            metadata={"input_file_path": xml_file},
+            flat_data=flat_data,
         )
-        data = document.data
+        flat_data = document.data
     document.insert_into_target_tables()
     ```
+
+    Note that each file can carry its own `metadata` values (e.g. the file name or a loading timestamp), which will be
+    stored per root record in the columns defined by
+    [`metadata_columns`](configuring.md#model-configuration).
 
 
 
