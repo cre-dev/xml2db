@@ -5,11 +5,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-# Install with dev dependencies (add duckdb_engine pytz for DB tests)
+# Install with dev dependencies
 pip install -e .[tests,docs] duckdb_engine pytz
 
 # Run all tests including DB integration tests (uses in-memory DuckDB)
-DB_STRING="duckdb:///:memory:" python -m pytest
+TZ="Europe/Paris" DB_STRING="duckdb:///:memory:" python -m pytest
 
 # Run only non-database tests (no DB_STRING needed)
 pytest -m "not dbtest"
