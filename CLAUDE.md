@@ -5,20 +5,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-# Install with dev dependencies
-pip install -e .[tests,docs]
+# Install with dev dependencies (add duckdb_engine pytz for DB tests)
+pip install -e .[tests,docs] duckdb_engine pytz
 
-# Run all tests (skips DB tests if DB_STRING is not set)
-python -m pytest
+# Run all tests including DB integration tests (uses in-memory DuckDB)
+DB_STRING="duckdb:///:memory:" python -m pytest
 
-# Run only non-database tests
+# Run only non-database tests (no DB_STRING needed)
 pytest -m "not dbtest"
 
 # Run a single test file or test by name
 pytest tests/test_conversions.py
 pytest -k "test_iterative_recursive_parsing"
 
-# Run database integration tests (requires a running DB)
+# Run against a real database instead
 DB_STRING="postgresql+psycopg2://user:pass@localhost/testdb" pytest
 
 # Serve documentation locally
