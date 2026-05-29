@@ -53,6 +53,71 @@ flowchart TB
     end
 ```
 
+### Multiprocessing example
+
+XML parsing is CPU-bound and scales well across processes. Loading into the
+database, however, must be coordinated: DuckDB allows only **one active writer
+at a time** when multiple processes connect to the same database file, so all
+database I/O should be serialised.
+
+The pattern below keeps parsing parallel while serialising database access with
+a `multiprocessing.Lock`. Because every `DataModel` instance generates its own
+UUID-based `temp_prefix`, temporary tables are uniquely named per process and
+never collide with each other.
+
+```python
+import multiprocessing
+from xml2db import DataModel
+
+
+def load_one_file(xml_path, xsd_path, db_path, lock):
+    # Each process creates its own DataModel with a unique temp_prefix.
+    model = DataModel(
+        xsd_file=xsd_path,
+        connection_string=f"duckdb:///{db_path}",
+    )
+    # XML parsing is CPU-bound and runs in parallel across all processes.
+    doc = model.parse_xml(xml_path)
+
+    # Serialise all database I/O: DuckDB supports one writer at a time.
+    with lock:
+        doc.insert_into_target_tables()
+        # Dispose inside the lock so the file handle is released before
+        # the next process opens the database.
+        model.engine.dispose()
+
+
+if __name__ == "__main__":
+    xsd_path = "schema.xsd"
+    db_path = "data.duckdb"
+    xml_files = ["file1.xml", "file2.xml", "file3.xml"]
+
+    lock = multiprocessing.Lock()
+    processes = [
+        multiprocessing.Process(
+            target=load_one_file,
+            args=(xml_path, xsd_path, db_path, lock),
+        )
+        for xml_path in xml_files
+    ]
+    for p in processes:
+        p.start()
+    for p in processes:
+        p.join()
+        if p.exitcode != 0:
+            raise RuntimeError(f"Worker failed with exit code {p.exitcode}")
+```
+
+!!! Note
+    For databases that support concurrent writers (PostgreSQL, MS SQL Server),
+    only the merge step needs to be serialised. You can split the default
+    [`Document.insert_into_target_tables`](document.md/#xml2db.document.Document.insert_into_target_tables)
+    into separate calls to
+    [`Document.insert_into_temp_tables`](document.md/#xml2db.document.Document.insert_into_temp_tables)
+    (concurrent, safe because each process has a unique temp-table prefix) and
+    [`Document.merge_into_target_tables`](document.md/#xml2db.document.Document.merge_into_target_tables)
+    (serialised via lock).
+
 ## *Advanced use:* get data from the database back to XML
 
 The flow chart below presents data conversions used to get back data from the database into XML, showing the functions 
