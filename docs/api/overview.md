@@ -56,47 +56,49 @@ flowchart TB
 ### Multiprocessing example
 
 XML parsing is CPU-bound and scales well across processes. Loading into the
-database, however, must be coordinated: DuckDB allows only **one active writer
-at a time** when multiple processes connect to the same database file, so all
-database I/O should be serialised.
+database, however, must be coordinated to avoid conflicts on shared tables.
+The right level of synchronisation depends on the backend:
 
-The pattern below keeps parsing parallel while serialising database access with
-a `multiprocessing.Lock`. Because every `DataModel` instance generates its own
-UUID-based `temp_prefix`, temporary tables are uniquely named per process and
-never collide with each other.
+* **DuckDB (file-based)** — only one active writer is allowed at a time, so
+  all database I/O must be serialised.
+* **PostgreSQL, MS SQL Server, …** — concurrent writes to *different* temp
+  tables are safe (each process gets a unique temp-table prefix), but the final
+  merge into the shared target tables should be serialised.
+
+The simplest approach — and the one shown below — is to serialise the entire
+database phase with a `multiprocessing.Lock`, keeping only the parsing step
+parallel. This works correctly for all backends.
 
 ```python
 import multiprocessing
 from xml2db import DataModel
 
 
-def load_one_file(xml_path, xsd_path, db_path, lock):
+def load_one_file(xml_path, xsd_path, connection_string, lock):
     # Each process creates its own DataModel with a unique temp_prefix.
     model = DataModel(
         xsd_file=xsd_path,
-        connection_string=f"duckdb:///{db_path}",
+        connection_string=connection_string,
     )
     # XML parsing is CPU-bound and runs in parallel across all processes.
     doc = model.parse_xml(xml_path)
 
-    # Serialise all database I/O: DuckDB supports one writer at a time.
+    # Serialise all database I/O across processes.
     with lock:
         doc.insert_into_target_tables()
-        # Dispose inside the lock so the file handle is released before
-        # the next process opens the database.
         model.engine.dispose()
 
 
 if __name__ == "__main__":
     xsd_path = "schema.xsd"
-    db_path = "data.duckdb"
+    connection_string = "duckdb:///data.duckdb"
     xml_files = ["file1.xml", "file2.xml", "file3.xml"]
 
     lock = multiprocessing.Lock()
     processes = [
         multiprocessing.Process(
             target=load_one_file,
-            args=(xml_path, xsd_path, db_path, lock),
+            args=(xml_path, xsd_path, connection_string, lock),
         )
         for xml_path in xml_files
     ]
@@ -109,12 +111,13 @@ if __name__ == "__main__":
 ```
 
 !!! Note
-    For databases that support concurrent writers (PostgreSQL, MS SQL Server),
-    only the merge step needs to be serialised. You can split the default
+    For backends that support concurrent writers, you can increase throughput
+    by splitting
     [`Document.insert_into_target_tables`](document.md/#xml2db.document.Document.insert_into_target_tables)
     into separate calls to
     [`Document.insert_into_temp_tables`](document.md/#xml2db.document.Document.insert_into_temp_tables)
-    (concurrent, safe because each process has a unique temp-table prefix) and
+    (run concurrently — each process has a unique temp-table prefix so there
+    are no collisions) and
     [`Document.merge_into_target_tables`](document.md/#xml2db.document.Document.merge_into_target_tables)
     (serialised via lock).
 
