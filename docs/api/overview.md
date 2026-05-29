@@ -53,6 +53,74 @@ flowchart TB
     end
 ```
 
+### Multiprocessing example
+
+XML parsing is CPU-bound and scales well across processes. Loading into the
+database, however, must be coordinated to avoid conflicts on shared tables.
+The right level of synchronisation depends on the backend:
+
+* **DuckDB (file-based)** — only one active writer is allowed at a time, so
+  all database I/O must be serialised.
+* **PostgreSQL, MS SQL Server, …** — concurrent writes to *different* temp
+  tables are safe (each process gets a unique temp-table prefix), but the final
+  merge into the shared target tables should be serialised.
+
+The simplest approach — and the one shown below — is to serialise the entire
+database phase with a `multiprocessing.Lock`, keeping only the parsing step
+parallel. This works correctly for all backends.
+
+```python
+import multiprocessing
+from xml2db import DataModel
+
+
+def load_one_file(xml_path, xsd_path, connection_string, lock):
+    # Each process creates its own DataModel with a unique temp_prefix.
+    model = DataModel(
+        xsd_file=xsd_path,
+        connection_string=connection_string,
+    )
+    # XML parsing is CPU-bound and runs in parallel across all processes.
+    doc = model.parse_xml(xml_path)
+
+    # Serialise all database I/O across processes.
+    with lock:
+        doc.insert_into_target_tables()
+        model.engine.dispose()
+
+
+if __name__ == "__main__":
+    xsd_path = "schema.xsd"
+    connection_string = "duckdb:///data.duckdb"
+    xml_files = ["file1.xml", "file2.xml", "file3.xml"]
+
+    lock = multiprocessing.Lock()
+    processes = [
+        multiprocessing.Process(
+            target=load_one_file,
+            args=(xml_path, xsd_path, connection_string, lock),
+        )
+        for xml_path in xml_files
+    ]
+    for p in processes:
+        p.start()
+    for p in processes:
+        p.join()
+        if p.exitcode != 0:
+            raise RuntimeError(f"Worker failed with exit code {p.exitcode}")
+```
+
+!!! Note
+    For backends that support concurrent writers, you can increase throughput
+    by splitting
+    [`Document.insert_into_target_tables`](document.md/#xml2db.document.Document.insert_into_target_tables)
+    into separate calls to
+    [`Document.insert_into_temp_tables`](document.md/#xml2db.document.Document.insert_into_temp_tables)
+    (run concurrently — each process has a unique temp-table prefix so there
+    are no collisions) and
+    [`Document.merge_into_target_tables`](document.md/#xml2db.document.Document.merge_into_target_tables)
+    (serialised via lock).
+
 ## *Advanced use:* get data from the database back to XML
 
 The flow chart below presents data conversions used to get back data from the database into XML, showing the functions 
