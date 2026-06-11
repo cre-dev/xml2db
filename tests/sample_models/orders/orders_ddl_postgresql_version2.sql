@@ -84,10 +84,14 @@ CREATE TABLE item (
 	quantity INTEGER, 
 	price DOUBLE PRECISION, 
 	currency VARCHAR(3), 
+	delivery_from_fk_orderperson INTEGER, 
+	delivery_to_fk_orderperson INTEGER, 
 	xml2db_record_hash BYTEA, 
 	CONSTRAINT cx_pk_item PRIMARY KEY (pk_item), 
 	CONSTRAINT item_xml2db_record_hash UNIQUE (xml2db_record_hash), 
-	FOREIGN KEY(fk_product) REFERENCES product (pk_product)
+	FOREIGN KEY(fk_product) REFERENCES product (pk_product), 
+	FOREIGN KEY(delivery_from_fk_orderperson) REFERENCES orderperson (pk_orderperson), 
+	FOREIGN KEY(delivery_to_fk_orderperson) REFERENCES orderperson (pk_orderperson)
 )
 
 

@@ -55,3 +55,40 @@ orders:
             quantity[1, 1]: integer
             price[1, 1]: decimal
             currency[1, 1]: string
+            delivery[0, 1] (choice):
+                from[0, 1]:
+                    name_attr[0, 1]: string
+                    name[1, 1]: string
+                    address[1, 1]: string
+                    city[1, 1]: string
+                    zip[1, 1]:
+                        codingSystem[0, 1]: string
+                        state[0, 1]: string
+                        value[0, 1]: string
+                    country[1, 1]: string
+                    phoneNumber[0, None]: string
+                    companyId[0, 1] (choice):
+                        ace[0, 1]: string
+                        bic[0, 1]: string
+                        lei[0, 1]: string
+                    coordinates[0, 1]: string
+                    extra[0, 1]:
+                    a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length[0, 1]: string
+                to[0, 1]:
+                    name_attr[0, 1]: string
+                    name[1, 1]: string
+                    address[1, 1]: string
+                    city[1, 1]: string
+                    zip[1, 1]:
+                        codingSystem[0, 1]: string
+                        state[0, 1]: string
+                        value[0, 1]: string
+                    country[1, 1]: string
+                    phoneNumber[0, None]: string
+                    companyId[0, 1] (choice):
+                        ace[0, 1]: string
+                        bic[0, 1]: string
+                        lei[0, 1]: string
+                    coordinates[0, 1]: string
+                    extra[0, 1]:
+                    a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length[0, 1]: string

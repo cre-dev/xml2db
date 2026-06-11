@@ -71,6 +71,18 @@
         </xs:sequence>
     </xs:complexType>
 
+    <!-- deliveryType tests the case where the same element name and complex type appear
+         in two branches of a xs:choice (sequence branch and standalone branch) -->
+    <xs:complexType name="deliveryType">
+        <xs:choice>
+            <xs:sequence>
+                <xs:element name="from" type="contacttype"/>
+                <xs:element name="to" type="contacttype"/>
+            </xs:sequence>
+            <xs:element name="to" type="contacttype"/>
+        </xs:choice>
+    </xs:complexType>
+
     <xs:complexType name="itemtype">
         <xs:sequence>
             <xs:element name="product" type="producttype" minOccurs="1" maxOccurs="1"/>
@@ -78,6 +90,7 @@
             <xs:element name="quantity" type="bt:quantitytype"/>
             <xs:element name="price" type="bt:dectype"/>
             <xs:element name="currency" type="bt:currencytype"/>
+            <xs:element name="delivery" type="deliveryType" minOccurs="0" maxOccurs="1"/>
         </xs:sequence>
     </xs:complexType>
 

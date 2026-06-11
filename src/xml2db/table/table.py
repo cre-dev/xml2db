@@ -180,6 +180,11 @@ class DataModelTable:
             raise ValueError(
                 "attempting to add a 1-1 relationship with max occurrences different from 1"
             )
+        if (
+            name in self.relations_1
+            and self.relations_1[name].other_table.type_name == other_table.type_name
+        ):
+            return
         rel = DataModelRelation1(
             name,
             [(name, other_table.type_name)],
@@ -206,6 +211,11 @@ class DataModelTable:
             raise ValueError(
                 "attempting to add a 1-n relationship with max occurrences equal to 1"
             )
+        if (
+            name in self.relations_n
+            and self.relations_n[name].other_table.type_name == other_table.type_name
+        ):
+            return
         rel = DataModelRelationN(
             name,
             [(name, other_table.type_name)],
