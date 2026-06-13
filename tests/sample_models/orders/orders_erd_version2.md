@@ -20,6 +20,8 @@ erDiagram
         string orderperson_a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length
     }
     item ||--|| product : "product"
+    item ||--o| orderperson : "delivery_from"
+    item ||--o| orderperson : "delivery_to"
     item {
         string note
         integer quantity

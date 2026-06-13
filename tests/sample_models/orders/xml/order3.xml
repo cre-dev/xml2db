@@ -31,6 +31,22 @@
       <quantity>10</quantity>
       <price>12.3</price>
       <currency>EUR</currency>
+      <delivery>
+        <from name="warehouse">
+          <name>Warehouse A</name>
+          <address>1 Depot Road</address>
+          <city>Lyon</city>
+          <zip codingSystem="int">69001</zip>
+          <country>FR</country>
+        </from>
+        <to name="shipping">
+          <name>Bob</name>
+          <address>string</address>
+          <city>string</city>
+          <zip codingSystem="us">102832</zip>
+          <country>FR</country>
+        </to>
+      </delivery>
     </item>
     <item>
       <product>
@@ -41,6 +57,15 @@
       <quantity>21</quantity>
       <price>70.4</price>
       <currency>EUR</currency>
+      <delivery>
+        <to name="shipping">
+          <name>Alice</name>
+          <address>string</address>
+          <city>string</city>
+          <zip codingSystem="int">21093</zip>
+          <country>US</country>
+        </to>
+      </delivery>
     </item>
   </shiporder>
 </orders>

@@ -1,5 +1,7 @@
 ```mermaid
 erDiagram
+    item ||--o| orderperson : "delivery_from"
+    item ||--o| orderperson : "delivery_to"
     item ||--o{ intfeature_with_peculiarly_long_suffix_which_overflow_max_length : "product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length*"
     item ||--o{ stringfeature : "product_features_stringfeature*"
     item {

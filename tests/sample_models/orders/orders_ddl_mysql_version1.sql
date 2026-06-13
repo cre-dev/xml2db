@@ -87,8 +87,12 @@ CREATE TABLE item (
 	quantity INTEGER, 
 	price DOUBLE, 
 	currency VARCHAR(3), 
+	delivery_from_fk_orderperson INTEGER, 
+	delivery_to_fk_orderperson INTEGER, 
 	CONSTRAINT cx_pk_item PRIMARY KEY (pk_item), 
-	FOREIGN KEY(fk_parent_shiporder) REFERENCES shiporder (pk_shiporder)
+	FOREIGN KEY(fk_parent_shiporder) REFERENCES shiporder (pk_shiporder), 
+	FOREIGN KEY(delivery_from_fk_orderperson) REFERENCES orderperson (pk_orderperson), 
+	FOREIGN KEY(delivery_to_fk_orderperson) REFERENCES orderperson (pk_orderperson)
 )
 
 
