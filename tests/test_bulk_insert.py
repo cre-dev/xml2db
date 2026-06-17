@@ -168,6 +168,27 @@ def test_duckdb_bulk_insert_scalar_column_default(duckdb_engine):
     assert rows[1]["flag"] is False
 
 
+def test_duckdb_bulk_insert_quoted_csv_field_after_large_unquoted_sample(duckdb_engine):
+    """Regression: DuckDB's CSV sniffer uses only the first ~20k rows as a sample.
+
+    If all sampled rows are unquoted, the sniffer sets quote=(empty), causing a
+    column-count error when it later hits a row whose cell value contains a comma
+    (making csv.writer emit a quoted field).  Explicitly passing quote='"' to
+    read_csv bypasses auto-detection and must always be present.
+    """
+    table = _make_table(duckdb_engine, "quoted_field_test")
+    # 'vals' value that contains a comma — document.py's 'join' transform can produce
+    # strings like '"val,ue",other' which csv.writer then wraps in outer quotes,
+    # yielding a quoted CSV cell.
+    problematic_value = '"val,ue",other_value'
+    records = [
+        {"id": i, "label": "simple"} for i in range(25_000)  # exceeds sniffer sample
+    ] + [{"id": 25_000, "label": problematic_value}]
+    rows = _roundtrip(duckdb_engine, table, records)
+    assert len(rows) == 25_001
+    assert rows[-1]["label"] == problematic_value
+
+
 def test_duckdb_bulk_insert_empty(duckdb_engine):
     table = _make_table(duckdb_engine, "empty_test")
     dialect = DuckDBDialect()
