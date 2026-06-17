@@ -158,7 +158,7 @@ class DuckDBDialect(DatabaseDialect):
             sql = text(
                 f"INSERT INTO {full_name} ({insert_cols}) "
                 f"SELECT {select_exprs} "
-                f"FROM read_csv('{safe_path}', header=true, nullstr='', all_varchar=true)"
+                f"FROM read_csv('{safe_path}', header=true, nullstr='', all_varchar=true, quote='\"', escape='\"')"
             )
             conn.execute(sql)
         finally:
