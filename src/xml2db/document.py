@@ -388,17 +388,16 @@ class Document:
             for query, data in tb.get_insert_temp_records_statements(
                 self.data.get(tb.type_name, None)
             ):
-                if max_lines is None or max_lines < 0:
-                    max_lines = len(data)
+                batch_size = len(data) if max_lines is None or max_lines < 0 else max_lines
                 start_idx = 0
                 while start_idx < len(data):
                     with self.model.engine.begin() as conn:
                         self.model.dialect.bulk_insert(
                             conn,
                             query.table,
-                            data[start_idx : (start_idx + max_lines)],
+                            data[start_idx : (start_idx + batch_size)],
                         )
-                    start_idx = start_idx + max_lines
+                    start_idx = start_idx + batch_size
 
     def merge_into_target_tables(self, single_transaction: bool = True) -> int:
         """Merge data into target data model
