@@ -1,5 +1,6 @@
 import os
 import shutil
+import struct
 import subprocess
 import tempfile
 from typing import Any, List, TYPE_CHECKING
@@ -95,14 +96,12 @@ class MSSQLDialect(DatabaseDialect):
 
     @staticmethod
     def _format_bcp_value(v: Any) -> str:
-        """Format a Python value as a BCP character-mode field (tab-separated)."""
+        """Format a Python value as a BCP character field (non-binary columns only)."""
         if v is None:
             return ""
         if isinstance(v, bool):
             # Must precede int: bool is a subclass of int.
             return "1" if v else "0"
-        if isinstance(v, bytes):
-            return "0x" + v.hex()
         s = str(v)
         # Tab is the field delimiter; replace any occurrence in string values.
         return s.replace("\t", " ")
@@ -114,7 +113,10 @@ class MSSQLDialect(DatabaseDialect):
         BCP is unavailable or the connection lacks SQL auth credentials, are
         handled by the base-class ``fast_executemany`` path.
 
-        BCP does not participate in the caller's SQLAlchemy transaction.
+        BCP uses a non-XML format file so that binary columns (LargeBinary /
+        VARBINARY) are sent as raw bytes with a 4-byte length prefix, while
+        all other columns are sent as UTF-8 character data.  BCP does not
+        participate in the caller's SQLAlchemy transaction.
 
         Args:
             conn: A SQLAlchemy ``Connection`` already within a transaction.
@@ -146,11 +148,13 @@ class MSSQLDialect(DatabaseDialect):
                     extra_defaults[col.key] = d.arg
 
         all_col_keys = col_keys + list(extra_defaults.keys())
+        n_cols = len(all_col_keys)
 
-        # BCP character mode cannot load binary columns; fall back for those.
-        if any(isinstance(col_by_key[k].type, LargeBinary) for k in all_col_keys if k in col_by_key):
-            super().bulk_insert(conn, table, records)
-            return
+        # Per-column flag: True if the column holds binary data.
+        col_is_binary = [
+            isinstance(col_by_key[k].type, LargeBinary)
+            for k in all_col_keys
+        ]
 
         full_name = (
             f"[{table.schema}].[{table.name}]"
@@ -158,15 +162,56 @@ class MSSQLDialect(DatabaseDialect):
             else f"[{table.name}]"
         )
 
-        fd, data_path = tempfile.mkstemp(suffix=".bcp")
+        # Map column key → 1-based position in the SQL table (for format file).
+        col_pos = {col.key: idx + 1 for idx, col in enumerate(table.columns)}
+
+        data_fd, data_path = tempfile.mkstemp(suffix=".dat")
+        fmt_fd, fmt_path = tempfile.mkstemp(suffix=".fmt")
         try:
-            with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
+            # Write the data file in binary mode so we can embed raw bytes for
+            # binary columns while still writing UTF-8 text for other columns.
+            with os.fdopen(data_fd, "wb") as f:
                 for record in records:
-                    row = []
-                    for key in all_col_keys:
+                    for i, key in enumerate(all_col_keys):
                         v = record.get(key) if key in col_keys else extra_defaults[key]
-                        row.append(self._format_bcp_value(v))
-                    f.write("\t".join(row) + "\n")
+                        is_last = (i == n_cols - 1)
+                        terminator = b"\n" if is_last else b"\t"
+
+                        if col_is_binary[i]:
+                            # 4-byte little-endian length prefix; -1 (0xFFFFFFFF) = NULL.
+                            if v is None:
+                                f.write(struct.pack("<i", -1))
+                            else:
+                                raw = v if isinstance(v, (bytes, bytearray)) else bytes(v)
+                                f.write(struct.pack("<i", len(raw)))
+                                f.write(raw)
+                            f.write(terminator)
+                        else:
+                            f.write(self._format_bcp_value(v).encode("utf-8"))
+                            f.write(terminator)
+
+            # Write the non-XML BCP format file.
+            #   SQLCHAR      → character field delimited by tab / newline
+            #   SQLVARBINARY → binary field with 4-byte length prefix + terminator
+            fmt_lines = ["14.0", str(n_cols)]
+            for i, key in enumerate(all_col_keys):
+                is_last = (i == n_cols - 1)
+                term = r"\n" if is_last else r"\t"
+                col = col_by_key.get(key)
+                col_name = col.name if col else key
+                server_col = col_pos.get(key, i + 1)
+
+                if col_is_binary[i]:
+                    fmt_lines.append(
+                        f"{i+1}\tSQLVARBINARY\t4\t0\t\"{term}\"\t{server_col}\t{col_name}\t\"\""
+                    )
+                else:
+                    fmt_lines.append(
+                        f"{i+1}\tSQLCHAR\t0\t8000\t\"{term}\"\t{server_col}\t{col_name}\t\"\""
+                    )
+
+            with os.fdopen(fmt_fd, "w") as f:
+                f.write("\n".join(fmt_lines) + "\n")
 
             cmd = [
                 self.bcp_path, full_name, "in", data_path,
@@ -174,12 +219,10 @@ class MSSQLDialect(DatabaseDialect):
                 "-d", url.database,
                 "-U", url.username,
                 "-P", url.password,
-                "-c",       # character (text) mode
-                "-t", "\t", # tab field separator
-                "-r", "\n", # newline row terminator
-                "-k",       # empty field → NULL (not column default)
+                "-f", fmt_path,
+                "-k",           # empty char field → NULL (not column default)
                 "-b", "10000",
-                "-C", "65001",  # UTF-8
+                "-C", "65001",  # UTF-8 for character fields
             ]
             if str(url.query.get("TrustServerCertificate", "")).lower() == "yes":
                 cmd.append("-u")  # trust server certificate (mssql-tools18)
@@ -192,3 +235,5 @@ class MSSQLDialect(DatabaseDialect):
         finally:
             if os.path.exists(data_path):
                 os.unlink(data_path)
+            if os.path.exists(fmt_path):
+                os.unlink(fmt_path)
