@@ -10,6 +10,15 @@ on:
 jobs:
   integration-tests:
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - driver: psycopg2
+            package: psycopg2
+            db_string: postgresql+psycopg2://postgres:postgres@localhost:5432/postgres
+          - driver: psycopg
+            package: "psycopg[binary]"
+            db_string: postgresql+psycopg://postgres:postgres@localhost:5432/postgres
     services:
       postgres:
         image: postgres
@@ -25,23 +34,23 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-          
+
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
-      
+
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: 3.12
-          
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install flake8 .[tests] psycopg2
-    
+          python -m pip install flake8 .[tests] "${{ matrix.package }}"
+
       - name: Test with pytest
         run: |
           pytest tests -x
         env:
-          DB_STRING: postgresql+psycopg2://postgres:postgres@localhost:5432/postgres
+          DB_STRING: ${{ matrix.db_string }}
