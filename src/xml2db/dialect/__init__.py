@@ -49,7 +49,7 @@ DIALECT_REGISTRY: dict[str, type[DatabaseDialect]] = {
 }
 
 
-def get_dialect(db_type: str | None) -> DatabaseDialect:
+def get_dialect(db_type: str | None, **kwargs) -> DatabaseDialect:
     """Return a :class:`DatabaseDialect` instance for the given backend name.
 
     Args:
@@ -57,9 +57,12 @@ def get_dialect(db_type: str | None) -> DatabaseDialect:
             ``"mssql"``, ``"mysql"``, ``"duckdb"``. ``None`` or any
             unrecognised string falls back to the base
             :class:`DatabaseDialect`, which uses safe generic defaults.
+        **kwargs: Extra keyword arguments forwarded to the dialect constructor.
+            Unknown kwargs are silently ignored by subclasses that do not
+            declare them.
 
     Returns:
         An instantiated :class:`DatabaseDialect` (or subclass) ready for use.
     """
     cls = DIALECT_REGISTRY.get(db_type, DatabaseDialect)
-    return cls()
+    return cls(**kwargs)

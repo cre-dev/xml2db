@@ -80,6 +80,7 @@ class DataModel:
         db_type: str = None,
         db_schema: str = None,
         temp_prefix: str = None,
+        use_bcp: bool = True,
     ):
         self.model_config = self._validate_config(model_config)
         self.tables_config = model_config.get("tables", {}) if model_config else {}
@@ -118,7 +119,7 @@ class DataModel:
                 )
             self.db_type = self.engine.dialect.name
 
-        self.dialect = get_dialect(self.db_type)
+        self.dialect = get_dialect(self.db_type, use_bcp=use_bcp)
         self.model_config = self.dialect.validate_model_config(self.model_config)
         self.db_schema = db_schema
         self.temp_prefix = str(uuid4())[:8] if temp_prefix is None else temp_prefix

@@ -39,6 +39,9 @@ class DatabaseDialect:
 
     MAX_IDENTIFIER_LENGTH: int = 63  # conservative default; matches PostgreSQL
 
+    def __init__(self, **kwargs):
+        pass
+
     # ------------------------------------------------------------------
     # Identifier handling
     # ------------------------------------------------------------------
