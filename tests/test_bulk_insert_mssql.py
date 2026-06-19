@@ -87,13 +87,14 @@ def test_mssql_fast_executemany_numeric(mssql_engine):
     table = Table(
         "mssql_bi_numeric_fem",
         meta,
+        Column("id", Integer, key="id"),
         Column("i", Integer, key="i"),
         Column("bi", BigInteger, key="bi"),
         Column("si", SmallInteger, key="si"),
     )
     meta.create_all(mssql_engine)
     try:
-        records = [{"i": 1, "bi": 10**15, "si": 32767}]
+        records = [{"id": 1, "i": 1, "bi": 10**15, "si": 32767}]
         rows = _insert_and_read(mssql_engine, table, records)
         assert rows[0]["i"] == 1
         assert rows[0]["bi"] == 10**15
