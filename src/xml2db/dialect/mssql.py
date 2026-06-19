@@ -4,7 +4,7 @@ import subprocess
 import tempfile
 from typing import Any, List, TYPE_CHECKING
 
-from sqlalchemy import Index
+from sqlalchemy import Index, LargeBinary
 from sqlalchemy.dialects import mssql as mssql_dialect
 
 from .base import DatabaseDialect
@@ -146,6 +146,11 @@ class MSSQLDialect(DatabaseDialect):
                     extra_defaults[col.key] = d.arg
 
         all_col_keys = col_keys + list(extra_defaults.keys())
+
+        # BCP character mode cannot load binary columns; fall back for those.
+        if any(isinstance(col_by_key[k].type, LargeBinary) for k in all_col_keys if k in col_by_key):
+            super().bulk_insert(conn, table, records)
+            return
 
         full_name = (
             f"[{table.schema}].[{table.name}]"
