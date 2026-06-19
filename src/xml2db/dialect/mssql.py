@@ -177,7 +177,7 @@ class MSSQLDialect(DatabaseDialect):
                 "-C", "65001",  # UTF-8
             ]
             if str(url.query.get("TrustServerCertificate", "")).lower() == "yes":
-                cmd.append("-No")  # optional encryption, skip cert verification
+                cmd.append("-u")  # trust server certificate (mssql-tools18)
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode != 0:
                 raise RuntimeError(

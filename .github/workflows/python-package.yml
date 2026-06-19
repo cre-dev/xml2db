@@ -5,7 +5,6 @@ name: Python package
 
 on:
   workflow_dispatch:
-  workflow_dispatch:
 
 jobs:
   build:
