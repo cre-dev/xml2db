@@ -35,7 +35,7 @@ jobs:
           sudo dpkg -i packages-microsoft-prod.deb
           rm packages-microsoft-prod.deb
           sudo apt-get update
-          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18
           python -m pip install --upgrade pip
           python -m pip install flake8 .[tests] pyodbc
     
@@ -44,3 +44,4 @@ jobs:
           pytest tests -x
         env:
           DB_STRING: mssql+pyodbc://sa:MyTestPassword1@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes
+          PATH: /opt/mssql-tools18/bin:${{ env.PATH }}
