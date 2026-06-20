@@ -1,3 +1,8 @@
+---
+title: "How it works"
+description: "Deep dive into how xml2db builds a relational data model from an XSD schema, performs hash-based deduplication, models 1-1/1-n/n-n relationships, and loads XML data into a database."
+---
+
 # How it works
 
 This page covers more advanced topics to understand in depth how data models are created and how data is loaded to
@@ -5,7 +10,7 @@ the database. This can help with troubleshooting or for advanced use cases.
 
 ## Building a data model
 
-A XML document is a tree-like structure where every element is either a simple type (i.e. a scalar value) or a complex
+An XML document is a tree-like structure where every element is either a simple type (i.e. a scalar value) or a complex
 type which has children which can be simple types or complex types. Elements can also have attributes, which are also
 scalar values, which `xml2db` will handle just as simple type children. In this page we will call "properties" the 
 simple type children of an element or its attributes.
@@ -36,11 +41,11 @@ Taking advantage of the initial tree structure, after parsing the XML document i
 each node, which includes all its properties and all its children hash, recursively. Two nodes with the same hash are 
 thus identical, so only one of them needs to be stored, even if they appear under different parent nodes.
 
-Hash are stored in the database, with a unique constraint (as a column with binary type named `xml2db_record_hash`). The
+Hashes are stored in the database, with a unique constraint (as a column with binary type named `xml2db_record_hash`). The
 primary key of all databases is an auto-incremented integer column, always named `pk_table_name`, `table_name` being the
 name of the table.
 
-In some cases, especially when only few  duplicates are expected, it may be more efficient to allow duplicated nodes in 
+In some cases, especially when only a few duplicates are expected, it may be more efficient to allow duplicated nodes in 
 order to avoid extra tables to store relationships. This can be configured for each table of the data model.
 
 ### Modeling relationships
@@ -141,10 +146,10 @@ elements.
 This section gives more detailed explanations on how parsing and loading data work. The integration of an XML file can 
 be decomposed in lower level steps described below.
 
-### Parsing a XML document
+### Parsing an XML document
 
-First, we load all the XML document in memory using `lxml` and extract the data as a nested `dict`, where each node
-keeps a reference of its type, and store its data content. This task is achieved by the function 
+First, we load the entire XML document into memory using `lxml` and extract the data as a nested `dict`, where each node
+keeps a reference of its type and stores its data content. This task is achieved by the function 
 [`XMLConverter.parse_xml`](api/xml_converter.md#xml2db.xml_converter.XMLConverter.parse_xml).
 
 This limits the size of files that can be loaded, due to memory limitations. The merging database transaction also 

@@ -1,3 +1,8 @@
+---
+title: "API Overview"
+description: "Overview of the xml2db Python API: building DataModel objects, parsing and loading XML files into a database, and extracting data back to XML — including multiprocessing patterns."
+---
+
 # API Overview
 
 ## Building a data model from an XSD file
@@ -11,7 +16,7 @@
 ## Inspecting the data model
 
 * [`DataModel.source_tree`](data_model.md): see the data model in tree format before any transformation
-* [`DataModel.target_tree`](data_model.md): see the data model in tree format after simplification (corrsponding to the data model
+* [`DataModel.target_tree`](data_model.md): see the data model in tree format after simplification (corresponding to the data model
     which will be created in the database)
 * [`DataModel.get_entity_rel_diagram`](data_model.md/#xml2db.model.DataModel.get_entity_rel_diagram): get a visual 
     representation of the data model using Mermaid

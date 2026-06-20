@@ -1,4 +1,11 @@
+---
+title: "Getting started"
+description: "Step-by-step guide to installing xml2db, creating a DataModel from an XSD file, importing XML into a relational database, and visualizing the resulting data model."
+---
+
 # Getting started
+
+This guide walks you through installing xml2db, creating a data model from an XSD schema, loading XML files into a relational database, and exporting data back to XML.
 
 ## Installation
 
@@ -102,7 +109,7 @@ It is useful to visualize your data model in order to [configure it](configuring
 Once you are happy with the data model created from previous steps, you are now ready to actually process XML files and
 load their content to your database. It goes like this:
 
-``` py title="Parse a XML file" linenums="1"
+``` py title="Parse an XML file" linenums="1"
 document = data_model.parse_xml(
     xml_file="path/to/file.xml",
 )

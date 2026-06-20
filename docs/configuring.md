@@ -1,3 +1,8 @@
+---
+title: "Configuring your data model"
+description: "Configure xml2db's data model via model_config: override column types, control field elevation, adjust deduplication, simplify XSD choice groups, and add custom indexes."
+---
+
 # Configuring your data model
 
 The data model in the database is derived automatically from a XML schema definition file (XSD) you provide. It is a set
@@ -51,7 +56,7 @@ access to the underlying tree data structure just before it is extracted to be l
 for instance, to prune or modify some parts of the document tree before loading it into the database. The document tree
 should of course stay compatible with the data model.
 * `document_tree_node_hook` (`Callable`): sets a hook function which can modify the data extracted from the XML. It is
-similar with `document_tree_hook`, but it is call as soon as a node is completed, not waiting for the entire parsing to
+similar with `document_tree_hook`, but it is called as soon as a node is completed, not waiting for the entire parsing to
 finish. It is especially useful if you intend to filter out some nodes and reduce memory footprint while parsing.
 * `row_numbers` (`bool`): adds `xml2db_row_number` columns either to `n-n` relationships tables, or directly to data tables when 
 deduplication of rows is opted out. This allows recording the original order of elements in the source XML, which is not
