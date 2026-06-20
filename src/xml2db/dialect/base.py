@@ -367,9 +367,9 @@ class DatabaseDialect:
             conn: A SQLAlchemy ``Connection`` already within a transaction.
             table: The SQLAlchemy ``Table`` object to insert into.
             records: A list of dicts mapping column keys to Python values.
-            bulk_load: ``True`` — require bulk loading (raise if unavailable);
-                ``False`` — always use executemany; ``None`` (default) — use
-                bulk loading when available, fall back silently otherwise.
+            bulk_load: ``True`` to require bulk loading (raise if unavailable),
+                ``False`` to always use executemany, or ``None`` (default) to
+                use bulk loading when available and fall back silently otherwise.
             bulk_load_threshold: Minimum number of records to trigger bulk
                 loading.  ``None`` delegates the choice to the subclass.
         """

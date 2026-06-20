@@ -34,8 +34,8 @@ class PostgreSQLDialect(DatabaseDialect):
         Builds an in-memory CSV payload and streams it to the server using
         the driver's native COPY protocol.  Supported drivers:
 
-        - **psycopg2** — uses ``cursor.copy_expert()``.
-        - **psycopg** (psycopg3) — uses ``cursor.copy()``.
+        - **psycopg2**: uses ``cursor.copy_expert()``.
+        - **psycopg** (psycopg3): uses ``cursor.copy()``.
 
         Falls back to the base-class parameterised executemany for any other
         driver (or when ``bulk_load=False``).
@@ -44,12 +44,12 @@ class PostgreSQLDialect(DatabaseDialect):
             conn: A SQLAlchemy ``Connection`` already within a transaction.
             table: The SQLAlchemy ``Table`` object to insert into.
             records: A list of dicts mapping column keys to Python values.
-            bulk_load: ``True`` — require COPY (raise if driver unsupported);
-                ``False`` — always use executemany; ``None`` (default) — use
-                COPY when available, fall back silently.
+            bulk_load: ``True`` to require COPY (raise if driver unsupported),
+                ``False`` to always use executemany, or ``None`` (default) to
+                use COPY when available and fall back silently.
             bulk_load_threshold: Minimum number of records to trigger COPY.
-                Defaults to :data:`_COPY_THRESHOLD` (0 — always use COPY for
-                supported drivers).
+                Defaults to :data:`_COPY_THRESHOLD` (0, meaning COPY is always
+                used for supported drivers).
         """
         if not records:
             return

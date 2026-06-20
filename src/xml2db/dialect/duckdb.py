@@ -112,8 +112,8 @@ class DuckDBDialect(DatabaseDialect):
             conn: A SQLAlchemy ``Connection`` already within a transaction.
             table: The SQLAlchemy ``Table`` object to insert into.
             records: A list of dicts mapping column keys to Python values.
-            bulk_load: ``True`` or ``None`` (default) — use read_csv for
-                batches at or above the threshold; ``False`` — always use
+            bulk_load: ``True`` or ``None`` (default) to use read_csv for
+                batches at or above the threshold; ``False`` to always use
                 executemany.
             bulk_load_threshold: Override the minimum batch size.  Defaults to
                 :data:`_READ_CSV_THRESHOLD` (100).

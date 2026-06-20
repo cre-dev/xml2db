@@ -134,9 +134,9 @@ class MSSQLDialect(DatabaseDialect):
             conn: A SQLAlchemy ``Connection`` already within a transaction.
             table: The SQLAlchemy ``Table`` object to insert into.
             records: A list of dicts mapping column keys to Python values.
-            bulk_load: ``True`` — require BCP (raise if unavailable for this
-                batch); ``False`` — always use fast_executemany; ``None``
-                (default) — use BCP when available, fall back silently.
+            bulk_load: ``True`` to require BCP (raise if unavailable for this
+                batch), ``False`` to always use fast_executemany, or ``None``
+                (default) to use BCP when available and fall back silently.
             bulk_load_threshold: Override the minimum batch size for BCP.
                 Defaults to :data:`_BCP_THRESHOLD` (100).
         """

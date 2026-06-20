@@ -380,9 +380,9 @@ class Document:
 
         Args:
             max_lines: The maximum number of lines to insert in a single statement
-            bulk_load: ``True`` — require bulk loading (raise if unavailable);
-                ``False`` — always use executemany; ``None`` (default) — use
-                bulk loading when available, fall back silently.
+            bulk_load: ``True`` to require bulk loading (raise if unavailable),
+                ``False`` to always use executemany, or ``None`` (default) to
+                use bulk loading when available and fall back silently.
             bulk_load_threshold: Minimum number of records to trigger bulk
                 loading.  ``None`` delegates the choice to the dialect.
         """
@@ -458,9 +458,9 @@ class Document:
                 scope required to ensure database consistency?
             max_lines: The maximum number of lines to insert in a single statement when loading data to the temporary
                 tables
-            bulk_load: ``True`` — require bulk loading (raise if unavailable);
-                ``False`` — always use executemany; ``None`` (default) — use
-                bulk loading when available, fall back silently.
+            bulk_load: ``True`` to require bulk loading (raise if unavailable),
+                ``False`` to always use executemany, or ``None`` (default) to
+                use bulk loading when available and fall back silently.
             bulk_load_threshold: Minimum number of records to trigger bulk
                 loading.  ``None`` delegates the choice to the dialect.
 

@@ -97,9 +97,9 @@ class MySQLDialect(DatabaseDialect):
         Builds a tab-separated temp file and streams it to the server using
         the driver's ``LOAD DATA LOCAL INFILE`` protocol.  Supported drivers:
 
-        - **pymysql** — the engine must have ``local_infile=True`` in
+        - **pymysql**: the engine must have ``local_infile=True`` in
           ``connect_args`` (set automatically by :meth:`create_engine`).
-        - **mysqldb** (mysqlclient) — same requirement.
+        - **mysqldb** (mysqlclient): same requirement.
 
         Falls back to the base-class parameterised executemany for other
         drivers or when ``LOAD DATA LOCAL INFILE`` is unavailable.
@@ -111,9 +111,9 @@ class MySQLDialect(DatabaseDialect):
             conn: A SQLAlchemy ``Connection`` already within a transaction.
             table: The SQLAlchemy ``Table`` object to insert into.
             records: A list of dicts mapping column keys to Python values.
-            bulk_load: ``True`` — require LOAD DATA LOCAL INFILE (raise if
-                unavailable); ``False`` — always use executemany; ``None``
-                (default) — use LOAD DATA when available, fall back silently.
+            bulk_load: ``True`` to require LOAD DATA LOCAL INFILE (raise if
+                unavailable), ``False`` to always use executemany, or ``None``
+                (default) to use LOAD DATA when available and fall back silently.
             bulk_load_threshold: Override the minimum batch size to trigger
                 LOAD DATA LOCAL INFILE.  Defaults to
                 :data:`_LOAD_DATA_THRESHOLD` (100).
