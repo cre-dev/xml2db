@@ -287,7 +287,7 @@ def test_mssql_bcp_fallback_when_unavailable(mssql_engine):
         with mssql_engine.begin() as conn:
             dialect.bulk_insert(conn, table, records)
         with mssql_engine.connect() as conn:
-            count = conn.execute(select(table)).rowcount
+            count = len(conn.execute(select(table)).fetchall())
         assert count == _BCP_THRESHOLD
     finally:
         _drop(meta, mssql_engine)
