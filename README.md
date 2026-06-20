@@ -37,8 +37,8 @@ SQL views or stored procedures aimed at extracting, correcting and formatting th
 
 This package uses `sqlalchemy` to interact with the database, so it should work with different database backends. 
 Automated integration tests run against PostgreSQL, MySQL, MS SQL Server and DuckDB. You may have to install additional 
-packages to connect to your database (e.g. `psycopg2` for PostgreSQL, `pymysql` for MySQL, `pyodbc` for MS SQL Server or
-`duckdb_engine` for DuckDB).
+packages to connect to your database (e.g. `psycopg2` or `psycopg` for PostgreSQL, `pymysql` or `mysqlclient` for
+MySQL, `pyodbc` for MS SQL Server, or `duckdb-engine` for DuckDB).
 
 **Please read the [package documentation website](https://cre-dev.github.io/xml2db) for all the details!**
 
