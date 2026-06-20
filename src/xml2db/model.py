@@ -9,7 +9,8 @@ import hashlib
 import xmlschema
 import sqlalchemy
 from lxml import etree
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import MetaData
+from sqlalchemy.engine import make_url
 from sqlalchemy.sql.ddl import CreateIndex, CreateTable
 from graphlib import TopologicalSorter
 
@@ -80,7 +81,6 @@ class DataModel:
         db_type: str = None,
         db_schema: str = None,
         temp_prefix: str = None,
-        use_bcp: bool = True,
     ):
         self.model_config = self._validate_config(model_config)
         self.tables_config = model_config.get("tables", {}) if model_config else {}
@@ -103,23 +103,15 @@ class DataModel:
             )
             self.engine = None
             self.db_type = db_type
-        else:
-            if db_engine:
-                self.engine = db_engine
-            else:
-                engine_options = {}
-                if "mssql" in connection_string:
-                    engine_options = {
-                        "fast_executemany": True,
-                        "isolation_level": "SERIALIZABLE",
-                    }
-                self.engine = create_engine(
-                    connection_string,
-                    **engine_options,
-                )
+            self.dialect = get_dialect(self.db_type)
+        elif db_engine:
+            self.engine = db_engine
             self.db_type = self.engine.dialect.name
-
-        self.dialect = get_dialect(self.db_type, use_bcp=use_bcp)
+            self.dialect = get_dialect(self.db_type)
+        else:
+            self.db_type = make_url(connection_string).drivername.split("+")[0]
+            self.dialect = get_dialect(self.db_type)
+            self.engine = self.dialect.create_engine(connection_string)
         self.model_config = self.dialect.validate_model_config(self.model_config)
         self.db_schema = db_schema
         self.temp_prefix = str(uuid4())[:8] if temp_prefix is None else temp_prefix

@@ -368,13 +368,23 @@ class Document:
             int(list(data_index[self.model.root_table]["records"].keys())[0]),
         )
 
-    def insert_into_temp_tables(self, max_lines: int = -1) -> None:
+    def insert_into_temp_tables(
+        self,
+        max_lines: int = -1,
+        bulk_load: bool | None = None,
+        bulk_load_threshold: int | None = None,
+    ) -> None:
         """Insert data into temporary tables
 
         (Re)creates temp tables before inserting data.
 
         Args:
             max_lines: The maximum number of lines to insert in a single statement
+            bulk_load: ``True`` — require bulk loading (raise if unavailable);
+                ``False`` — always use executemany; ``None`` (default) — use
+                bulk loading when available, fall back silently.
+            bulk_load_threshold: Minimum number of records to trigger bulk
+                loading.  ``None`` delegates the choice to the dialect.
         """
         logger.info(f"Dropping temp tables if exist for {self.xml_file_path}")
         self.model.drop_all_temp_tables()
@@ -396,6 +406,8 @@ class Document:
                             conn,
                             query.table,
                             data[start_idx : (start_idx + batch_size)],
+                            bulk_load=bulk_load,
+                            bulk_load_threshold=bulk_load_threshold,
                         )
                     start_idx = start_idx + batch_size
 
@@ -434,6 +446,8 @@ class Document:
         self,
         single_transaction: bool = True,
         max_lines: int = -1,
+        bulk_load: bool | None = None,
+        bulk_load_threshold: int | None = None,
     ) -> int:
         """Insert and merge data into the database
 
@@ -444,6 +458,11 @@ class Document:
                 scope required to ensure database consistency?
             max_lines: The maximum number of lines to insert in a single statement when loading data to the temporary
                 tables
+            bulk_load: ``True`` — require bulk loading (raise if unavailable);
+                ``False`` — always use executemany; ``None`` (default) — use
+                bulk loading when available, fall back silently.
+            bulk_load_threshold: Minimum number of records to trigger bulk
+                loading.  ``None`` delegates the choice to the dialect.
 
         Returns:
             The number of inserted rows
@@ -457,7 +476,7 @@ class Document:
             logger.error(e)
             raise
         try:
-            self.insert_into_temp_tables(max_lines)
+            self.insert_into_temp_tables(max_lines, bulk_load, bulk_load_threshold)
         except Exception as e:
             logger.error(
                 f"Error while importing into temporary tables from {self.xml_file_path}"

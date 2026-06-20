@@ -14,6 +14,7 @@ from sqlalchemy import (
     SmallInteger,
     BigInteger,
     LargeBinary,
+    create_engine as _sa_create_engine,
 )
 from sqlalchemy import inspect as sqlalchemy_inspect
 import sqlalchemy.schema
@@ -318,10 +319,44 @@ class DatabaseDialect:
         return config
 
     # ------------------------------------------------------------------
+    # Engine creation
+    # ------------------------------------------------------------------
+
+    def create_engine(self, connection_string: str, **kwargs: Any) -> Any:
+        """Create a SQLAlchemy engine for this backend.
+
+        The base implementation is a plain pass-through to
+        :func:`sqlalchemy.create_engine`. Subclasses override this to inject
+        backend-specific engine options (e.g. ``fast_executemany`` for MSSQL,
+        ``local_infile`` for MySQL).
+
+        This method is only called when ``DataModel`` is given a
+        ``connection_string``; callers that supply a pre-built ``db_engine``
+        bypass it entirely.
+
+        Args:
+            connection_string: A SQLAlchemy database URL.
+            **kwargs: Additional keyword arguments forwarded to
+                :func:`sqlalchemy.create_engine`.
+
+        Returns:
+            A :class:`sqlalchemy.Engine` instance.
+        """
+        return _sa_create_engine(connection_string, **kwargs)
+
+    # ------------------------------------------------------------------
     # Data loading
     # ------------------------------------------------------------------
 
-    def bulk_insert(self, conn: Any, table: Any, records: list) -> None:
+    def bulk_insert(
+        self,
+        conn: Any,
+        table: Any,
+        records: list,
+        *,
+        bulk_load: bool | None = None,
+        bulk_load_threshold: int | None = None,
+    ) -> None:
         """Insert records into a staging table.
 
         The base implementation uses SQLAlchemy's parameterised executemany,
@@ -332,6 +367,11 @@ class DatabaseDialect:
             conn: A SQLAlchemy ``Connection`` already within a transaction.
             table: The SQLAlchemy ``Table`` object to insert into.
             records: A list of dicts mapping column keys to Python values.
+            bulk_load: ``True`` — require bulk loading (raise if unavailable);
+                ``False`` — always use executemany; ``None`` (default) — use
+                bulk loading when available, fall back silently otherwise.
+            bulk_load_threshold: Minimum number of records to trigger bulk
+                loading.  ``None`` delegates the choice to the subclass.
         """
         if records:
             conn.execute(table.insert(), records)

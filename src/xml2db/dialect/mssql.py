@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 # Records below this count go through fast_executemany; at or above, BCP is used.
-_BCP_THRESHOLD = 1000
+_BCP_THRESHOLD = 100
 
 
 class MSSQLDialect(DatabaseDialect):
@@ -25,18 +25,13 @@ class MSSQLDialect(DatabaseDialect):
     handled in this class.
 
     When the ``bcp`` utility is available on PATH and the connection uses SQL
-    authentication, :meth:`bulk_insert` switches to BCP for batches of
-    :data:`_BCP_THRESHOLD` rows or more. Smaller batches always use
-    ``fast_executemany`` (enabled at engine level) to avoid BCP's subprocess
-    overhead. Pass ``use_bcp=False`` to :class:`~xml2db.DataModel` to disable
-    BCP entirely.
+    authentication or a trusted connection, :meth:`bulk_insert` switches to BCP
+    for batches of :data:`_BCP_THRESHOLD` rows or more. Smaller batches always
+    use ``fast_executemany`` (enabled at engine level) to avoid BCP's subprocess
+    overhead.
     """
 
     MAX_IDENTIFIER_LENGTH: int = 128
-
-    def __init__(self, use_bcp: bool = True, **kwargs):
-        super().__init__(**kwargs)
-        self.bcp_path = shutil.which("bcp") if use_bcp else None
 
     def validate_table_config(self, config: dict) -> dict:
         """Allow ``as_columnstore`` through unchanged for MSSQL."""
@@ -93,6 +88,12 @@ class MSSQLDialect(DatabaseDialect):
             ),
         )
 
+    def create_engine(self, connection_string: str, **kwargs: Any) -> Any:
+        """Create a MSSQL engine with ``fast_executemany`` and ``SERIALIZABLE`` isolation."""
+        kwargs.setdefault("fast_executemany", True)
+        kwargs.setdefault("isolation_level", "SERIALIZABLE")
+        return super().create_engine(connection_string, **kwargs)
+
     @staticmethod
     def _format_bcp_value(v: Any) -> str:
         """Format a Python value as a BCP character-mode field (tab-separated)."""
@@ -108,32 +109,71 @@ class MSSQLDialect(DatabaseDialect):
         # Tab is the field delimiter; replace any occurrence in string values.
         return s.replace("\t", " ")
 
-    def bulk_insert(self, conn: Any, table: Any, records: list) -> None:
+    def bulk_insert(
+        self,
+        conn: Any,
+        table: Any,
+        records: list,
+        *,
+        bulk_load: bool | None = None,
+        bulk_load_threshold: int | None = None,
+    ) -> None:
         """Bulk-insert records, using BCP for large batches when available.
 
-        Batches smaller than :data:`_BCP_THRESHOLD` rows, or any batch when
-        BCP is unavailable or the connection has neither SQL credentials nor
-        ``Trusted_Connection=yes``, fall back to ``fast_executemany``.
-        SQL auth uses ``-U``/``-P``; Kerberos/Windows auth uses ``-T``.
+        Batches smaller than the effective threshold, or any batch when
+        ``bulk_load=False``, use ``fast_executemany`` unconditionally.
 
+        When ``bulk_load=True`` and the batch meets the threshold but BCP
+        prerequisites are not satisfied (binary not on PATH, unsupported auth),
+        a :class:`RuntimeError` is raised with an actionable message.
+
+        SQL auth uses ``-U``/``-P``; Kerberos/Windows auth uses ``-T``.
         BCP does not participate in the caller's SQLAlchemy transaction.
 
         Args:
             conn: A SQLAlchemy ``Connection`` already within a transaction.
             table: The SQLAlchemy ``Table`` object to insert into.
             records: A list of dicts mapping column keys to Python values.
+            bulk_load: ``True`` — require BCP (raise if unavailable for this
+                batch); ``False`` — always use fast_executemany; ``None``
+                (default) — use BCP when available, fall back silently.
+            bulk_load_threshold: Override the minimum batch size for BCP.
+                Defaults to :data:`_BCP_THRESHOLD` (100).
         """
         if not records:
             return
 
+        threshold = bulk_load_threshold if bulk_load_threshold is not None else _BCP_THRESHOLD
+
+        # bulk_load=False or batch too small → always use fast_executemany.
+        if bulk_load is False or len(records) < threshold:
+            super().bulk_insert(conn, table, records)
+            return
+
+        # Check BCP prerequisites.
         url = conn.engine.url
         trusted = str(url.query.get("Trusted_Connection", "")).lower() == "yes"
         has_sql_auth = bool(url.username and url.password)
-        if (
-            self.bcp_path is None
-            or len(records) < _BCP_THRESHOLD
-            or (not has_sql_auth and not trusted)
-        ):
+        bcp_path = shutil.which("bcp")
+
+        if bcp_path is None:
+            if bulk_load is True:
+                raise RuntimeError(
+                    "bulk_load=True requires the bcp utility on PATH. "
+                    "Install mssql-tools (Linux/macOS) or SQL Server Command Line Utilities "
+                    "(Windows), or set bulk_load=False to use fast_executemany instead."
+                )
+            super().bulk_insert(conn, table, records)
+            return
+
+        if not has_sql_auth and not trusted:
+            if bulk_load is True:
+                raise RuntimeError(
+                    "bulk_load=True requires SQL Server authentication (username and password "
+                    "in the connection string) or a Windows/Kerberos trusted connection "
+                    "(Trusted_Connection=yes in the connection string query parameters). "
+                    "Set bulk_load=False to use fast_executemany instead."
+                )
             super().bulk_insert(conn, table, records)
             return
 
@@ -167,7 +207,7 @@ class MSSQLDialect(DatabaseDialect):
                     f.write("\t".join(row) + "\n")
 
             cmd = [
-                self.bcp_path, full_name, "in", data_path,
+                bcp_path, full_name, "in", data_path,
                 "-S", f"{url.host},{url.port or 1433}",
                 "-d", url.database,
                 "-c",       # character (text) mode

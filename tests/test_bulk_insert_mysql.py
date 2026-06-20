@@ -58,10 +58,10 @@ def _make_table(engine, name, *extra_cols):
     return table, meta
 
 
-def _roundtrip(engine, table, records):
+def _roundtrip(engine, table, records, **bulk_insert_kwargs):
     dialect = MySQLDialect()
     with engine.begin() as conn:
-        dialect.bulk_insert(conn, table, records)
+        dialect.bulk_insert(conn, table, records, **bulk_insert_kwargs)
     with engine.connect() as conn:
         return conn.execute(select(table).order_by(table.c.id)).mappings().all()
 
@@ -251,3 +251,57 @@ def test_mysql_bulk_insert_scalar_default(mysql_engine):
         assert rows[1]["flag"] is False
     finally:
         meta.drop_all(mysql_engine)
+
+
+# ---------------------------------------------------------------------------
+# bulk_load flag
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.dbtest
+def test_mysql_bulk_load_true(mysql_engine):
+    """bulk_load=True succeeds when local_infile is enabled on the engine."""
+    from xml2db.dialect.mysql import _LOAD_DATA_THRESHOLD
+
+    table, meta = _make_table(mysql_engine, "mysql_bi_bulk_load_true")
+    try:
+        records = [{"id": i, "label": f"row{i}"} for i in range(_LOAD_DATA_THRESHOLD)]
+        rows = _roundtrip(mysql_engine, table, records, bulk_load=True)
+        assert len(rows) == _LOAD_DATA_THRESHOLD
+        assert rows[0]["label"] == "row0"
+    finally:
+        _drop(meta, mysql_engine)
+
+
+@pytest.mark.dbtest
+def test_mysql_bulk_load_false(mysql_engine):
+    """bulk_load=False uses executemany even for large batches."""
+    from xml2db.dialect.mysql import _LOAD_DATA_THRESHOLD
+
+    table, meta = _make_table(mysql_engine, "mysql_bi_bulk_load_false")
+    try:
+        records = [{"id": i, "label": f"row{i}"} for i in range(_LOAD_DATA_THRESHOLD)]
+        rows = _roundtrip(mysql_engine, table, records, bulk_load=False)
+        assert len(rows) == _LOAD_DATA_THRESHOLD
+    finally:
+        _drop(meta, mysql_engine)
+
+
+@pytest.mark.dbtest
+def test_mysql_bulk_load_true_raises_without_local_infile(mysql_engine):
+    """bulk_load=True raises RuntimeError when local_infile is not enabled."""
+    from xml2db.dialect.mysql import _LOAD_DATA_THRESHOLD
+
+    url = mysql_engine.url
+    # Create an engine without local_infile so LOAD DATA LOCAL INFILE is rejected.
+    engine_no_infile = create_engine(url)
+    table, meta = _make_table(engine_no_infile, "mysql_bi_bulk_load_no_infile")
+    try:
+        records = [{"id": i, "label": f"row{i}"} for i in range(_LOAD_DATA_THRESHOLD)]
+        dialect = MySQLDialect()
+        with engine_no_infile.begin() as conn:
+            with pytest.raises(RuntimeError, match="local_infile"):
+                dialect.bulk_insert(conn, table, records, bulk_load=True)
+    finally:
+        _drop(meta, engine_no_infile)
+        engine_no_infile.dispose()

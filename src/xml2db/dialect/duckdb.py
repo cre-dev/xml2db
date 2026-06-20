@@ -20,6 +20,9 @@ import sqlalchemy.schema
 
 from .base import DatabaseDialect
 
+# Records below this count skip read_csv (temp-file overhead).
+_READ_CSV_THRESHOLD = 100
+
 
 class DuckDBDialect(DatabaseDialect):
     """Dialect for DuckDB.
@@ -87,19 +90,40 @@ class DuckDBDialect(DatabaseDialect):
                 return f'CAST("{key}" AS {duckdb_type})'
         return f'"{key}"'  # String / unknown: keep as VARCHAR
 
-    def bulk_insert(self, conn: Any, table: Any, records: list) -> None:
+    def bulk_insert(
+        self,
+        conn: Any,
+        table: Any,
+        records: list,
+        *,
+        bulk_load: bool | None = None,
+        bulk_load_threshold: int | None = None,
+    ) -> None:
         """Bulk-insert records via a temporary CSV file and DuckDB's ``read_csv``.
 
         All CSV columns are read as VARCHAR (``all_varchar=true``) and then
         explicitly cast to their target types in the ``SELECT`` clause.
         Binary columns are hex-encoded in the CSV and decoded with ``unhex()``.
 
+        Falls back to the base-class parameterised executemany when
+        ``bulk_load=False`` or the batch is below the effective threshold.
+
         Args:
             conn: A SQLAlchemy ``Connection`` already within a transaction.
             table: The SQLAlchemy ``Table`` object to insert into.
             records: A list of dicts mapping column keys to Python values.
+            bulk_load: ``True`` or ``None`` (default) — use read_csv for
+                batches at or above the threshold; ``False`` — always use
+                executemany.
+            bulk_load_threshold: Override the minimum batch size.  Defaults to
+                :data:`_READ_CSV_THRESHOLD` (100).
         """
         if not records:
+            return
+
+        threshold = bulk_load_threshold if bulk_load_threshold is not None else _READ_CSV_THRESHOLD
+        if bulk_load is False or len(records) < threshold:
+            super().bulk_insert(conn, table, records)
             return
 
         # Map column key -> SQLAlchemy Column object
