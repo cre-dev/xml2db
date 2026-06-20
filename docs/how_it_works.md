@@ -184,6 +184,34 @@ We keep the primary keys from the flat data model created at the previous stage,
     random one, which can be useful if you want to decompose the process of loading data and merging it with the target
     tables later, for instance to gain a finer control over concurrency.
 
+### Bulk loading
+
+For each supported backend, `xml2db` uses a native bulk-loading mechanism to fill the temporary tables, which is
+significantly faster than row-by-row inserts for large datasets. When the native path is unavailable (wrong driver,
+missing tool, or server configuration), it falls back silently to SQLAlchemy's standard `executemany`.
+
+| Backend | Mechanism | Required driver / tool | Default threshold |
+|---|---|---|---|
+| PostgreSQL | `COPY FROM STDIN` | `psycopg2` or `psycopg` | 0 (always used) |
+| MySQL / MariaDB | `LOAD DATA LOCAL INFILE` | `pymysql` or `mysqlclient`; server `local_infile=ON` | 100 rows |
+| MS SQL Server | `bcp` utility | `bcp` on PATH; SQL or Windows/Kerberos auth | 100 rows |
+| DuckDB | `read_csv()` | built-in | 100 rows |
+
+The threshold column means that batches smaller than that number always use `executemany` (avoiding temp-file overhead
+for small inserts). PostgreSQL's `COPY` is in-protocol and has no file overhead, so there is no threshold.
+
+For MySQL, when a connection string is passed to `DataModel`, `local_infile=True` is injected automatically into the
+connection arguments. The MySQL server must also have `local_infile=ON` (e.g. launched with `--local-infile=1`);
+if not, bulk loading is silently skipped.
+
+You can control this behaviour via the `bulk_load` and `bulk_load_threshold` arguments of
+[`Document.insert_into_target_tables`](api/document.md#xml2db.document.Document.insert_into_target_tables):
+
+- `bulk_load=None` (default): use the native path when available, fall back to `executemany` silently.
+- `bulk_load=False`: always use `executemany`, regardless of what is available.
+- `bulk_load=True`: require the native path; raise a `RuntimeError` with an actionable message if the required
+  driver, tool, or server setting is missing.
+
 ### Merging the data
 
 The last step is to merge the temporary tables data into the target tables, while enforcing deduplication, keeping 

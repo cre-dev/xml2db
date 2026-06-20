@@ -33,7 +33,9 @@ data_model = DataModel(
 
 At this stage, it is not required to provide a connection string and have an actual database set up, but it will be 
 necessary if you want to use this [`DataModel`](api/data_model.md) to actually import data. You may need to install the
-Python package of the connector you use in your `sqlalchemy` connection string (`psycopg2` in the example above).
+Python package of the connector you use in your `sqlalchemy` connection string (e.g. `psycopg2` or `psycopg` for
+PostgreSQL, `pymysql` or `mysqlclient` for MySQL, `pyodbc` for SQL Server, `duckdb-engine` for DuckDB). See
+[How it works](how_it_works.md#bulk-loading) for which drivers enable native bulk loading.
 
 You can provide an optional model configuration, which will allow forcing or preventing some schema simplification, set
 columns types manually, etc. By default, some simplifications will be applied when possible, in order to limit the 

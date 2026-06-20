@@ -4,6 +4,10 @@ from typing import Any
 
 from .base import DatabaseDialect
 
+# PostgreSQL COPY is in-protocol (no temp file), so the default threshold is 0
+# (COPY is always used for supported drivers regardless of batch size).
+_COPY_THRESHOLD = 0
+
 
 class PostgreSQLDialect(DatabaseDialect):
     """Dialect for PostgreSQL.
@@ -16,28 +20,53 @@ class PostgreSQLDialect(DatabaseDialect):
 
     MAX_IDENTIFIER_LENGTH: int = 63
 
-    def bulk_insert(self, conn: Any, table: Any, records: list) -> None:
+    def bulk_insert(
+        self,
+        conn: Any,
+        table: Any,
+        records: list,
+        *,
+        bulk_load: bool | None = None,
+        bulk_load_threshold: int | None = None,
+    ) -> None:
         """Bulk-insert records via PostgreSQL's ``COPY FROM STDIN``.
 
         Builds an in-memory CSV payload and streams it to the server using
         the driver's native COPY protocol.  Supported drivers:
 
-        - **psycopg2** — uses ``cursor.copy_expert()``.
-        - **psycopg** (psycopg3) — uses ``cursor.copy()``.
+        - **psycopg2**: uses ``cursor.copy_expert()``.
+        - **psycopg** (psycopg3): uses ``cursor.copy()``.
 
         Falls back to the base-class parameterised executemany for any other
-        driver.
+        driver (or when ``bulk_load=False``).
 
         Args:
             conn: A SQLAlchemy ``Connection`` already within a transaction.
             table: The SQLAlchemy ``Table`` object to insert into.
             records: A list of dicts mapping column keys to Python values.
+            bulk_load: ``True`` to require COPY (raise if driver unsupported),
+                ``False`` to always use executemany, or ``None`` (default) to
+                use COPY when available and fall back silently.
+            bulk_load_threshold: Minimum number of records to trigger COPY.
+                Defaults to :data:`_COPY_THRESHOLD` (0, meaning COPY is always
+                used for supported drivers).
         """
         if not records:
             return
 
+        threshold = bulk_load_threshold if bulk_load_threshold is not None else _COPY_THRESHOLD
         driver = conn.dialect.driver
+
         if driver not in ("psycopg2", "psycopg"):
+            if bulk_load is True:
+                raise RuntimeError(
+                    f"bulk_load=True requires the psycopg2 or psycopg driver, got '{driver}'. "
+                    f"Use a postgresql+psycopg2:// or postgresql+psycopg:// connection string."
+                )
+            super().bulk_insert(conn, table, records)
+            return
+
+        if bulk_load is False or len(records) < threshold:
             super().bulk_insert(conn, table, records)
             return
 

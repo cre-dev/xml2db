@@ -51,10 +51,10 @@ def _make_table(engine, name, *extra_cols):
     return table, meta
 
 
-def _insert_and_read(engine, table, records, use_bcp=False):
-    dialect = MSSQLDialect(use_bcp=use_bcp)
+def _insert_and_read(engine, table, records, **bulk_insert_kwargs):
+    dialect = MSSQLDialect()
     with engine.begin() as conn:
-        dialect.bulk_insert(conn, table, records)
+        dialect.bulk_insert(conn, table, records, **bulk_insert_kwargs)
     with engine.connect() as conn:
         return conn.execute(select(table).order_by(table.c.id)).mappings().all()
 
@@ -160,7 +160,7 @@ def test_mssql_bcp_basic(mssql_engine):
     try:
         records = [{"id": i, "label": f"row{i}"} for i in range(_BCP_THRESHOLD)]
         records.append({"id": _BCP_THRESHOLD, "label": None})
-        rows = _insert_and_read(mssql_engine, table, records, use_bcp=True)
+        rows = _insert_and_read(mssql_engine, table, records)
         assert len(rows) == _BCP_THRESHOLD + 1
         assert rows[0]["label"] == "row0"
         assert rows[-1]["label"] is None
@@ -182,7 +182,7 @@ def test_mssql_bcp_numeric(mssql_engine):
     meta.create_all(mssql_engine)
     try:
         base = [{"i": j, "bi": 10**15 + j, "si": j % 32767} for j in range(_BCP_THRESHOLD)]
-        dialect = MSSQLDialect(use_bcp=True)
+        dialect = MSSQLDialect()
         with mssql_engine.begin() as conn:
             dialect.bulk_insert(conn, table, base)
         with mssql_engine.connect() as conn:
@@ -208,7 +208,7 @@ def test_mssql_bcp_boolean(mssql_engine):
             [{"id": 0, "flag": True}, {"id": 1, "flag": False}, {"id": 2, "flag": None}]
             + [{"id": i + 3, "flag": i % 2 == 0} for i in range(_BCP_THRESHOLD)]
         )
-        dialect = MSSQLDialect(use_bcp=True)
+        dialect = MSSQLDialect()
         with mssql_engine.begin() as conn:
             dialect.bulk_insert(conn, table, records)
         with mssql_engine.connect() as conn:
@@ -237,7 +237,7 @@ def test_mssql_bcp_binary(mssql_engine):
             [{"id": 0, "data": payload}, {"id": 1, "data": None}]
             + [{"id": i + 2, "data": payload} for i in range(_BCP_THRESHOLD)]
         )
-        dialect = MSSQLDialect(use_bcp=True)
+        dialect = MSSQLDialect()
         with mssql_engine.begin() as conn:
             dialect.bulk_insert(conn, table, records)
         with mssql_engine.connect() as conn:
@@ -261,7 +261,7 @@ def test_mssql_bcp_scalar_default(mssql_engine):
     meta.create_all(mssql_engine)
     try:
         records = [{"id": i} for i in range(_BCP_THRESHOLD)]
-        dialect = MSSQLDialect(use_bcp=True)
+        dialect = MSSQLDialect()
         with mssql_engine.begin() as conn:
             dialect.bulk_insert(conn, table, records)
         with mssql_engine.connect() as conn:
@@ -272,22 +272,53 @@ def test_mssql_bcp_scalar_default(mssql_engine):
 
 
 # ---------------------------------------------------------------------------
-# BCP fallback when bcp binary is not found
+# bulk_load=False forces fast_executemany even for large batches
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.dbtest
-def test_mssql_bcp_fallback_when_unavailable(mssql_engine):
-    """With bcp_path=None, bulk_insert must still work via fast_executemany."""
-    table, meta = _make_table(mssql_engine, "mssql_bi_fallback")
+def test_mssql_bulk_load_false_bypasses_bcp(mssql_engine):
+    """bulk_load=False must use fast_executemany regardless of batch size."""
+    table, meta = _make_table(mssql_engine, "mssql_bi_bulk_load_false")
     try:
         records = [{"id": i, "label": f"r{i}"} for i in range(_BCP_THRESHOLD)]
-        dialect = MSSQLDialect(use_bcp=True)
-        dialect.bcp_path = None  # simulate bcp not on PATH
-        with mssql_engine.begin() as conn:
-            dialect.bulk_insert(conn, table, records)
-        with mssql_engine.connect() as conn:
-            count = len(conn.execute(select(table)).fetchall())
-        assert count == _BCP_THRESHOLD
+        rows = _insert_and_read(mssql_engine, table, records, bulk_load=False)
+        assert len(rows) == _BCP_THRESHOLD
     finally:
         _drop(meta, mssql_engine)
+
+
+# ---------------------------------------------------------------------------
+# bulk_load=True raises when BCP is unavailable
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.dbtest
+def test_mssql_bulk_load_true_raises_without_bcp(mssql_engine):
+    """bulk_load=True must raise RuntimeError when bcp is not on PATH."""
+    import shutil
+    import unittest.mock as mock
+
+    if shutil.which("bcp") is None:
+        # BCP already absent — just confirm the error is raised directly.
+        table, meta = _make_table(mssql_engine, "mssql_bi_bulk_load_true_no_bcp")
+        try:
+            records = [{"id": i, "label": f"r{i}"} for i in range(_BCP_THRESHOLD)]
+            dialect = MSSQLDialect()
+            with mssql_engine.begin() as conn:
+                with pytest.raises(RuntimeError, match="bcp utility"):
+                    dialect.bulk_insert(conn, table, records, bulk_load=True)
+        finally:
+            _drop(meta, mssql_engine)
+    else:
+        # BCP present — patch shutil.which to simulate absence.
+        table, meta = _make_table(mssql_engine, "mssql_bi_bulk_load_true_no_bcp")
+        try:
+            records = [{"id": i, "label": f"r{i}"} for i in range(_BCP_THRESHOLD)]
+            dialect = MSSQLDialect()
+            with mock.patch("xml2db.dialect.mssql.shutil.which", return_value=None):
+                with mssql_engine.begin() as conn:
+                    with pytest.raises(RuntimeError, match="bcp utility"):
+                        dialect.bulk_insert(conn, table, records, bulk_load=True)
+        finally:
+            _drop(meta, mssql_engine)
