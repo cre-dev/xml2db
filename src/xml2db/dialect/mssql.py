@@ -112,8 +112,9 @@ class MSSQLDialect(DatabaseDialect):
         """Bulk-insert records, using BCP for large batches when available.
 
         Batches smaller than :data:`_BCP_THRESHOLD` rows, or any batch when
-        BCP is unavailable or the connection lacks SQL auth credentials, are
-        handled by the base-class ``fast_executemany`` path.
+        BCP is unavailable or the connection has neither SQL credentials nor
+        ``Trusted_Connection=yes``, fall back to ``fast_executemany``.
+        SQL auth uses ``-U``/``-P``; Kerberos/Windows auth uses ``-T``.
 
         BCP does not participate in the caller's SQLAlchemy transaction.
 
@@ -126,11 +127,12 @@ class MSSQLDialect(DatabaseDialect):
             return
 
         url = conn.engine.url
+        trusted = str(url.query.get("Trusted_Connection", "")).lower() == "yes"
+        has_sql_auth = bool(url.username and url.password)
         if (
             self.bcp_path is None
             or len(records) < _BCP_THRESHOLD
-            or not url.username
-            or not url.password
+            or (not has_sql_auth and not trusted)
         ):
             super().bulk_insert(conn, table, records)
             return
@@ -168,8 +170,6 @@ class MSSQLDialect(DatabaseDialect):
                 self.bcp_path, full_name, "in", data_path,
                 "-S", f"{url.host},{url.port or 1433}",
                 "-d", url.database,
-                "-U", url.username,
-                "-P", url.password,
                 "-c",       # character (text) mode
                 "-t", "\t", # tab field separator
                 "-r", "\n", # newline row terminator
@@ -177,6 +177,10 @@ class MSSQLDialect(DatabaseDialect):
                 "-b", "10000",
                 "-C", "65001",  # UTF-8
             ]
+            if has_sql_auth:
+                cmd += ["-U", url.username, "-P", url.password]
+            else:
+                cmd.append("-T")  # Kerberos / Windows trusted connection
             if str(url.query.get("TrustServerCertificate", "")).lower() == "yes":
                 cmd.append("-u")  # trust server certificate (mssql-tools18)
             result = subprocess.run(cmd, capture_output=True, text=True)
