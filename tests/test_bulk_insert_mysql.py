@@ -63,7 +63,10 @@ def _roundtrip(engine, table, records, **bulk_insert_kwargs):
     with engine.begin() as conn:
         dialect.bulk_insert(conn, table, records, **bulk_insert_kwargs)
     with engine.connect() as conn:
-        return conn.execute(select(table).order_by(table.c.id)).mappings().all()
+        q = select(table)
+        if "id" in table.c:
+            q = q.order_by(table.c.id)
+        return conn.execute(q).mappings().all()
 
 
 def _drop(meta, engine):
