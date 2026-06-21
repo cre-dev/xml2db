@@ -11,7 +11,7 @@ description: "xml2db is a Python package that automatically maps an XSD schema t
 * it can handle complex XML files which cannot be denormalized into flat tables
 * it works out of the box, without any custom mapping rules.
 
-`xml2db` fits naturally into an [ELT (Extract, Load, Transform)](https://docs.getdbt.com/terms/elt) pipeline. It loads
+`xml2db` fits naturally into an ETL or [ELT (Extract, Load, Transform)](https://docs.getdbt.com/terms/elt) pipeline. It loads
 XML files into a relational model that stays close to the source data while remaining easy to query as flat database
 tables.
 
