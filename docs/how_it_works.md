@@ -5,8 +5,8 @@ description: "Deep dive into how xml2db builds a relational data model from an X
 
 # How it works
 
-This page explains in depth how data models are built and how XML data is loaded — useful for troubleshooting or
-advanced use cases.
+This page explains in depth how data models are built and how XML data is loaded, which is useful for troubleshooting
+and advanced use cases.
 
 ## Building a data model
 
@@ -18,7 +18,7 @@ children. Throughout this page, "properties" refers to the simple type children 
 has complex type children, they are stored in their own tables and linked to their parents via a foreign key or a
 join table.
 
-The resulting data model is mostly bijective with the source XML — in most cases, data can be extracted from the
+The resulting data model is mostly bijective with the source XML. In most cases, data can be extracted from the
 database and converted back to XML.
 
 !!! note
@@ -52,7 +52,7 @@ Within a tree, parent-child relationships have `1-1` or `1-n` cardinality. To al
 become `n-1` or `n-n` respectively. Optional children are handled the same way.
 
 A child node (identified by its hash) that appears under multiple parents will have several parents after
-deduplication — whereas it had only one in the original tree. This example illustrates a `1-1` relationship converted
+deduplication, whereas it had only one in the original tree. This example illustrates a `1-1` relationship converted
 to `n-1` after reuse:
 
 ```mermaid
@@ -114,7 +114,7 @@ original tree structure. When processing tables in dependency order, the root ta
 specification](https://en.wikipedia.org/wiki/XML_Schema_(W3C)).
 
 Known unsupported cases are described below. Other edge cases may also fail and require adjustments. We recommend
-thorough testing for unusual schemas — for example, you can implement round-trip tests (XML → database → XML) and
+thorough testing for unusual schemas. For example, you can implement round-trip tests (XML → database → XML) and
 compare the output against the original.
 
 ### Recursive XSD
@@ -142,13 +142,13 @@ First, we load the entire XML document into memory using `lxml` and extract the 
 keeps a reference of its type and stores its data content. This task is achieved by the function 
 [`XMLConverter.parse_xml`](api/xml_converter.md#xml2db.xml_converter.XMLConverter.parse_xml).
 
-This constrains the maximum file size — in-memory parsing has memory limits, and the merge transaction adds a
+This constrains the maximum file size: in-memory parsing has memory limits, and the merge transaction adds a
 server-performance constraint. In practice, `xml2db` handles files around 500 MB without issue.
 
 ### Computing hashes
 
-Tree hashes are computed recursively by combining each node's hash with the hashes of its children — simple types,
-attributes, and complex types alike. Children are processed in the order they appear in the XSD schema, making
+Tree hashes are computed recursively by combining each node's hash with the hashes of its children: simple types,
+attributes, and complex types. Children are processed in the order they appear in the XSD schema, making
 hashing fully deterministic.
 
 Right after this step, a hook function is called if provided in the configuration (top-level `document_tree_hook` option

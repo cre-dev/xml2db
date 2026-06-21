@@ -1,6 +1,6 @@
 ---
 title: "API Overview"
-description: "Overview of the xml2db Python API: building DataModel objects, parsing and loading XML files into a database, and extracting data back to XML — including multiprocessing patterns."
+description: "Overview of the xml2db Python API: building DataModel objects, parsing and loading XML files into a database, and extracting data back to XML, including multiprocessing patterns."
 ---
 
 # API Overview
@@ -64,13 +64,13 @@ XML parsing is CPU-bound and scales well across processes. Loading into the
 database, however, must be coordinated to avoid conflicts on shared tables.
 The right level of synchronisation depends on the backend:
 
-* **DuckDB (file-based)** — only one active writer is allowed at a time, so
+* **DuckDB (file-based)**: only one active writer is allowed at a time, so
   all database I/O must be serialised.
-* **PostgreSQL, MS SQL Server, …** — concurrent writes to *different* temp
+* **PostgreSQL, MS SQL Server, …**: concurrent writes to *different* temp
   tables are safe (each process gets a unique temp-table prefix), but the final
   merge into the shared target tables should be serialised.
 
-The simplest approach — and the one shown below — is to serialise the entire
+The simplest approach (and the one shown below) is to serialise the entire
 database phase with a `multiprocessing.Lock`, keeping only the parsing step
 parallel. This works correctly for all backends.
 
@@ -121,8 +121,8 @@ if __name__ == "__main__":
     [`Document.insert_into_target_tables`](document.md/#xml2db.document.Document.insert_into_target_tables)
     into separate calls to
     [`Document.insert_into_temp_tables`](document.md/#xml2db.document.Document.insert_into_temp_tables)
-    (run concurrently — each process has a unique temp-table prefix so there
-    are no collisions) and
+    (run concurrently, since each process has a unique temp-table prefix, so
+    there are no collisions) and
     [`Document.merge_into_target_tables`](document.md/#xml2db.document.Document.merge_into_target_tables)
     (serialised via lock).
 

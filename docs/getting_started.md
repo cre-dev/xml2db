@@ -154,7 +154,7 @@ See the [How it works](how_it_works.md) page for a deeper explanation of the loa
 
 ## Getting back the data into XML
 
-Data can be extracted from the database back to XML — primarily useful for round-trip testing.
+Data can be extracted from the database back to XML, primarily for round-trip testing.
 
 ``` py title="Extract data back to XML" linenums="1"
 document = data_model.extract_from_database(

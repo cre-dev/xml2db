@@ -243,7 +243,7 @@ in or out otherwise, with the following option:
 
 ### Deduplication
 
-By default, `xml2db` deduplicates elements — identical elements are stored only once — which is particularly useful
+By default, `xml2db` deduplicates elements (storing each unique element only once), which is particularly useful
 when an XML element specifies a feature shared by many other elements.
 
 This is done using a hash of each node in the XML file, which includes recursively all its children. The detailed 

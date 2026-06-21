@@ -1,6 +1,6 @@
 ---
 title: "Loading XML into a relational database"
-description: "xml2db is a Python package that automatically maps an XSD schema to relational database tables and loads XML files into them — no custom mapping rules required."
+description: "xml2db is a Python package that automatically maps an XSD schema to relational database tables and loads XML files into them, with no custom mapping rules required."
 ---
 
 # Loading XML into a relational database
