@@ -6,3 +6,9 @@ description: "API reference for the xml2db Document class: methods for inserting
 # Document
 
 ::: xml2db.document.Document
+
+## Load statistics
+
+::: xml2db.document.LoadStats
+
+::: xml2db.document.MergeStats

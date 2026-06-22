@@ -1,5 +1,5 @@
 from .model import DataModel
-from .document import Document
+from .document import Document, LoadStats, MergeStats
 from .table import (
     DataModelTable,
     DataModelTableReused,
@@ -12,6 +12,8 @@ from .table import (
 __all__ = [
     "DataModel",
     "Document",
+    "LoadStats",
+    "MergeStats",
     "DataModelTable",
     "DataModelTableReused",
     "DataModelTableDuplicated",

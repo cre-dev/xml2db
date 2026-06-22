@@ -1,10 +1,12 @@
 import csv
 import datetime
 import logging
+import time
+from dataclasses import dataclass
 from io import BytesIO
 from typing import Union, TYPE_CHECKING
 from zoneinfo import ZoneInfo
-from sqlalchemy import Column, Table, text, select
+from sqlalchemy import Column, Table, func, text, select
 from sqlalchemy.engine import Connection
 from sqlalchemy.sql.expression import TextClause
 from lxml import etree
@@ -15,6 +17,50 @@ if TYPE_CHECKING:
 from .xml_converter import XMLConverter
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class MergeStats:
+    """Statistics returned by :meth:`~xml2db.document.Document.merge_into_target_tables`.
+
+    Attributes:
+        inserted: Rows from the document that were written to target tables.
+            May be 0 on backends that do not report rowcount for ``INSERT … FROM SELECT``
+            (e.g. DuckDB).
+        existing: Rows from the document that were not written because an identical record
+            was already present (hash-deduplicated for reused tables, or because a parent
+            record was already existing for duplicated tables).
+            May be 0 on backends that do not report rowcount for ``INSERT … FROM SELECT``.
+        duration: Seconds spent executing merge statements.
+    """
+
+    inserted: int
+    existing: int
+    duration: float
+
+
+@dataclass
+class LoadStats:
+    """Statistics returned by :meth:`~xml2db.document.Document.insert_into_target_tables`.
+
+    Attributes:
+        inserted: Rows from the document that were written to target tables.
+            May be 0 on backends that do not report rowcount for ``INSERT … FROM SELECT``
+            (e.g. DuckDB).
+        existing: Rows from the document that were not written because an identical record
+            was already present (hash-deduplicated for reused tables, or because a parent
+            record was already existing for duplicated tables).
+            May be 0 on backends that do not report rowcount for ``INSERT … FROM SELECT``.
+        duration_temp_insert: Seconds spent inserting data into temporary staging tables.
+        duration_merge: Seconds spent merging temporary tables into target tables.
+        duration_cleanup: Seconds spent dropping temporary tables.
+    """
+
+    inserted: int
+    existing: int
+    duration_temp_insert: float
+    duration_merge: float
+    duration_cleanup: float
 
 
 class Document:
@@ -373,7 +419,7 @@ class Document:
         max_lines: int = -1,
         bulk_load: bool | None = None,
         bulk_load_threshold: int | None = None,
-    ) -> None:
+    ) -> float:
         """Insert data into temporary tables
 
         (Re)creates temp tables before inserting data.
@@ -385,7 +431,11 @@ class Document:
                 use bulk loading when available and fall back silently.
             bulk_load_threshold: Minimum number of records to trigger bulk
                 loading.  ``None`` delegates the choice to the dialect.
+
+        Returns:
+            Seconds spent on this phase.
         """
+        t0 = time.perf_counter()
         logger.info(f"Dropping temp tables if exist for {self.xml_file_path}")
         self.model.drop_all_temp_tables()
 
@@ -410,8 +460,9 @@ class Document:
                             bulk_load_threshold=bulk_load_threshold,
                         )
                     start_idx = start_idx + batch_size
+        return time.perf_counter() - t0
 
-    def merge_into_target_tables(self, single_transaction: bool = True) -> int:
+    def merge_into_target_tables(self, single_transaction: bool = True) -> MergeStats:
         """Merge data into target data model
 
         Execute all update and insert statements needed to merge temporary tables content into target tables.
@@ -421,9 +472,11 @@ class Document:
                 scope required to ensure database consistency?
 
         Returns:
-            The number of inserted rows
+            A :class:`MergeStats` object with inserted/existing row counts and phase duration.
         """
-        inserted_rows_count = 0
+        inserted = 0
+        existing = 0
+        t0 = time.perf_counter()
         for tables in (
             [self.model.fk_ordered_tables]
             if single_transaction
@@ -431,16 +484,27 @@ class Document:
         ):
             with self.model.engine.begin() as conn:
                 for tb in tables:
+                    # Within each table's statement stream the first INSERT is always the
+                    # main data-table insert; subsequent INSERTs belong to n-n join tables.
+                    table_inserted = None
                     for query in tb.get_merge_temp_records_statements():
                         result = conn.execute(query)
-                        if query.is_insert:
-                            inserted_rows_count += result.rowcount
-        if inserted_rows_count == 0:
+                        if query.is_insert and table_inserted is None:
+                            # rowcount is -1 on backends that do not report it for
+                            # INSERT … FROM SELECT (e.g. DuckDB); skip those tables.
+                            if result.rowcount >= 0:
+                                table_inserted = result.rowcount
+                    if table_inserted is not None:
+                        inserted += table_inserted
+                        if tb.is_reused and tb.type_name in self.data:
+                            existing += (
+                                len(self.data[tb.type_name]["records"]) - table_inserted
+                            )
+        if inserted == 0:
             logger.info("No rows were inserted!")
         else:
-            logger.info(f"Inserted rows: {inserted_rows_count}")
-
-        return inserted_rows_count
+            logger.info(f"Inserted rows: {inserted}, existing rows: {existing}")
+        return MergeStats(inserted=inserted, existing=existing, duration=time.perf_counter() - t0)
 
     def insert_into_target_tables(
         self,
@@ -448,7 +512,7 @@ class Document:
         max_lines: int = -1,
         bulk_load: bool | None = None,
         bulk_load_threshold: int | None = None,
-    ) -> int:
+    ) -> LoadStats:
         """Insert and merge data into the database
 
         Insert data into temporary tables and then merge temporary tables into target tables.
@@ -465,8 +529,10 @@ class Document:
                 loading.  ``None`` delegates the choice to the dialect.
 
         Returns:
-            The number of inserted rows
+            A :class:`LoadStats` object with inserted/existing row counts and per-phase durations.
         """
+        merge_stats = None
+        duration_cleanup = 0.0
         try:
             self.model.create_db_schema()
         except Exception as e:
@@ -476,7 +542,7 @@ class Document:
             logger.error(e)
             raise
         try:
-            self.insert_into_temp_tables(max_lines, bulk_load, bulk_load_threshold)
+            duration_temp = self.insert_into_temp_tables(max_lines, bulk_load, bulk_load_threshold)
         except Exception as e:
             logger.error(
                 f"Error while importing into temporary tables from {self.xml_file_path}"
@@ -489,7 +555,7 @@ class Document:
             )
             try:
                 self.model.create_all_tables()  # Create target tables if not exist
-                inserted_rows = self.merge_into_target_tables(single_transaction)
+                merge_stats = self.merge_into_target_tables(single_transaction)
             except Exception as e:
                 logger.error(
                     f"Error while merging temporary tables into target tables for {self.xml_file_path}"
@@ -498,9 +564,17 @@ class Document:
                 raise
         finally:
             logger.info(f"Dropping temporary tables for {self.xml_file_path}")
+            t0 = time.perf_counter()
             self.model.drop_all_temp_tables()
+            duration_cleanup = time.perf_counter() - t0
 
-        return inserted_rows
+        return LoadStats(
+            inserted=merge_stats.inserted,
+            existing=merge_stats.existing,
+            duration_temp_insert=duration_temp,
+            duration_merge=merge_stats.duration,
+            duration_cleanup=duration_cleanup,
+        )
 
     def extract_from_database(
         self,
