@@ -63,9 +63,9 @@ class DataModel:
     Examples:
         Create a `DataModel` like this:
         >>> data_model = DataModel(
-        >>>     xsd_file="path/to/file.xsd",
-        >>>     connection_string="postgresql+psycopg2://testuser:testuser@localhost:5432/testdb",
-        >>> )
+        ...     xsd_file="path/to/file.xsd",
+        ...     connection_string="postgresql+psycopg2://testuser:testuser@localhost:5432/testdb",
+        ... )
 
     """
 
@@ -731,9 +731,6 @@ class DataModel:
 
         Returns:
             A [`Document`](document.md) object containing extracted data
-
-        Examples:
-
         """
         doc = Document(self)
         doc.extract_from_database(self.root_table, root_select_where, force_tz=force_tz)

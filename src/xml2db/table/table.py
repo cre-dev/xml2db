@@ -202,7 +202,7 @@ class DataModelTable:
         """Helper to add a 1-to-many relationship
 
         Args:
-            name: name of the 1-1 relationship
+            name: name of the 1-n relationship
             other_table: the child table of the relationship
             occurs: min and max occurs for this relationship
             ngroup: a string id signaling that the relation belongs to a nested sequence

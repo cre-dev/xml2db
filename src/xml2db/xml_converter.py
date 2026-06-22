@@ -401,7 +401,7 @@ class XMLConverter:
         Args:
             out_file: If provided, write output to a file.
             nsmap: An optional namespace mapping.
-            indent: A string used as indentin XML output.
+            indent: A string used as indent in XML output.
 
         Returns:
             The etree object corresponding to the root XML node.

@@ -147,10 +147,10 @@ class DataModelTableReused(DataModelTableTransformed):
         looking up first existing records with the same hash in order to reuse already existing
         records when the new record is identical.
 
-        This method should not be called directly but through the save_db method in the Document
-        class, which will ensure that merge queries are issued in the correct order for all the
-        data flow, and which will encapsulated all queries in a transaction in order to rollback
-        changes on failure.
+        This method should not be called directly but through
+        :meth:`~xml2db.document.Document.insert_into_target_tables`, which ensures that merge
+        queries are issued in the correct order and wraps them in a transaction so that changes
+        are rolled back on failure.
         """
 
         # find matching records hash in target table

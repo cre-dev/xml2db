@@ -28,7 +28,7 @@ Options apply at three levels: model, table, and field. The general structure of
     "document_tree_node_hook": None,
     "row_numbers": False,
     "as_columnstore": False,
-    "metadata_columns": None,
+    "metadata_columns": [],
     "tables": {
         "table1": {
             "reuse": True,
@@ -125,7 +125,7 @@ defined as `sqlalchemy` types and will be passed to the `sqlalchemy.Column` cons
 
 ### Joining values for simple types
 
-By default, XML simple type elements with types in `["string", "date", "dateTime", "NMTOKEN", "time"]` and max 
+By default, XML simple type elements with types in `["string", "date", "dateTime", "NMTOKEN", "time", "base64Binary", "decimal"]` and max 
 occurrences >= 1 are joined in one column as comma separated values and optionally wrapped in double quotes if they 
 contain commas (an Excel-like csv format, which can be queried with `LIKE` statements in SQL).
 
@@ -150,12 +150,13 @@ automatically applied `join`, as it would require a complex process of adding a 
 
 ### Elevate children to upper level
 
-A complex child that occurs exactly once (`[1, 1]`) is always elevated to its parent by default.
+A mandatory child (min occurrences = 1, i.e. `[1, 1]`) is always elevated to its parent by default, as long as it
+is not involved in a 1-n relationship elsewhere in the schema.
 
-An optional child (`[0, 1]`) is also elevated by default if it has fewer than 5 fields, to avoid cluttering the parent
-with mostly-NULL columns.
+An optional child (`[0, 1]`) is also elevated by default if it has 4 or fewer simple-type columns (relation fields
+are not counted), and again only when it is not involved in a 1-n relationship elsewhere.
 
-This behaviour can be disabled, or forced for children with more than 5 fields, using:
+This behaviour can be disabled, or forced for larger children (more than 4 simple-type columns), using:
 
 `"transform":` `"elevate"` (default) or `"elevate_wo_prefix"` or `False` (disable).
 
@@ -224,10 +225,10 @@ idOfMarketParticipant[1, 1] (choice):
    value[1, 1]: string
 ```
 
-This simplification is applied by default when there are more than 2 options of the same data type, but it can be opted
-in or out otherwise, with the following option: 
+This simplification is applied automatically when there are more than 2 options of the same data type. It can be
+forced on or disabled explicitly with the following option:
 
-`"choice_transform":` `True` (default) or `False` (disable)
+`"choice_transform":` `True` (force on) or `False` (disable)
 
 !!! example
     Disable choice group simplification for a choice group:
@@ -290,7 +291,7 @@ Configuration: `"extra_args": []` (default)
     model_config = {
         "tables": {
             "my_table": {
-                "extra_args": sqlalchemy.Index("my_index", "my_column1", "my_column2"),
+                "extra_args": [sqlalchemy.Index("my_index", "my_column1", "my_column2")],
             }
         }
     }
