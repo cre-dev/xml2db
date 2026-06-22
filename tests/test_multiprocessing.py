@@ -65,10 +65,11 @@ def test_multiprocessing_file_duckdb():
     """
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = os.path.join(tmpdir, "test.duckdb")
-        lock = multiprocessing.Lock()
+        ctx = multiprocessing.get_context("spawn")
+        lock = ctx.Lock()
 
         processes = [
-            multiprocessing.Process(
+            ctx.Process(
                 target=_load_xml_file,
                 args=(xml_path, _XSD, db_path, lock),
             )
