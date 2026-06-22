@@ -28,7 +28,8 @@ description: "Overview of the xml2db Python API: building DataModel objects, par
 * [`DataModel.parse_xml`](data_model.md/#xml2db.model.DataModel.parse_xml): read and parse a XML document, which is
     loaded in memory
 * [`Document.insert_into_target_tables`](document.md/#xml2db.document.Document.insert_into_target_tables): load a file
-    into the database
+    into the database; returns a [`LoadStats`](document.md/#xml2db.document.LoadStats) object with inserted/existing
+    row counts and per-phase durations
 
 ## *Advanced use:* loading data into the database
 
