@@ -25,7 +25,7 @@ class DataModelColumn:
         is_content: is the column used to store the content value of a mixed complex type?
         allow_empty: is nullable ?
         ngroup: a string key used to handle nested sequences (``str(hash(parent_node))``) or ``None``
-        model_config: the table-level config dict; may contain a ``fields`` entry with a custom column type
+        config: the table-level config dict; may contain a ``fields`` entry with a custom column type
         data_model: the DataModel object it belongs to
 
     Attributes:
@@ -47,7 +47,7 @@ class DataModelColumn:
         is_content: bool,
         allow_empty: bool,
         ngroup: Union[str, None],
-        model_config: dict[str, Any],
+        config: dict[str, Any],
         data_model: "DataModel",
     ):
         """Constructor method"""
@@ -62,7 +62,7 @@ class DataModelColumn:
         self.is_content = is_content
         self.allow_empty = allow_empty
         self.ngroup = ngroup
-        self.model_config = model_config
+        self.config = config
         self.data_model = data_model
         self.other_table = None  # just to avoid a linting warning
 
@@ -100,9 +100,7 @@ class DataModelColumn:
         Args:
             temp: temp table or target table ?
         """
-        # use type specified in config if exists
-        column_type = self.model_config.get("fields", {}).get(self.name, {}).get(
-            "type"
-        ) or self.data_model.dialect.column_type(self, temp)
-        db_col = self.data_model.dialect.db_identifier(self.name)
+        field_config = self.config.get("fields", {}).get(self.name, {})
+        column_type = field_config.get("type") or self.data_model.dialect.column_type(self, temp)
+        db_col = self.data_model.dialect.db_identifier(field_config.get("rename", self.name))
         yield Column(db_col, column_type, key=self.name)

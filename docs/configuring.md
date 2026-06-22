@@ -52,10 +52,12 @@ The following options can be passed as top-level keys of the model configuration
 * `document_tree_hook` (`Callable`): sets a hook function which can modify the data extracted from the XML. It gives direct
 access to the underlying tree data structure just before it is extracted to be loaded to the database. This can be used,
 for instance, to prune or modify some parts of the document tree before loading it into the database. The document tree
-should of course stay compatible with the data model.
+should of course stay compatible with the data model. For simply excluding a field from the schema without custom logic,
+the declarative [`"transform": "skip"`](#skipping-fields) option is simpler.
 * `document_tree_node_hook` (`Callable`): sets a hook function which can modify the data extracted from the XML. It is
 similar with `document_tree_hook`, but it is called as soon as a node is completed, not waiting for the entire parsing to
-finish. It is especially useful if you intend to filter out some nodes and reduce memory footprint while parsing.
+finish. It is especially useful if you intend to filter out some nodes and reduce memory footprint while parsing. For
+straightforward field exclusion, see [`"transform": "skip"`](#skipping-fields).
 * `row_numbers` (`bool`): adds `xml2db_row_number` columns either to `n-n` relationships tables, or directly to data tables when 
 deduplication of rows is opted out. This allows recording the original order of elements in the source XML, which is not
 always respected otherwise. It was implemented primarily for round-trip tests, but could serve other purposes. The 
@@ -123,6 +125,44 @@ defined as `sqlalchemy` types and will be passed to the `sqlalchemy.Column` cons
     
     You can infer `my_table` and `my_column` when visualizing the data model.
 
+### Renaming columns
+
+The physical database column name for any field can be overridden while keeping the original XML element name as the
+internal logical key. This is useful when XSD element names are awkward, conflict with reserved SQL words, or need to
+follow a naming convention that differs from the source schema.
+
+The rename applies to both the target table and the staging table. All internal references (data dict keys, foreign key
+lookups, merge statements) continue to use the original logical name, so only the visible DB column name changes.
+
+Configuration: `"rename":` `"new_column_name"` (no default; omit to keep the original name)
+
+!!! example
+    Rename the `orderid` attribute to `order_id` in the `shiporder` table:
+    ```python
+    model_config = {
+        "tables": {
+            "shiporder": {
+                "fields": {
+                    "orderid": {"rename": "order_id"}
+                }
+            }
+        }
+    }
+    ```
+
+    Elevated fields (those pulled up from a child table) are renamed using their prefixed name in the parent table:
+    ```python
+    model_config = {
+        "tables": {
+            "shiporder": {
+                "fields": {
+                    "orderperson_name": {"rename": "contact_name"}
+                }
+            }
+        }
+    }
+    ```
+
 ### Joining values for simple types
 
 By default, XML simple type elements with types in `["string", "date", "dateTime", "NMTOKEN", "time", "base64Binary", "decimal"]` and max 
@@ -145,6 +185,36 @@ automatically applied `join`, as it would require a complex process of adding a 
                }
            }
        }
+    }
+    ```
+
+### Skipping fields
+
+Any field (column or relation) can be excluded from the data model entirely by setting its transform to `"skip"`.
+The field will be absent from the target table schema and all data for it will be silently dropped during XML
+parsing. This is useful for PII columns, large binary blobs, or fields that are irrelevant for analysis.
+
+For a skipped relation, the child table is also pruned from the model unless it is referenced by another relation
+elsewhere in the schema.
+
+Configuration: `"transform": "skip"`
+
+!!! warning
+    Skipped fields are not recoverable: data for them is never stored. Round-trip XML reconstruction will omit
+    any skipped field even when it was present in the source document.
+
+!!! example
+    Skip an optional scalar column and an optional relation:
+    ```python
+    model_config = {
+        "tables": {
+            "item": {
+                "fields": {
+                    "note": {"transform": "skip"},
+                    "delivery": {"transform": "skip"},
+                }
+            }
+        }
     }
     ```
 

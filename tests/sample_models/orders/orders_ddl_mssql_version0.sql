@@ -76,7 +76,7 @@ CREATE TABLE item_product_features_stringfeature (
 
 CREATE TABLE shiporder (
 	pk_shiporder INTEGER NOT NULL IDENTITY, 
-	orderid VARCHAR(1000) NULL, 
+	order_id VARCHAR(1000) NULL, 
 	processed_at DATETIMEOFFSET NULL, 
 	fk_orderperson INTEGER NULL, 
 	shipto_fk_orderperson INTEGER NULL, 

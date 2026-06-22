@@ -76,7 +76,7 @@ CREATE TABLE item_product_features_stringfeature (
 
 CREATE TABLE shiporder (
 	pk_shiporder SERIAL NOT NULL, 
-	orderid VARCHAR(1000), 
+	order_id VARCHAR(1000), 
 	processed_at TIMESTAMP WITH TIME ZONE, 
 	fk_orderperson INTEGER, 
 	shipto_fk_orderperson INTEGER, 

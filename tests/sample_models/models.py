@@ -23,8 +23,14 @@ models = [
             {
                 "config": {
                     "tables": {
-                        "shiporder": {"fields": {"orderperson": {"transform": False}}},
-                        "item": None,
+                        "shiporder": {
+                            "fields": {
+                                "orderperson": {"transform": False},
+                                "orderid": {"rename": "order_id"},
+                            }
+                        },
+                        "item": {"fields": {"comment": {"transform": "skip"}}},
+                        "orderperson": None,
                     },
                     "record_hash_column_name": "record_hash",
                     "metadata_columns": [
@@ -39,7 +45,13 @@ models = [
                 "config": {
                     "row_numbers": True,
                     "tables": {
-                        "item": {"reuse": False},
+                        "item": {
+                            "reuse": False,
+                            "fields": {
+                                "product_name": {"rename": "prd_name"},
+                                "comment": {"transform": "skip"},
+                            },
+                        },
                         "shiporder": {"fields": {"orderperson": {"transform": False}}},
                         "companyId": {"choice_transform": False},
                     },
@@ -63,7 +75,12 @@ models = [
                 "config": {
                     "tables": {
                         "shiporder": {"reuse": False},
-                        "item": {"fields": {"product": {"transform": False}}},
+                        "item": {
+                            "fields": {
+                                "product": {"transform": False},
+                                "comment": {"transform": "skip"},
+                            }
+                        },
                     },
                     "metadata_columns": [
                         {

@@ -224,7 +224,7 @@ class DataModel:
         # compute a text representation of the original data model and store it
         self.source_tree = str(root_table)
         # check user-provided configuration for tables
-        for tb_config in self.model_config.get("tables", {}):
+        for tb_config in self.tables_config:
             if tb_config not in self.names_types_map:
                 raise DataModelConfigError(
                     f"Table '{tb_config}' provided in config does not exist"

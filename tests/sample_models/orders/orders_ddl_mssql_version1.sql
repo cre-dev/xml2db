@@ -81,7 +81,7 @@ CREATE TABLE item (
 	temp_pk_item INTEGER NULL, 
 	fk_parent_shiporder INTEGER NULL, 
 	xml2db_row_number INTEGER NOT NULL, 
-	product_name VARCHAR(1000) NULL, 
+	prd_name VARCHAR(1000) NULL, 
 	product_version VARCHAR(1000) NULL, 
 	note VARCHAR(1000) NULL, 
 	quantity INTEGER NULL, 

@@ -117,6 +117,67 @@ def test_document_tree_to_xml(test_config):
     assert xml == ref_xml
 
 
+def test_field_rename():
+    """Test that 'rename' in field config sets the physical DB column name without affecting internal logic"""
+    model = DataModel(
+        str(os.path.join(models_path, "orders", "orders.xsd")),
+        model_config={
+            "tables": {
+                "shiporder": {
+                    "fields": {
+                        "orderid": {"rename": "order_id"},
+                    }
+                }
+            }
+        },
+    )
+    shiporder_table = model.tables["shipordertype"]
+
+    # physical column name in the DB uses the renamed value
+    assert shiporder_table.table.c["orderid"].name == "order_id"
+    # temp table should also use the renamed physical name
+    assert shiporder_table.temp_table.c["orderid"].name == "order_id"
+
+    # parsing still works and data dict uses the original logical name
+    doc = model.parse_xml(str(os.path.join(models_path, "orders", "xml", "order1.xml")))
+    records = doc.data["shipordertype"]["records"]
+    assert len(records) > 0
+    assert "orderid" in records[0]
+
+
+def test_field_skip_relation():
+    """Test that transform='skip' on a relation removes its generated columns and prunes the child table"""
+    model = DataModel(
+        str(os.path.join(models_path, "orders", "orders.xsd")),
+        model_config={
+            "tables": {
+                "item": {
+                    "fields": {
+                        "delivery": {"transform": "skip"},
+                    }
+                }
+            }
+        },
+    )
+    item_table = model.tables["itemtype"]
+
+    # delivery is a rel1 that would normally be elevated → its FK columns must be absent
+    assert "delivery_from_fk_orderperson" not in item_table.table.c
+    assert "delivery_to_fk_orderperson" not in item_table.table.c
+    # 'delivery' is also absent from relations_1 (no FK column, no merge statements)
+    assert "delivery" not in item_table.relations_1
+
+    # deliveryType has no other parents, so it should be pruned from the model
+    assert "deliveryType" not in model.tables
+
+    # parsing works even for XML files that contain <delivery>; delivery data is silently dropped
+    doc = model.parse_xml(str(os.path.join(models_path, "orders", "xml", "order3.xml")))
+    records = doc.data["itemtype"]["records"]
+    assert len(records) > 0
+    assert all("delivery" not in key for key in records[0])
+
+
+
 @pytest.mark.parametrize(
     "test_config",
     [

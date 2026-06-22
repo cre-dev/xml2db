@@ -48,6 +48,7 @@
         <version>regular</version>
       </product>
       <note>string</note>
+      <comment>this comment should be skipped</comment>
       <quantity>8</quantity>
       <price>56.2</price>
       <currency>EUR</currency>

@@ -87,6 +87,7 @@
         <xs:sequence>
             <xs:element name="product" type="producttype" minOccurs="1" maxOccurs="1"/>
             <xs:element name="note" type="bt:stringtype" minOccurs="0"/>
+            <xs:element name="comment" type="bt:stringtype" minOccurs="0"/>
             <xs:element name="quantity" type="bt:quantitytype"/>
             <xs:element name="price" type="bt:dectype"/>
             <xs:element name="currency" type="bt:currencytype"/>

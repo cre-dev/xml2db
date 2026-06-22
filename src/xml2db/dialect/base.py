@@ -47,7 +47,7 @@ class DatabaseDialect:
     # Identifier handling
     # ------------------------------------------------------------------
 
-    def db_identifier(self, logical_name: str, temp_prefix: bool = False) -> str:
+    def db_identifier(self, logical_name: str) -> str:
         """Return the physical database identifier for a logical name.
 
         Names longer than :attr:`MAX_IDENTIFIER_LENGTH` are truncated using a
@@ -57,15 +57,12 @@ class DatabaseDialect:
         Args:
             logical_name: The full logical name used inside the Python model
                 (e.g. ``"very_long_table_name_derived_from_xsd"``).
-            temp_prefix: Should we save 14 more characters for the temp prefix?
 
         Returns:
             A string that is safe to use as a database identifier for this
             backend. Guaranteed to be stable across calls with the same input.
         """
         max_len = self.MAX_IDENTIFIER_LENGTH
-        if temp_prefix:
-            max_len += 14
 
         if len(logical_name) <= max_len:
             return logical_name
