@@ -44,7 +44,10 @@ models = [
                 "config": {
                     "row_numbers": True,
                     "tables": {
-                        "item": {"reuse": False},
+                        "item": {
+                            "reuse": False,
+                            "fields": {"product_name": {"rename": "prd_name"}},
+                        },
                         "shiporder": {"fields": {"orderperson": {"transform": False}}},
                         "companyId": {"choice_transform": False},
                     },
