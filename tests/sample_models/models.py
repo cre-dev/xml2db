@@ -23,7 +23,12 @@ models = [
             {
                 "config": {
                     "tables": {
-                        "shiporder": {"fields": {"orderperson": {"transform": False}}},
+                        "shiporder": {
+                            "fields": {
+                                "orderperson": {"transform": False},
+                                "orderid": {"rename": "order_id"},
+                            }
+                        },
                         "item": None,
                     },
                     "record_hash_column_name": "record_hash",

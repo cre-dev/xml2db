@@ -76,7 +76,7 @@ CREATE TABLE item_product_features_stringfeature (
 
 CREATE TABLE shiporder (
 	pk_shiporder INTEGER NOT NULL AUTO_INCREMENT, 
-	orderid VARCHAR(255), 
+	order_id VARCHAR(255), 
 	processed_at DATETIME, 
 	fk_orderperson INTEGER, 
 	shipto_fk_orderperson INTEGER, 
