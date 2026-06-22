@@ -20,20 +20,42 @@ from .model import DataModel
 # render command
 # ---------------------------------------------------------------------------
 
+def _get_sa_dialect(db_type: str | None):
+    """Return a SQLAlchemy dialect instance for DDL compilation, or None for generic."""
+    if db_type is None:
+        return None
+    from sqlalchemy.dialects import postgresql, mssql, mysql
+    _map = {
+        "postgresql": postgresql,
+        "mssql": mssql,
+        "mysql": mysql,
+        "mariadb": mysql,
+    }
+    module = _map.get(db_type)
+    return module.dialect() if module is not None else None
+
+
 def cmd_render(args: argparse.Namespace) -> None:
     config = load_config(args.config) if args.config else None
+    db_type = getattr(args, "db_type", None)
     model = DataModel(
         xsd_file=args.xsd_file,
         short_name=args.short_name,
         model_config=config,
+        db_type=db_type,
     )
     fmt = args.format
     if fmt == "erd":
         output = model.get_entity_rel_diagram(text_context=False)
     elif fmt == "target-tree":
         output = model.target_tree
-    else:
+    elif fmt == "source-tree":
         output = model.source_tree
+    else:  # ddl
+        sa_dialect = _get_sa_dialect(db_type)
+        parts = [str(s.compile(dialect=sa_dialect)) for s in model.get_all_create_table_statements()]
+        parts += [str(s.compile(dialect=sa_dialect)) + "\n\n" for s in model.get_all_create_index_statements()]
+        output = "".join(parts)
 
     if args.output:
         with open(args.output, "w", encoding="utf-8") as f:
@@ -420,13 +442,15 @@ def main() -> None:
     r.add_argument("--config", "-c", metavar="FILE", help="YAML model config file")
     r.add_argument(
         "--format", "-f",
-        choices=["erd", "target-tree", "source-tree"],
+        choices=["erd", "target-tree", "source-tree", "ddl"],
         default="erd",
         help="Output format (default: erd)",
     )
     r.add_argument("--output", "-o", metavar="FILE", help="Write to file instead of stdout")
     r.add_argument("--short-name", default="DocumentRoot", metavar="NAME",
                    help="Data model short name (default: DocumentRoot)")
+    r.add_argument("--db-type", metavar="BACKEND", default=None,
+                   help="Database backend for DDL output (postgresql, mssql, mysql, …)")
 
     s = sub.add_parser("serve", help="Launch an interactive schema explorer in the browser")
     s.add_argument("xsd_file", help="Path to the XSD schema file")
