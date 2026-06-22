@@ -117,6 +117,34 @@ def test_document_tree_to_xml(test_config):
     assert xml == ref_xml
 
 
+def test_field_rename():
+    """Test that 'rename' in field config sets the physical DB column name without affecting internal logic"""
+    model = DataModel(
+        str(os.path.join(models_path, "orders", "orders.xsd")),
+        model_config={
+            "tables": {
+                "shiporder": {
+                    "fields": {
+                        "orderid": {"rename": "order_id"},
+                    }
+                }
+            }
+        },
+    )
+    shiporder_table = model.tables["shipordertype"]
+
+    # physical column name in the DB uses the renamed value
+    assert shiporder_table.table.c["orderid"].name == "order_id"
+    # temp table should also use the renamed physical name
+    assert shiporder_table.temp_table.c["orderid"].name == "order_id"
+
+    # parsing still works and data dict uses the original logical name
+    doc = model.parse_xml(str(os.path.join(models_path, "orders", "xml", "order1.xml")))
+    records = doc.data["shipordertype"]["records"]
+    assert len(records) > 0
+    assert "orderid" in records[0]
+
+
 @pytest.mark.parametrize(
     "test_config",
     [

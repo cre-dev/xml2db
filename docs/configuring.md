@@ -123,6 +123,44 @@ defined as `sqlalchemy` types and will be passed to the `sqlalchemy.Column` cons
     
     You can infer `my_table` and `my_column` when visualizing the data model.
 
+### Renaming columns
+
+The physical database column name for any field can be overridden while keeping the original XML element name as the
+internal logical key. This is useful when XSD element names are awkward, conflict with reserved SQL words, or need to
+follow a naming convention that differs from the source schema.
+
+The rename applies to both the target table and the staging table. All internal references (data dict keys, foreign key
+lookups, merge statements) continue to use the original logical name, so only the visible DB column name changes.
+
+Configuration: `"rename":` `"new_column_name"` (no default — omit to keep the original name)
+
+!!! example
+    Rename the `orderid` attribute to `order_id` in the `shiporder` table:
+    ```python
+    model_config = {
+        "tables": {
+            "shiporder": {
+                "fields": {
+                    "orderid": {"rename": "order_id"}
+                }
+            }
+        }
+    }
+    ```
+
+    Elevated fields (those pulled up from a child table) are renamed using their prefixed name in the parent table:
+    ```python
+    model_config = {
+        "tables": {
+            "shiporder": {
+                "fields": {
+                    "orderperson_name": {"rename": "contact_name"}
+                }
+            }
+        }
+    }
+    ```
+
 ### Joining values for simple types
 
 By default, XML simple type elements with types in `["string", "date", "dateTime", "NMTOKEN", "time", "base64Binary", "decimal"]` and max 

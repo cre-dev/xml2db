@@ -100,9 +100,7 @@ class DataModelColumn:
         Args:
             temp: temp table or target table ?
         """
-        # use type specified in config if exists
-        column_type = self.config.get("fields", {}).get(self.name, {}).get(
-            "type"
-        ) or self.data_model.dialect.column_type(self, temp)
-        db_col = self.data_model.dialect.db_identifier(self.name)
+        field_config = self.config.get("fields", {}).get(self.name, {})
+        column_type = field_config.get("type") or self.data_model.dialect.column_type(self, temp)
+        db_col = self.data_model.dialect.db_identifier(field_config.get("rename", self.name))
         yield Column(db_col, column_type, key=self.name)
