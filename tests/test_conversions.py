@@ -145,35 +145,6 @@ def test_field_rename():
     assert "orderid" in records[0]
 
 
-def test_field_skip_column():
-    """Test that transform='skip' removes a scalar column from the schema and parsed records"""
-    model = DataModel(
-        str(os.path.join(models_path, "orders", "orders.xsd")),
-        model_config={
-            "tables": {
-                "item": {
-                    "fields": {
-                        "note": {"transform": "skip"},
-                    }
-                }
-            }
-        },
-    )
-    item_table = model.tables["itemtype"]
-
-    # column must be absent from both the DataModelTable and the SQLAlchemy table
-    assert "note" not in item_table.columns
-    assert "note" not in item_table.table.c
-    # neighbouring columns are unaffected
-    assert "quantity" in item_table.table.c
-
-    # parsing works; 'note' is absent from records even for files that contain <note>
-    doc = model.parse_xml(str(os.path.join(models_path, "orders", "xml", "order1.xml")))
-    records = doc.data["itemtype"]["records"]
-    assert len(records) > 0
-    assert "note" not in records[0]
-
-
 def test_field_skip_relation():
     """Test that transform='skip' on a relation removes its generated columns and prunes the child table"""
     model = DataModel(
@@ -205,34 +176,6 @@ def test_field_skip_relation():
     assert len(records) > 0
     assert all("delivery" not in key for key in records[0])
 
-
-@pytest.mark.dbtest
-def test_field_skip_db(conn_string):
-    """Test that skipped fields do not cause DB errors during insert"""
-    model = DataModel(
-        str(os.path.join(models_path, "orders", "orders.xsd")),
-        connection_string=conn_string,
-        db_schema="test_xml2db_skip",
-        model_config={
-            "tables": {
-                "item": {
-                    "fields": {
-                        "note": {"transform": "skip"},
-                    }
-                }
-            }
-        },
-    )
-    model.create_db_schema()
-    model.drop_all_tables()
-    model.create_all_tables()
-    try:
-        # insert a file that contains <note> — must succeed without errors
-        xml_path = str(os.path.join(models_path, "orders", "xml", "order1.xml"))
-        doc = model.parse_xml(xml_path)
-        doc.insert_into_target_tables()
-    finally:
-        model.drop_all_tables()
 
 
 @pytest.mark.parametrize(

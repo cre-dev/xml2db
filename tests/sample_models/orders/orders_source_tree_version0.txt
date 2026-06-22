@@ -52,6 +52,7 @@ orders:
                         id[1, 1]: string
                         value[1, 1]: string
             note[0, 1]: string
+            comment[0, 1]: string
             quantity[1, 1]: integer
             price[1, 1]: decimal
             currency[1, 1]: string
