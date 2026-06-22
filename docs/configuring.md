@@ -132,7 +132,7 @@ follow a naming convention that differs from the source schema.
 The rename applies to both the target table and the staging table. All internal references (data dict keys, foreign key
 lookups, merge statements) continue to use the original logical name, so only the visible DB column name changes.
 
-Configuration: `"rename":` `"new_column_name"` (no default — omit to keep the original name)
+Configuration: `"rename":` `"new_column_name"` (no default; omit to keep the original name)
 
 !!! example
     Rename the `orderid` attribute to `order_id` in the `shiporder` table:
@@ -188,7 +188,7 @@ automatically applied `join`, as it would require a complex process of adding a 
 
 ### Skipping fields
 
-Any field — column or relation — can be excluded from the data model entirely by setting its transform to `"skip"`.
+Any field (column or relation) can be excluded from the data model entirely by setting its transform to `"skip"`.
 The field will be absent from the target table schema and all data for it will be silently dropped during XML
 parsing. This is useful for PII columns, large binary blobs, or fields that are irrelevant for analysis.
 
@@ -198,7 +198,7 @@ elsewhere in the schema.
 Configuration: `"transform": "skip"`
 
 !!! warning
-    Skipped fields are not recoverable — data for them is never stored. Round-trip XML reconstruction will omit
+    Skipped fields are not recoverable: data for them is never stored. Round-trip XML reconstruction will omit
     any skipped field even when it was present in the source document.
 
 !!! example
