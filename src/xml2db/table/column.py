@@ -3,6 +3,8 @@ from typing import List, Iterable, Any, Union, TYPE_CHECKING
 
 from sqlalchemy import Column
 
+from ..config import resolve_sa_type
+
 if TYPE_CHECKING:
     from ..model import DataModel
 
@@ -101,6 +103,10 @@ class DataModelColumn:
             temp: temp table or target table ?
         """
         field_config = self.config.get("fields", {}).get(self.name, {})
-        column_type = field_config.get("type") or self.data_model.dialect.column_type(self, temp)
+        raw_type = field_config.get("type")
+        column_type = (
+            resolve_sa_type(raw_type) if raw_type is not None
+            else self.data_model.dialect.column_type(self, temp)
+        )
         db_col = self.data_model.dialect.db_identifier(field_config.get("rename", self.name))
         yield Column(db_col, column_type, key=self.name)
