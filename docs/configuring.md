@@ -186,6 +186,36 @@ automatically applied `join`, as it would require a complex process of adding a 
     }
     ```
 
+### Skipping fields
+
+Any field — column or relation — can be excluded from the data model entirely by setting its transform to `"skip"`.
+The field will be absent from the target table schema and all data for it will be silently dropped during XML
+parsing. This is useful for PII columns, large binary blobs, or fields that are irrelevant for analysis.
+
+For a skipped relation, the child table is also pruned from the model unless it is referenced by another relation
+elsewhere in the schema.
+
+Configuration: `"transform": "skip"`
+
+!!! warning
+    Skipped fields are not recoverable — data for them is never stored. Round-trip XML reconstruction will omit
+    any skipped field even when it was present in the source document.
+
+!!! example
+    Skip an optional scalar column and an optional relation:
+    ```python
+    model_config = {
+        "tables": {
+            "item": {
+                "fields": {
+                    "note": {"transform": "skip"},
+                    "delivery": {"transform": "skip"},
+                }
+            }
+        }
+    }
+    ```
+
 ### Elevate children to upper level
 
 A mandatory child (min occurrences = 1, i.e. `[1, 1]`) is always elevated to its parent by default, as long as it
