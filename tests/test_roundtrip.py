@@ -3,9 +3,57 @@ import os
 import pytest
 from lxml import etree
 
+from xml2db import LoadStats, MergeStats
 from xml2db.xml_converter import XMLConverter, remove_record_hash
-from .conftest import list_xml_path
+from .conftest import list_xml_path, models_path
 from .sample_models import models
+
+
+@pytest.mark.dbtest
+def test_load_stats(conn_string):
+    """Test that insert_into_target_tables returns a LoadStats with correct structure"""
+    from xml2db import DataModel
+    import sqlalchemy
+
+    model = DataModel(
+        str(os.path.join(models_path, "orders", "orders.xsd")),
+        connection_string=conn_string,
+        db_schema="test_xml2db_stats",
+        model_config={
+            "metadata_columns": [{"name": "src", "type": sqlalchemy.String(256)}]
+        },
+    )
+    model.create_db_schema()
+    model.drop_all_tables()
+    model.create_all_tables()
+    xml_path = str(os.path.join(models_path, "orders", "xml", "order1.xml"))
+    try:
+        # first load
+        doc = model.parse_xml(xml_path, metadata={"src": "a"})
+        stats = doc.insert_into_target_tables()
+
+        assert isinstance(stats, LoadStats)
+        assert stats.inserted >= 0
+        assert stats.existing == 0  # nothing pre-existing on first load
+        assert stats.duration_temp_insert > 0
+        assert stats.duration_merge > 0
+        assert stats.duration_cleanup > 0
+
+        # second load of same file — reused rows should be existing (backends that
+        # report rowcount); on DuckDB both will be 0, which is also acceptable
+        doc2 = model.parse_xml(xml_path, metadata={"src": "b"})
+        stats2 = doc2.insert_into_target_tables()
+
+        assert isinstance(stats2, LoadStats)
+        assert stats2.inserted >= 0
+        assert stats2.existing >= 0
+        assert stats2.inserted + stats2.existing >= 0
+        # where rowcount is supported: all reused records from the first load
+        # are now existing; inserted should be 0 or very small
+        if stats.inserted > 0:
+            assert stats2.existing > 0
+    finally:
+        model.drop_all_tables()
 
 
 @pytest.mark.dbtest
