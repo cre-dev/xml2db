@@ -1,22 +1,25 @@
+---
+title: "How it works"
+description: "Deep dive into how xml2db builds a relational data model from an XSD schema, performs hash-based deduplication, models 1-1/1-n/n-n relationships, and loads XML data into a database."
+---
+
 # How it works
 
-This page covers more advanced topics to understand in depth how data models are created and how data is loaded to
-the database. This can help with troubleshooting or for advanced use cases.
+This page explains in depth how data models are built and how XML data is loaded, which is useful for troubleshooting
+and advanced use cases.
 
 ## Building a data model
 
-A XML document is a tree-like structure where every element is either a simple type (i.e. a scalar value) or a complex
-type which has children which can be simple types or complex types. Elements can also have attributes, which are also
-scalar values, which `xml2db` will handle just as simple type children. In this page we will call "properties" the 
-simple type children of an element or its attributes.
+An XML document is a tree where every element is either a simple type (a scalar value) or a complex type with children
+that are themselves simple or complex types. Attributes are also scalar values and are treated the same as simple type
+children. Throughout this page, "properties" refers to the simple type children of an element or its attributes.
 
-The general idea of `xml2db` is to convert complex types to a database tables, and simple types or XML attributes into 
-columns in these tables. When a complex type has complex type children, they are themselves stored in other tables, and 
-related to their parents with a foreign key constraint, or a relationship table which holds foreign key constraints to 
-both related tables.
+`xml2db` converts complex types to database tables and simple types or XML attributes to columns. When a complex type
+has complex type children, they are stored in their own tables and linked to their parents via a foreign key or a
+join table.
 
-The data model created by `xml2db` is mostly bijective with the original XML document, which can in many cases be 
-extracted and converted back to a XML document as it was loaded into the database.
+The resulting data model is mostly bijective with the source XML. In most cases, data can be extracted from the
+database and converted back to XML.
 
 !!! note
     XSD specification allows multiple-root schemas. This means that XML documents conforming to this schema can have
@@ -32,26 +35,25 @@ By default, `xml2db` tries to reduce storage footprint in the database by storin
 original XML document, if it is already present in the database. This deduplication process takes into account the whole
 subtree starting from a given element, and not only the direct children of an element.
 
-Taking advantage of the initial tree structure, after parsing the XML document into a python dict, we compute a hash for
-each node, which includes all its properties and all its children hash, recursively. Two nodes with the same hash are 
-thus identical, so only one of them needs to be stored, even if they appear under different parent nodes.
+After parsing the XML document into a Python dict, we compute a recursive hash for each node covering all its
+properties and children. Two nodes with the same hash are identical, so only one needs to be stored, even if they
+appear under different parents.
 
-Hash are stored in the database, with a unique constraint (as a column with binary type named `xml2db_record_hash`). The
+Hashes are stored in the database, with a unique constraint (as a column with binary type named `xml2db_record_hash`). The
 primary key of all databases is an auto-incremented integer column, always named `pk_table_name`, `table_name` being the
 name of the table.
 
-In some cases, especially when only few  duplicates are expected, it may be more efficient to allow duplicated nodes in 
+In some cases, especially when only a few duplicates are expected, it may be more efficient to allow duplicated nodes in 
 order to avoid extra tables to store relationships. This can be configured for each table of the data model.
 
 ### Modeling relationships
 
-Within a tree, parent-child relationship can have `1-1` or `1-n` cardinality. As we want to reuse child nodes, we
-convert these relationships to `n-1` or `n-n`, respectively. Besides, some children are optional. This does not affect
-the representation of relationships in any way.
+Within a tree, parent-child relationships have `1-1` or `1-n` cardinality. To allow reuse of child nodes, these
+become `n-1` or `n-n` respectively. Optional children are handled the same way.
 
-A same child node (same hash) which is used under different parents will have several parents after the "recycling"
-process, while it had only one parent (because of the tree structure) in the initial dataset. This example illustrates
-a `1-1` relationship converted to `n-1` after reusing nodes:
+A child node (identified by its hash) that appears under multiple parents will have several parents after
+deduplication, whereas it had only one in the original tree. This example illustrates a `1-1` relationship converted
+to `n-1` after reuse:
 
 ```mermaid
 erDiagram
@@ -76,9 +78,8 @@ erDiagram
           UNIQUE_CONTRACT }|--|{ UNIQUE_DELIVERY_PROFILE : delivers
 ```
 
-In a SQL relational data model, `1-n` relationships can be easily represented with foreign keys. `n-n` relationships 
-require  however an additional table holding the relationship, which gives, for the last example with contracts and 
-delivery profiles:
+`1-n` relationships are represented with foreign keys. `n-n` relationships require an additional join table, which
+gives, for the last example with contracts and delivery profiles:
 
 ```mermaid
 erDiagram
@@ -95,31 +96,26 @@ erDiagram
 
 ### Duplicated elements
 
-As explained previously, deduplication can be opted out to avoid the complexity of an intermediary table holding a `n-n`
-relationship. In that case, the relationship will stay a `1-n` relationship, which will be modeled with the child 
-element holding a foreign key relationship to its parent.
+Deduplication can be disabled to avoid the extra join table. The relationship then stays `1-n`, with the child
+holding a foreign key to its parent.
 
-In that case, no hash is stored for the children as there are effectively duplicated elements. The column 
-`fk_parent_tablename` in the child table holds the primary keys of associated parent rows in the parent table 
-`tablename`.
+In that case, no hash is stored for the children since rows may be duplicated. The column `fk_parent_tablename` in the
+child table holds the primary keys of associated rows in the parent table `tablename`.
 
 This choice is made for each table individually, and children of a duplicated element can effectively be themselves 
 stored as deduplicated elements.
 
-This means that as the end, there can be both `1-n` and `n-1` relationships involved to represent a tree structure,
-which means that the order of dependencies of the resulting tables will not be the same as the original tree structure.
-For instance, when we want to make sure to process all dependent tables before processing a table, we won't likely
-start with the root table of the tree, as it would be expected without the de-duplication process.
+In the end, the schema can have both `1-n` and `n-1` relationships, so table dependency order differs from the
+original tree structure. When processing tables in dependency order, the root table is no longer necessarily first.
 
 ## Caveats
 
 `xml2db` handles a variety of data models, but does not cover all possible schemas allowed by the [XML schema documents
 specification](https://en.wikipedia.org/wiki/XML_Schema_(W3C)).
 
-Some known cases which are not supported by `xml2db` are described below. Other cases can fail and may require some
-adjustments to work. We recommend thorough testing for more "exotic" schemas; for instance it is possible to implement
-"round-trip" tests from sample XML files to database and back to XML, and compare the resulting XML file with the 
-original one.
+Known unsupported cases are described below. Other edge cases may also fail and require adjustments. We recommend
+thorough testing for unusual schemas. For example, you can implement round-trip tests (XML → database → XML) and
+compare the output against the original.
 
 ### Recursive XSD
 
@@ -138,24 +134,22 @@ elements.
 
 ## Loading process
 
-This section gives more detailed explanations on how parsing and loading data work. The integration of an XML file can 
-be decomposed in lower level steps described below.
+This section explains in detail how parsing and loading work. Loading an XML file breaks down into the following steps.
 
-### Parsing a XML document
+### Parsing an XML document
 
-First, we load all the XML document in memory using `lxml` and extract the data as a nested `dict`, where each node
-keeps a reference of its type, and store its data content. This task is achieved by the function 
+First, we load the entire XML document into memory using `lxml` and extract the data as a nested `dict`, where each node
+keeps a reference of its type and stores its data content. This task is achieved by the function 
 [`XMLConverter.parse_xml`](api/xml_converter.md#xml2db.xml_converter.XMLConverter.parse_xml).
 
-This limits the size of files that can be loaded, due to memory limitations. The merging database transaction also 
-limits the size of the files that can be loaded, depending on the server performance. On the other hand, handling data
-in memory makes the processing way simpler and faster. We handle files with a size around 500 MB without any issue.
+This constrains the maximum file size: in-memory parsing has memory limits, and the merge transaction adds a
+server-performance constraint. In practice, `xml2db` handles files around 500 MB without issue.
 
 ### Computing hashes
 
-We compute tree hashes  recursively by adding to each node's hash the hashes of its children element, be it simple 
-types, attributes or complex types. Children are processed in the specific order they appeared in the XSD schema, 
-so that hashing is really deterministic.
+Tree hashes are computed recursively by combining each node's hash with the hashes of its children: simple types,
+attributes, and complex types. Children are processed in the order they appear in the XSD schema, making
+hashing fully deterministic.
 
 Right after this step, a hook function is called if provided in the configuration (top-level `document_tree_hook` option
 in the configuration `dict`), which gives direct access to the underlying tree data structure just before it is 
@@ -174,8 +168,8 @@ only the data from the XML file we just parsed, and the final primary keys and f
 
 ### Loading the data
 
-The data we converted is then loaded to the database in a separate set of tables, which have the same names that the 
-target tables, but prefixed with `temp_XXX` (with `XXX` being a random 8 characters `uuid` string, by default).
+The converted data is loaded into a separate set of tables with the same names as the target tables, but prefixed
+with `temp_XXX` (a random 8-character UUID string, by default).
 
 We keep the primary keys from the flat data model created at the previous stage, as temporary keys.
 
@@ -229,22 +223,20 @@ The process boils down to:
 
 ### Summing up
 
-The whole loading process can be achieved by the high level functions 
-[`DataModel.parse_xml`](api/data_model.md#xml2db.model.DataModel.parse_xml) and 
-[`Document.insert_into_target_tables`](api/document.md#xml2db.document.Document.insert_into_target_tables). However, 
-the later can be decomposed in lower level function calls, for instance if you want to separate the loading to the 
-temporary tables and the merge operation into the target tables. You can have a look at 
-[`Document.insert_into_target_tables`](api/document.md#xml2db.document.Document.insert_into_target_tables) 
-source code to see how the lower level steps are stitched together.
+The full loading process is exposed via
+[`DataModel.parse_xml`](api/data_model.md#xml2db.model.DataModel.parse_xml) and
+[`Document.insert_into_target_tables`](api/document.md#xml2db.document.Document.insert_into_target_tables). The latter
+can be broken down into lower-level calls if you need to separate the temporary-table load from the merge step. See the
+[`Document.insert_into_target_tables`](api/document.md#xml2db.document.Document.insert_into_target_tables) source code
+for how these steps fit together.
 
 ## Extracting the data back to XML
 
-Extracting the data from the database and converting it back to XML follow similar steps, in reverse order.
+Extracting data from the database and converting it back to XML follows similar steps, in reverse order.
 
 !!! info
-    Extracting the data from the database is not very optimized and is actually currently quite slow, mostly due to
-    complex join queries to retrieve data based on a filter only on the top node. This feature is currently useful
-    for roundtrip test, but has limited value otherwise, because of its poor performance compared to loading.
+    Extraction is currently slow due to complex join queries filtered only at the root level. It is mainly useful
+    for round-trip testing and has limited practical value otherwise.
 
 ### Querying data from the database
 

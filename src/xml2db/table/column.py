@@ -14,15 +14,18 @@ class DataModelColumn:
 
     Args:
         name: column name
+        name_chain: list of (field_name, type_name) pairs tracing the path from the root to this column,
+            used to reconstruct elevated fields when converting back to XML
         data_type: column data type
         occurs: min and max occurrences of the field
         min_length: min length
         max_length: max length
         is_attr: does the column value come from an xml attribute?
+        has_suffix: does the column name carry an ``_attr`` suffix to disambiguate it from a same-named element?
         is_content: is the column used to store the content value of a mixed complex type?
         allow_empty: is nullable ?
-        ngroup: a key used to handle nested sequences
-        model_config: data model config, may contain column type information
+        ngroup: a string key used to handle nested sequences (``str(hash(parent_node))``) or ``None``
+        model_config: the table-level config dict; may contain a ``fields`` entry with a custom column type
         data_model: the DataModel object it belongs to
 
     Attributes:
@@ -43,7 +46,7 @@ class DataModelColumn:
         has_suffix: bool,
         is_content: bool,
         allow_empty: bool,
-        ngroup: Union[int, None],
+        ngroup: Union[str, None],
         model_config: dict[str, Any],
         data_model: "DataModel",
     ):

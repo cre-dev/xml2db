@@ -1,10 +1,14 @@
+---
+title: "Configuring your data model"
+description: "Configure xml2db's data model via model_config: override column types, control field elevation, adjust deduplication, simplify XSD choice groups, and add custom indexes."
+---
+
 # Configuring your data model
 
-The data model in the database is derived automatically from a XML schema definition file (XSD) you provide. It is a set
-of tables linked by foreign keys relationships. Basically, each `complexType` of the XML schema definition corresponds 
-to a table in the target database data model. Each table is named after the first element name of this type, with 
-de-duplication if needed. Columns in a table corresponds to `simpleType` elements within a complex type and its 
-attributes. Columns are named after the names of children XML elements or attributes.
+The data model is derived automatically from an XSD file you provide. It is a set of tables linked by foreign key
+relationships. Each `complexType` in the XSD corresponds to a table, named after the first element of that type (with
+deduplication if needed). Columns correspond to `simpleType` elements and attributes within the complex type, named
+after the XML element or attribute.
 
 `xml2db` applies a few simplifications to the original data model by default, but they can also be opted-out or forced 
 through the configuration `dict` provided to the `DataModel` constructor.
@@ -16,8 +20,7 @@ The column types can also be configured to override the default type mapping, us
     diagram (see the [Getting started](getting_started.md) page for directions on how to visualize data models) and 
     then adapt the configuration if need be.
 
-Configuration options are described below. Some options can be set at the model level, others at the table level and
-others at the field level. The general structure of the configuration dict is the following:
+Options apply at three levels: model, table, and field. The general structure of the configuration dict is:
 
 ```py title="Model config general structure" linenums="1" 
 {
@@ -25,7 +28,7 @@ others at the field level. The general structure of the configuration dict is th
     "document_tree_node_hook": None,
     "row_numbers": False,
     "as_columnstore": False,
-    "metadata_columns": None,
+    "metadata_columns": [],
     "tables": {
         "table1": {
             "reuse": True,
@@ -44,14 +47,14 @@ others at the field level. The general structure of the configuration dict is th
 
 ## Model configuration
 
-The following options can be passed as a top-level keys of the model configuration `dict`:
+The following options can be passed as top-level keys of the model configuration `dict`:
 
 * `document_tree_hook` (`Callable`): sets a hook function which can modify the data extracted from the XML. It gives direct
 access to the underlying tree data structure just before it is extracted to be loaded to the database. This can be used,
 for instance, to prune or modify some parts of the document tree before loading it into the database. The document tree
 should of course stay compatible with the data model.
 * `document_tree_node_hook` (`Callable`): sets a hook function which can modify the data extracted from the XML. It is
-similar with `document_tree_hook`, but it is call as soon as a node is completed, not waiting for the entire parsing to
+similar with `document_tree_hook`, but it is called as soon as a node is completed, not waiting for the entire parsing to
 finish. It is especially useful if you intend to filter out some nodes and reduce memory footprint while parsing.
 * `row_numbers` (`bool`): adds `xml2db_row_number` columns either to `n-n` relationships tables, or directly to data tables when 
 deduplication of rows is opted out. This allows recording the original order of elements in the source XML, which is not
@@ -122,7 +125,7 @@ defined as `sqlalchemy` types and will be passed to the `sqlalchemy.Column` cons
 
 ### Joining values for simple types
 
-By default, XML simple type elements with types in `["string", "date", "dateTime", "NMTOKEN", "time"]` and max 
+By default, XML simple type elements with types in `["string", "date", "dateTime", "NMTOKEN", "time", "base64Binary", "decimal"]` and max 
 occurrences >= 1 are joined in one column as comma separated values and optionally wrapped in double quotes if they 
 contain commas (an Excel-like csv format, which can be queried with `LIKE` statements in SQL).
 
@@ -147,20 +150,18 @@ automatically applied `join`, as it would require a complex process of adding a 
 
 ### Elevate children to upper level
 
-If a complex child element has a minimum and maximum occurrences number of 1 and 1 respectively, it can be "pulled" up 
-to its parent element. This behaviour will always be applied by default.
+A mandatory child (min occurrences = 1, i.e. `[1, 1]`) is always elevated to its parent by default, as long as it
+is not involved in a 1-n relationship elsewhere in the schema.
 
-If a complex child element has a minimum and maximum occurrences number of 0 and 1 respectively, it can also be "pulled"
-up to its parent element fields. This is applied by default if the child has less than 5 fields, because otherwise it
-could clutter the parent element with many columns that will often be all `NULL`.
+An optional child (`[0, 1]`) is also elevated by default if it has 4 or fewer simple-type columns (relation fields
+are not counted), and again only when it is not involved in a 1-n relationship elsewhere.
 
-This simplification can be opted out using a configuration option, and forced in the case of a child with more than 5
-fields, using the following option:
+This behaviour can be disabled, or forced for larger children (more than 4 simple-type columns), using:
 
 `"transform":` `"elevate"` (default) or `"elevate_wo_prefix"` or `False` (disable).
 
-By default, the elevated field name is prefixed with the name of the complex child so its origin is clear and to prevent 
-duplicated names, but this prefixing can be avoided with the value `"elevate_wo_prefix"`.
+By default, the elevated field is prefixed with the child's name to clarify its origin and avoid name collisions.
+Use `"elevate_wo_prefix"` to skip the prefix.
 
 For example, complex child `timeInterval` with 2 fields of max occurrence 1, before elevation...
 ```shell
@@ -197,11 +198,10 @@ timeInterval_end[1, 1]: string
 
 ### Simplify "choice groups"
 
-In XML schemas, choice groups are quite frequent. It means that only one of its possible children types should be 
-present. 
+In XML schemas, choice groups are common: only one of the possible children may be present at a time.
 
-Here we consider only choice groups of simple elements (not complex types). The naive way to convert this to a table is
-to create one column for each possible choice, of which only one will have a non `NULL` value for each record.
+This section covers choice groups of simple elements only (not complex types). The straightforward conversion creates
+one column per option, of which only one will be non-`NULL` for each record.
 
 If there are more than 2 possible choice options and the simple elements are of the same type, they can be transformed 
 into two columns:
@@ -225,10 +225,10 @@ idOfMarketParticipant[1, 1] (choice):
    value[1, 1]: string
 ```
 
-This simplification is applied by default when there are more than 2 options of the same data type, but it can be opted
-in or out otherwise, with the following option: 
+This simplification is applied automatically when there are more than 2 options of the same data type. It can be
+forced on or disabled explicitly with the following option:
 
-`"choice_transform":` `True` (default) or `False` (disable)
+`"choice_transform":` `True` (force on) or `False` (disable)
 
 !!! example
     Disable choice group simplification for a choice group:
@@ -244,9 +244,8 @@ in or out otherwise, with the following option:
 
 ### Deduplication
 
-By default, `xml2db` will try to deduplicate elements (store identical element only once in the database) in order to
-reduce storage footprint, which is particularly relevant for "feature" fields in XML schemas, meaning when a XML element 
-specify a feature as a child element, which is shared with many other elements.
+By default, `xml2db` deduplicates elements (storing each unique element only once), which is particularly useful
+when an XML element specifies a feature shared by many other elements.
 
 This is done using a hash of each node in the XML file, which includes recursively all its children. The detailed 
 process is described in the [how it works](how_it_works.md) page.
@@ -255,10 +254,9 @@ The implication is that relationships with 1-1 or 1-n cardinality in the XML sch
 n-1 and n-n relationships in the database. For n-n, relationships, it means that there is an additional relationship
 table which has foreign keys relations to both tables in the relationship.
 
-This behaviour can be opted-out, for instance if you know that there will be mostly unique elements and you prefer not
-having the additional relationship table. The 1-n relationship will be modelled using only a foreign key to the parent, 
-without an intermediate table holding the relationship, which makes the data model simpler, and maybe some queries 
-faster, but stores more records in case of duplicated records.
+Disable deduplication if you expect mostly unique elements and want to avoid the extra join table. The `1-n`
+relationship is then modelled with a plain foreign key to the parent, which simplifies the schema but stores duplicate
+records.
 
 Configuration: `"reuse":` `True` (default) or `False` (disable)
 
@@ -293,7 +291,7 @@ Configuration: `"extra_args": []` (default)
     model_config = {
         "tables": {
             "my_table": {
-                "extra_args": sqlalchemy.Index("my_index", "my_column1", "my_column2"),
+                "extra_args": [sqlalchemy.Index("my_index", "my_column1", "my_column2")],
             }
         }
     }

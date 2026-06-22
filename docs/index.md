@@ -1,18 +1,19 @@
 ---
 title: "Loading XML into a relational database"
+description: "xml2db is a Python package that automatically maps an XSD schema to relational database tables and loads XML files into them, with no custom mapping rules required."
 ---
 
 # Loading XML into a relational database
 
-`xml2db` is a Python package which allows parsing and loading XML files into a relational database:
+`xml2db` is a Python package that parses and loads XML files into a relational database:
 
-* it maps automatically a XSD schema with a set of tables in the database
+* it automatically maps an XSD schema to a set of tables in the database
 * it can handle complex XML files which cannot be denormalized into flat tables
 * it works out of the box, without any custom mapping rules.
 
-`xml2db` fits well within an [Extract, Load, Transform](https://docs.getdbt.com/terms/elt) data pipeline pattern: it 
-loads XML files into a relational data model which is very close to the source data, yet easy to work with, being flat 
-database tables.
+`xml2db` fits naturally into an ETL or [ELT (Extract, Load, Transform)](https://docs.getdbt.com/terms/elt) pipeline. It loads
+XML files into a relational model that stays close to the source data while remaining easy to query as flat database
+tables.
 
 ## How to load XML files into a database
 
@@ -34,26 +35,23 @@ document = data_model.parse_xml(xml_file="path/to/file.xml")
 document.insert_into_target_tables()
 ```
 
-The resulting data model will be very similar with the XSD schema. However, `xml2db` will perform automatically a few
-simplifications aimed at limiting the complexity of the resulting data model and the storage footprint. The data model 
-can be configured, but the above code will work out of the box for most schemas, with reasonable defaults.
+The resulting data model closely follows the XSD schema. By default, `xml2db` applies a few simplifications to reduce
+complexity and storage footprint. The above code works out of the box for most schemas.
 
-The raw data loaded into the database can then be processed if need be, using for instance [DBT](https://www.getdbt.com/),
-SQL views or stored procedures aimed at extracting, correcting and formatting the data into more user-friendly tables.
+The raw data can then be transformed using [DBT](https://www.getdbt.com/), SQL views, or stored procedures to produce
+more user-friendly tables.
 
-This package uses `sqlalchemy` to interact with the database, so it should work with different database backends. 
-Automated integration tests run against PostgreSQL, MySQL, MS SQL Server and DuckDB. You may have to install additional 
-packages to connect to your database (e.g. `psycopg2` or `psycopg` for PostgreSQL, `pymysql` or `mysqlclient` for
-MySQL, `pyodbc` for MS SQL Server, or `duckdb-engine` for DuckDB). See [How it works](how_it_works.md#bulk-loading)
-for which drivers enable native bulk loading.
+Built on `sqlalchemy`, `xml2db` supports multiple database backends. Integration tests cover PostgreSQL, MySQL,
+MS SQL Server, and DuckDB. You may need to install a connector package (e.g. `psycopg2` or `psycopg` for PostgreSQL,
+`pymysql` or `mysqlclient` for MySQL, `pyodbc` for MS SQL Server, or `duckdb-engine` for DuckDB). See
+[How it works](how_it_works.md#bulk-loading) for which drivers enable native bulk loading.
 
 ## How to visualize your data model 
 
-`xml2db` can also generate automatically beautiful visualisations of your data models extracted from an XSD file. It 
-uses [Mermaid](https://mermaid.js.org/syntax/entityRelationshipDiagram.html) to represent database tables and their 
-relationships.
+`xml2db` can also generate visual diagrams of your data model directly from an XSD file, using
+[Mermaid](https://mermaid.js.org/syntax/entityRelationshipDiagram.html) to represent tables and their relationships.
 
-It is useful to visualize your data model in order to further [configure it](./configuring.md) if need be.
+This is useful to review the data model before deciding whether any [configuration](./configuring.md) is needed.
 
 It looks like this:
 
@@ -126,7 +124,7 @@ erDiagram
 `xml2db` is developed and used at the [French energy regulation authority (CRE)](https://www.cre.fr/) to process complex
 XML data.
 
-Contributions are welcome, as well as bug reports, starting on the project's 
+Contributions and bug reports are welcome on the project's
 [issue page](https://github.com/cre-dev/xml2db/issues).
 
 If you find this package useful, you can give it a star on [`xml2db`'s GitHub repo](https://github.com/cre-dev/xml2db)!

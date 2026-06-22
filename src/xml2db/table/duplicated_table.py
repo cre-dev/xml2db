@@ -130,9 +130,10 @@ class DataModelTableDuplicated(DataModelTableTransformed):
         into the target tables (unprefixed). As this kind of node can be duplicated, no unique constraint \
         is used, but a record is inserted only if its parent record is inserted too.
 
-        This method should not be called directly but through the save_db method in the :class:`xml2db.Document` \
-        object holding the parsed XML document data, which will ensure that merge queries are issued in the \
-        correct order, and which will encapsulated all queries in a transaction in order to rollback changes on failure.
+        This method should not be called directly but through
+        :meth:`~xml2db.document.Document.insert_into_target_tables`, which ensures that merge
+        queries are issued in the correct order and wraps them in a transaction so that changes
+        are rolled back on failure.
         """
 
         # update foreign keys and temp_exists based on parent table

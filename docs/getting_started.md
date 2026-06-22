@@ -1,4 +1,11 @@
+---
+title: "Getting started"
+description: "Step-by-step guide to installing xml2db, creating a DataModel from an XSD file, importing XML into a relational database, and visualizing the resulting data model."
+---
+
 # Getting started
+
+This guide walks you through installing xml2db, creating a data model from an XSD schema, loading XML files into a relational database, and exporting data back to XML.
 
 ## Installation
 
@@ -31,21 +38,19 @@ data_model = DataModel(
 )
 ```
 
-At this stage, it is not required to provide a connection string and have an actual database set up, but it will be 
-necessary if you want to use this [`DataModel`](api/data_model.md) to actually import data. You may need to install the
-Python package of the connector you use in your `sqlalchemy` connection string (e.g. `psycopg2` or `psycopg` for
-PostgreSQL, `pymysql` or `mysqlclient` for MySQL, `pyodbc` for SQL Server, `duckdb-engine` for DuckDB). See
+A connection string and database are not required at this stage, but both are needed to actually import data. You
+may need to install a connector package (e.g. `psycopg2` or `psycopg` for PostgreSQL, `pymysql` or `mysqlclient` for
+MySQL, `pyodbc` for SQL Server, `duckdb-engine` for DuckDB). See
 [How it works](how_it_works.md#bulk-loading) for which drivers enable native bulk loading.
 
-You can provide an optional model configuration, which will allow forcing or preventing some schema simplification, set
-columns types manually, etc. By default, some simplifications will be applied when possible, in order to limit the 
-resulting data model complexity.
+The optional `model_config` controls schema simplifications, column types, and more. By default, some simplifications
+are applied to reduce data model complexity.
 
 ## Visualizing the data model
 
-When you start from a new XML schema, we recommend that you first visualize the resulting data model and decide whether
-it needs some tweaking. The simplest solution will be to generate a markdown page which contains a visual representation
-of your schema (`data_model` being the [`DataModel`](api/data_model.md) object previously created):
+When starting from a new XML schema, we recommend visualizing the data model first to decide whether any tweaking is
+needed. Generate a Markdown file with a visual representation of your schema (`data_model` being the
+[`DataModel`](api/data_model.md) object previously created):
 
 ``` py title="Write an Entity Relationship Diagram to a file" linenums="1"
 with open(f"target_data_model_erd.md", "w") as f:
@@ -54,10 +59,9 @@ with open(f"target_data_model_erd.md", "w") as f:
 
 You can see an example of these diagrams on the [Introduction page](index.md).
 
-The data model visualization uses [Mermaid](https://mermaid.js.org/syntax/entityRelationshipDiagram.html) to create an
-"entity relationship diagram" which will show the tables created and the relationships between them. To visualize this,
-you can for instance rely on [Pycharm IDE mermaid support](https://www.jetbrains.com/help/pycharm/markdown.html#diagrams).
-GitHub will also natively support those.
+The diagram uses [Mermaid](https://mermaid.js.org/syntax/entityRelationshipDiagram.html) to show the tables and their
+relationships. [PyCharm](https://www.jetbrains.com/help/pycharm/markdown.html#diagrams) and GitHub both render Mermaid
+diagrams natively.
 
 You can also visualize your model in a tree-like text mode. In this format, you can visualize the raw, untouched XML
 schema, as well as the simplified one (we call it "target" model):
@@ -99,24 +103,21 @@ It is useful to visualize your data model in order to [configure it](configuring
 
 ## Importing XML files
 
-Once you are happy with the data model created from previous steps, you are now ready to actually process XML files and
-load their content to your database. It goes like this:
+Once the data model looks right, load XML files as follows:
 
-``` py title="Parse a XML file" linenums="1"
+``` py title="Parse an XML file" linenums="1"
 document = data_model.parse_xml(
     xml_file="path/to/file.xml",
 )
 document.insert_into_target_tables()
 ```
 
-By default, the validity of your XML file will not be checked against the XML schema used to create your `data_model` 
-object, which can be enabled if you are unsure that your XML files will be valid.
+By default, XML files are not validated against the schema. Enable validation if you need to verify file integrity.
 
-The [`Document.insert_into_target_tables`](api/document.md#xml2db.document.Document.insert_into_target_tables) method is
-then all you need to load your data to the database.
+[`Document.insert_into_target_tables`](api/document.md#xml2db.document.Document.insert_into_target_tables) is all you
+need to load data into the database.
 
-Please read the [How it works](how_it_works.md) page to learn more about the process, which could help 
-troubleshooting if need be.
+See the [How it works](how_it_works.md) page for a deeper explanation of the loading process.
 
 !!! note
     `xml2db` can save metadata for each loaded XML file. These can be configured using the 
@@ -153,8 +154,7 @@ troubleshooting if need be.
 
 ## Getting back the data into XML
 
-You can extract the data from the database into XML files. This was implemented primarily to be able to test the package
-using "round trip" tests to and from the database.
+Data can be extracted from the database back to XML, primarily for round-trip testing.
 
 ``` py title="Extract data back to XML" linenums="1"
 document = data_model.extract_from_database(
