@@ -46,7 +46,7 @@ class XMLConverter:
         self,
         xml_file: Union[str, BytesIO],
         file_path: str = None,
-        skip_validation: bool = False,
+        skip_validation: bool = True,
         recover: bool = False,
         iterparse: bool = True,
     ) -> tuple:
@@ -57,7 +57,8 @@ class XMLConverter:
         Args:
             xml_file: An XML file path or file content to be converted
             file_path: The file path to be printed in logs
-            skip_validation: Whether we should validate XML against the schema before parsing
+            skip_validation: Whether to skip XML validation against the schema before parsing
+                (default ``True``; set to ``False`` to validate)
             recover: Try to process malformed XML (lxml option)
             iterparse: Parse XML using iterative parsing, which is a bit slower but uses less memory
 
