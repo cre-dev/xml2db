@@ -52,10 +52,12 @@ The following options can be passed as top-level keys of the model configuration
 * `document_tree_hook` (`Callable`): sets a hook function which can modify the data extracted from the XML. It gives direct
 access to the underlying tree data structure just before it is extracted to be loaded to the database. This can be used,
 for instance, to prune or modify some parts of the document tree before loading it into the database. The document tree
-should of course stay compatible with the data model.
+should of course stay compatible with the data model. For simply excluding a field from the schema without custom logic,
+the declarative [`"transform": "skip"`](#skipping-fields) option is simpler.
 * `document_tree_node_hook` (`Callable`): sets a hook function which can modify the data extracted from the XML. It is
 similar with `document_tree_hook`, but it is called as soon as a node is completed, not waiting for the entire parsing to
-finish. It is especially useful if you intend to filter out some nodes and reduce memory footprint while parsing.
+finish. It is especially useful if you intend to filter out some nodes and reduce memory footprint while parsing. For
+straightforward field exclusion, see [`"transform": "skip"`](#skipping-fields).
 * `row_numbers` (`bool`): adds `xml2db_row_number` columns either to `n-n` relationships tables, or directly to data tables when 
 deduplication of rows is opted out. This allows recording the original order of elements in the source XML, which is not
 always respected otherwise. It was implemented primarily for round-trip tests, but could serve other purposes. The 
