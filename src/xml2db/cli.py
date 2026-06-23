@@ -74,7 +74,8 @@ def cmd_render(args: argparse.Namespace) -> None:
     )
     fmt = args.format
     if fmt == "erd":
-        output = model.get_entity_rel_diagram(text_context=False)
+        sa_dialect = _get_sa_dialect(db_type) if args.db_names else None
+        output = model.get_entity_rel_diagram(text_context=False, use_db_names=args.db_names, sa_dialect=sa_dialect)
     elif fmt == "target-tree":
         output = model.target_tree
     elif fmt == "source-tree":
@@ -186,6 +187,7 @@ class _State:
             ]
             outputs = {
                 "erd": model.get_entity_rel_diagram(text_context=False),
+                "erd_db": model.get_entity_rel_diagram(text_context=False, use_db_names=True, sa_dialect=sa_dialect),
                 "target_tree": model.target_tree,
                 "source_tree": model.source_tree,
                 "ddl": "".join(ddl_parts),
@@ -325,6 +327,11 @@ _HTML = """\
   #content svg { max-width: 100%; }
   #content pre { font-family: 'Menlo', 'Consolas', monospace; font-size: 12px;
                  white-space: pre; line-height: 1.5; }
+  #erd-names { display: none; align-items: center; gap: 10px; padding: 4px 14px;
+               font-size: 11px; color: #555; border-bottom: 1px solid #eee;
+               background: #fafafa; flex-shrink: 0; }
+  #erd-names.visible { display: flex; }
+  #erd-names label { display: flex; align-items: center; gap: 3px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -345,6 +352,11 @@ _HTML = """\
       <button class="tab" data-tab="target_tree">Target tree</button>
       <button class="tab" data-tab="source_tree">Source tree</button>
       <button class="tab" data-tab="ddl">DDL</button>
+    </div>
+    <div id="erd-names">
+      Names:
+      <label><input type="radio" name="erd_names" value="logical" checked> Logical</label>
+      <label><input type="radio" name="erd_names" value="db"> DB</label>
     </div>
     <div id="content"></div>
   </div>
@@ -434,12 +446,18 @@ function xml2dbCompleter(context) {
 // ---- editor setup ----
 mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
-const msg       = document.getElementById('msg');
-const contentEl = document.getElementById('content');
-let outputs     = TMPL_INITIAL_OUTPUTS;
-let currentTab  = 'erd';
+const msg        = document.getElementById('msg');
+const contentEl  = document.getElementById('content');
+const erdNamesEl = document.getElementById('erd-names');
+let outputs      = TMPL_INITIAL_OUTPUTS;
+let currentTab   = 'erd';
 let debounceTimer = null;
 let mermaidCounter = 0;
+
+function erdKey() {
+  return document.querySelector('input[name="erd_names"]:checked').value === 'db'
+    ? 'erd_db' : 'erd';
+}
 
 const view = new EditorView({
   doc: TMPL_CONFIG_YAML_JSON,
@@ -469,7 +487,8 @@ function escapeHtml(s) {
 
 async function renderTab() {
   if (currentTab === 'erd') {
-    const erd = (outputs && outputs.erd) || '';
+    erdNamesEl.classList.add('visible');
+    const erd = (outputs && outputs[erdKey()]) || '';
     if (!erd) { contentEl.innerHTML = '<p style="color:#999;padding:12px">No ERD available.</p>'; return; }
     try {
       const id = 'g' + (++mermaidCounter);
@@ -479,6 +498,7 @@ async function renderTab() {
       contentEl.innerHTML = '<pre style="color:#c00;padding:12px">' + escapeHtml(String(e)) + '</pre>';
     }
   } else {
+    erdNamesEl.classList.remove('visible');
     contentEl.innerHTML = '<pre>' + escapeHtml((outputs && outputs[currentTab]) || '') + '</pre>';
   }
 }
@@ -490,6 +510,10 @@ document.querySelectorAll('.tab').forEach(btn => {
     currentTab = btn.dataset.tab;
     renderTab();
   });
+});
+
+document.querySelectorAll('input[name="erd_names"]').forEach(radio => {
+  radio.addEventListener('change', () => { if (currentTab === 'erd') renderTab(); });
 });
 
 async function doRebuild() {
@@ -616,6 +640,8 @@ def main() -> None:
                    help="Data model short name (default: DocumentRoot)")
     r.add_argument("--db-type", metavar="BACKEND", default=None,
                    help="Database backend for DDL output (postgresql, mssql, mysql, …)")
+    r.add_argument("--db-names", action="store_true",
+                   help="Use physical database identifiers in the ERD instead of logical names")
 
     s = sub.add_parser("serve", help="Launch an interactive schema explorer in the browser")
     s.add_argument("xsd_file", help="Path to the XSD schema file")

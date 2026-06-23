@@ -393,30 +393,64 @@ class DataModelTable:
                 rel.temp_rel_table.drop(engine, checkfirst=True)
         self.temp_table.drop(engine, checkfirst=True)
 
-    def get_entity_rel_diagram(self) -> List:
+    def get_entity_rel_diagram(self, use_db_names: bool = False, sa_dialect=None) -> List:
         """Build ERD representation for a single table and its relationships
 
         The string representation is used by mermaid.js to create a visual diagram.
 
+        Args:
+            use_db_names: if True, use the physical database identifier for table and
+                column names, and the compiled SQL type for column types.
+            sa_dialect: SQLAlchemy dialect instance used to compile SQL types when
+                use_db_names is True. Falls back to generic SQL type names when None.
+
         Returns:
             a list of strings (lines)
         """
+        d = self.data_model.dialect
+        if use_db_names:
+            tname = d.db_identifier(self.name)
+            col_by_key = {col.key: col for col in self.table.c}
+        else:
+            tname = self.name
+
+        def other_name(tb):
+            return d.db_identifier(tb.name) if use_db_names else tb.name
+
+        def col_name(logical):
+            if use_db_names:
+                sa_col = col_by_key.get(logical)
+                return sa_col.name if sa_col is not None else logical.replace(".", "_")
+            return logical.replace(".", "_")
+
+        def col_type(logical):
+            if use_db_names:
+                sa_col = col_by_key.get(logical)
+                if sa_col is not None:
+                    raw = (
+                        sa_col.type.compile(dialect=sa_dialect)
+                        if sa_dialect is not None
+                        else str(sa_col.type)
+                    )
+                    return raw.split("(")[0]
+            return self.columns[logical].data_type
+
         out = (
             [
-                f"{self.name} ||--{'o' if rel.occurs[0] == 0 else '|'}| {rel.other_table.name} : "
+                f"{tname} ||--{'o' if rel.occurs[0] == 0 else '|'}| {other_name(rel.other_table)} : "
                 f'"{rel.name}"'
                 for rel in self.relations_1.values()
             ]
             + [
-                f"{self.name} ||--{'o' if rel.occurs[0] == 0 else '|'}{{ {rel.other_table.name} : "
+                f"{tname} ||--{'o' if rel.occurs[0] == 0 else '|'}{{ {other_name(rel.other_table)} : "
                 f"\"{rel.name}{'*' if rel.other_table.is_reused else ''}\""
                 for rel in self.relations_n.values()
             ]
-            + [f"{self.name} {{"]
+            + [f"{tname} {{"]
             + [
                 (
-                    f"    {self.columns[field[1]].data_type}{'-N' if self.columns[field[1]].occurs[1] is None else ''} "
-                    f"{field[1].replace('.', '_')}"
+                    f"    {col_type(field[1])}{'-N' if self.columns[field[1]].occurs[1] is None else ''} "
+                    f"{col_name(field[1])}"
                 )
                 for field in self.fields
                 if field[0] == "col"

@@ -568,21 +568,27 @@ class DataModel:
 
         return parent_table
 
-    def get_entity_rel_diagram(self, text_context: bool = True) -> str:
+    def get_entity_rel_diagram(
+        self, text_context: bool = True, use_db_names: bool = False, sa_dialect=None
+    ) -> str:
         """Build an entity relationship diagram for the data model
 
         The ERD syntax is used by mermaid.js to create a visual representation of the diagram, which is supported
         by Pycharm IDE or GitHub in markdown files, among others
 
         Args:
-            text_context: Should we add a title, a text explanation, etc. or just the ERD?
+            text_context: should we add a title, a text explanation, etc. or just the ERD?
+            use_db_names: if True, use the physical database identifier for table and
+                column names, and the compiled SQL type for column types.
+            sa_dialect: SQLAlchemy dialect instance for SQL type compilation when
+                use_db_names is True. Falls back to generic type names when None.
 
         Returns:
             A string representation of the ERD
         """
         out = ["erDiagram"]
         for tb in self.fk_ordered_tables_reversed:
-            out += tb.get_entity_rel_diagram()
+            out += tb.get_entity_rel_diagram(use_db_names=use_db_names, sa_dialect=sa_dialect)
 
         if text_context:
             out = (
