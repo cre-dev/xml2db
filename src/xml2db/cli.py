@@ -5,9 +5,7 @@ import argparse
 import html as _html
 import json
 import os
-import pathlib
 import threading
-import urllib.request
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Optional
@@ -92,49 +90,6 @@ def cmd_render(args: argparse.Namespace) -> None:
         print(f"Written to {args.output}")
     else:
         print(output)
-
-
-# ---------------------------------------------------------------------------
-# serve command: editor bundle
-# ---------------------------------------------------------------------------
-
-# Increment when the bundle is rebuilt so cached copies are refreshed.
-_EDITOR_BUNDLE_VERSION = "2"
-_EDITOR_BUNDLE_URL = (
-    "https://raw.githubusercontent.com/cre-dev/xml2db/main"
-    "/src/xml2db/static/editor.js"
-)
-
-
-def _get_editor_bundle() -> bytes:
-    """Return the CodeMirror editor bundle as bytes.
-
-    In a dev (editable) install the file is read directly from the source tree.
-    In a regular install it is downloaded once from GitHub and cached in
-    ~/.cache/xml2db/ so subsequent serves start instantly.
-    """
-    local = pathlib.Path(__file__).parent / "static" / "editor.js"
-    if local.exists():
-        return local.read_bytes()
-
-    cache_dir = pathlib.Path.home() / ".cache" / "xml2db"
-    cache_file = cache_dir / f"editor-v{_EDITOR_BUNDLE_VERSION}.js"
-    if cache_file.exists():
-        return cache_file.read_bytes()
-
-    print(f"Downloading editor bundle from {_EDITOR_BUNDLE_URL} ...")
-    try:
-        with urllib.request.urlopen(_EDITOR_BUNDLE_URL, timeout=30) as resp:
-            data = resp.read()
-    except Exception as exc:
-        raise RuntimeError(
-            f"Could not download editor bundle: {exc}\n"
-            "Check your internet connection or run xml2db from a source checkout."
-        ) from exc
-
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    cache_file.write_bytes(data)
-    return data
 
 
 # ---------------------------------------------------------------------------
@@ -240,7 +195,7 @@ class _State:
 # HTTP handler
 # ---------------------------------------------------------------------------
 
-def _make_handler(state: _State, editor_bundle: bytes):
+def _make_handler(state: _State):
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, fmt, *args):  # silence default stderr logging
             pass
@@ -248,12 +203,6 @@ def _make_handler(state: _State, editor_bundle: bytes):
         def do_GET(self):
             if self.path == "/":
                 self._serve_html()
-            elif self.path == "/static/editor.js":
-                self.send_response(200)
-                self.send_header("Content-Type", "application/javascript")
-                self.send_header("Content-Length", str(len(editor_bundle)))
-                self.end_headers()
-                self.wfile.write(editor_bundle)
             else:
                 self.send_error(404)
 
@@ -299,6 +248,29 @@ _HTML = """\
 <meta charset="utf-8">
 <title>xml2db: TMPL_TITLE</title>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "codemirror":                    "https://cdn.jsdelivr.net/npm/codemirror@6.0.2/dist/index.js",
+    "@codemirror/state":             "https://cdn.jsdelivr.net/npm/@codemirror/state@6.6.0/dist/index.js",
+    "@codemirror/view":              "https://cdn.jsdelivr.net/npm/@codemirror/view@6.43.1/dist/index.js",
+    "@codemirror/language":          "https://cdn.jsdelivr.net/npm/@codemirror/language@6.12.3/dist/index.js",
+    "@codemirror/commands":          "https://cdn.jsdelivr.net/npm/@codemirror/commands@6.10.3/dist/index.js",
+    "@codemirror/autocomplete":      "https://cdn.jsdelivr.net/npm/@codemirror/autocomplete@6.20.3/dist/index.js",
+    "@codemirror/search":            "https://cdn.jsdelivr.net/npm/@codemirror/search@6.7.1/dist/index.js",
+    "@codemirror/lint":              "https://cdn.jsdelivr.net/npm/@codemirror/lint@6.9.7/dist/index.js",
+    "@codemirror/lang-yaml":         "https://cdn.jsdelivr.net/npm/@codemirror/lang-yaml@6.1.3/dist/index.js",
+    "@lezer/common":                 "https://cdn.jsdelivr.net/npm/@lezer/common@1.5.2/dist/index.js",
+    "@lezer/highlight":              "https://cdn.jsdelivr.net/npm/@lezer/highlight@1.2.3/dist/index.js",
+    "@lezer/lr":                     "https://cdn.jsdelivr.net/npm/@lezer/lr@1.4.10/dist/index.js",
+    "@lezer/yaml":                   "https://cdn.jsdelivr.net/npm/@lezer/yaml@1.0.4/dist/index.js",
+    "@marijn/find-cluster-break":    "https://cdn.jsdelivr.net/npm/@marijn/find-cluster-break@1.0.2/src/index.js",
+    "crelt":                         "https://cdn.jsdelivr.net/npm/crelt@1.0.6/index.js",
+    "style-mod":                     "https://cdn.jsdelivr.net/npm/style-mod@4.1.3/src/style-mod.js",
+    "w3c-keyname":                   "https://cdn.jsdelivr.net/npm/w3c-keyname@2.2.8/index.js"
+  }
+}
+</script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: system-ui, sans-serif; display: flex; flex-direction: column;
@@ -369,7 +341,9 @@ _HTML = """\
   </div>
 </main>
 <script type="module">
-import { basicSetup, EditorView, yaml, autocompletion, keymap, indentWithTab, acceptCompletion } from "/static/editor.js";
+import { basicSetup, EditorView, indentWithTab, autocompletion, acceptCompletion } from "codemirror";
+import { keymap } from "@codemirror/view";
+import { yaml } from "@codemirror/lang-yaml";
 
 // Schema info injected from server:
 // { tableName: { source: [sourceFieldName, ...], target: [targetFieldName, ...] }, ... }
@@ -604,8 +578,7 @@ def cmd_serve(args: argparse.Namespace) -> None:
     if state.build_error:
         print(f"Warning: initial build error: {state.build_error}")
 
-    editor_bundle = _get_editor_bundle()
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), _make_handler(state, editor_bundle))
+    server = ThreadingHTTPServer(("127.0.0.1", args.port), _make_handler(state))
     url = f"http://127.0.0.1:{args.port}"
     print(f"Serving at {url}  (Ctrl+C to stop)")
 
