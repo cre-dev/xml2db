@@ -108,7 +108,7 @@ stored as deduplicated elements.
 In the end, the schema can have both `1-n` and `n-1` relationships, so table dependency order differs from the
 original tree structure. When processing tables in dependency order, the root table is no longer necessarily first.
 
-## Caveats
+### Caveats
 
 `xml2db` handles a variety of data models, but does not cover all possible schemas allowed by the [XML schema documents
 specification](https://en.wikipedia.org/wiki/XML_Schema_(W3C)).
@@ -117,14 +117,14 @@ Known unsupported cases are described below. Other edge cases may also fail and 
 thorough testing for unusual schemas. For example, you can implement round-trip tests (XML → database → XML) and
 compare the output against the original.
 
-### Recursive XSD
+#### Recursive XSD
 
 Recursive XML schemas are not fully supported, because they result in cycles in tables dependencies, which would make
 the process much more complex. Whenever a field which would introduce a dependency cycle is detected in the XSD, it is 
 discarded with a warning, which means that the corresponding data in XML files will not be imported. The rest of the
 data should be processed correctly.
 
-### Mixed content elements
+#### Mixed content elements
 
 XML elements with mixed content can contain both text and children elements (tags). `xml2db` offers partial support for
 this: the text value will be stored in a specific column named `value`, but it will not record the specific sequence of

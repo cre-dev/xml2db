@@ -10,17 +10,7 @@ The data model is derived automatically from an XSD file. Each `complexType` bec
 Options apply at three levels: model, table, and field.
 
 !!! tip
-    Start without any configuration, visualize the data model, then add options as needed. See the [Getting started](getting_started.md) page for how to visualize data models.
-
-## Interactive configuration with the CLI
-
-The easiest way to configure the model is the browser explorer:
-
-``` bash
-xml2db serve schema.xsd --config model_config.yml
-```
-
-The left panel is a YAML editor with autocomplete for all config keys, table names from your XSD, and field names. Edit the config and the ERD, tree views, and DDL update automatically. Click **Save** to write the config back to disk.
+    Start without any configuration, visualize the data model, then add options as needed. The `xml2db serve` command opens an interactive browser explorer with a live-updating ERD, tree views, DDL, and a YAML config editor. See [Getting started](getting_started.md) for details.
 
 ## Config file format
 

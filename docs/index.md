@@ -15,32 +15,7 @@ description: "xml2db is a Python package that automatically maps an XSD schema t
 XML files into a relational model that stays close to the source data while remaining easy to query as flat database
 tables.
 
-## How to get started
-
-After `pip install xml2db`, open the interactive schema explorer to visualize your data model and configure it:
-
-``` bash
-xml2db serve path/to/schema.xsd
-```
-
-This opens a browser with an ERD, tree views, and DDL for your schema, plus a YAML config editor with autocomplete. Edit the config and the diagram updates live. Save the config to a file when it looks right.
-
-Then import an XML file into the database:
-
-``` bash
-xml2db import file.xml schema.xsd \
-    --connection-string "postgresql+psycopg2://user:pw@host/db" \
-    --config model_config.yml
-```
-
-You can also render schema representations without the browser:
-
-``` bash
-xml2db render schema.xsd --format erd
-xml2db render schema.xsd --format ddl --db-type postgresql
-```
-
-See the [Getting started](getting_started.md) guide for full details and the Python API alternative.
+See the [Getting started](getting_started.md) guide for installation, CLI usage, and the Python API.
 
 The raw data can then be transformed using [DBT](https://www.getdbt.com/), SQL views, or stored procedures to produce
 more user-friendly tables.
