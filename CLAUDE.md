@@ -57,6 +57,11 @@ cd tests/sample_models && python models.py
 
 then commit the updated snapshot files alongside the code change.
 
+## Writing style
+
+- After any code change, check whether docstrings, inline docs, or `docs/` pages need updating and update them as part of the same task.
+- Write docstrings and documentation concisely and directly. No em-dashes or en-dashes; use commas, colons, or plain sentences instead.
+
 ### Key configuration options (`model_config`)
 
 | Option | Effect |
