@@ -112,6 +112,7 @@ as dicts, the only required keys are `name` and `type` (a SQLAlchemy type object
 as keyword arguments to `sqlalchemy.Column`. Actual values need to be passed to 
 [`DataModel.parse_xml`](api/data_model.md#xml2db.model.DataModel.parse_xml) for each 
 parsed documents, as a `dict`, using the `metadata` argument.
+* `transform` (`false` or `"auto"`): controls whether automatic field transformations are applied. The default `"auto"` applies all transformations that are possible and beneficial according to the XSD structure (joining multi-value simple columns into a comma-separated string, elevating small mandatory children to the parent table, and collapsing choice groups into type/value columns). Set to `false` to disable all of these automatic transformations globally, keeping the model as close to the raw XSD structure as possible. Individual fields or tables can still be transformed via per-field or per-table `transform` / `choice_transform` config even when the global setting is `false`.
 * `record_hash_column_name`: the column name to use to store records hash data (defaults to `xml2db_record_hash`).
 * `record_hash_constructor`: a function used to build a hash, with a signature similar to `hashlib` constructor 
 functions (defaults to `hashlib.sha1`).

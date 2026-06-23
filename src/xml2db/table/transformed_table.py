@@ -53,7 +53,7 @@ class DataModelTableTransformed(DataModelTable):
                     f"Unrecognized choice_transform value '{self.config['choice_transform']}'"
                     f" for table '{self.name}'. Only boolean values True or False are allowed."
                 )
-        elif self._can_choice_transform_table() and len(self.columns) > 2:
+        elif self.data_model.model_config.get("transform", True) and self._can_choice_transform_table() and len(self.columns) > 2:
             # column number isn't reduced if the number of columns = 2, as it would be elevated to 2 columns then
             return True
         return False
@@ -151,7 +151,7 @@ class DataModelTableTransformed(DataModelTable):
                     f"Transform value '{field_config['transform']}' cannot be applied"
                     f" to field '{field_name}' of table '{self.name}'."
                 )
-        else:
+        elif self.data_model.model_config.get("transform", True):
             if field_type == "col":
                 if self._can_transform_field("col", field_name, "join"):
                     return "join"

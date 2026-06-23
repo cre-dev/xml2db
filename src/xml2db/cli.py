@@ -353,7 +353,7 @@ import { yaml } from "@codemirror/lang-yaml";
 const SCHEMA_INFO = TMPL_SCHEMA_INFO_JSON;
 
 // ---- completion knowledge ----
-const ROOT_KEYS  = ['as_columnstore','row_numbers','record_hash_column_name',
+const ROOT_KEYS  = ['as_columnstore','row_numbers','transform','record_hash_column_name',
                     'record_hash_size','metadata_columns','tables'];
 const TABLE_KEYS = ['reuse','as_columnstore','choice_transform','extra_args','fields'];
 const FIELD_KEYS = ['type','rename','transform'];
@@ -364,7 +364,8 @@ const BOOL_KEYS  = new Set(['reuse','as_columnstore','choice_transform','row_num
 const SA_TYPES   = ['String','String(100)','Integer','BigInteger','SmallInteger','Float',
                     'Double','Numeric','Boolean','DateTime','DateTime(timezone=True)',
                     'Date','Time','Text','LargeBinary','JSON','Uuid'];
-const TRANSFORMS = ['false','skip','elevate_wo_prefix'];
+const TRANSFORMS     = ['false','skip','elevate_wo_prefix'];
+const TOP_TRANSFORMS = ['false','auto'];
 
 // Walk backwards from the current line to build the YAML key path at the cursor.
 // Uses indent-level heuristic: each time we see a line with smaller indentation
@@ -418,7 +419,7 @@ function getKeyCompletions(path) {
 }
 
 // Detect "key: <cursor>" pattern and return value completions for that key.
-function getValueCompletions(state, pos) {
+function getValueCompletions(state, pos, path) {
   const line = state.doc.lineAt(pos);
   const before = line.text.slice(0, pos - line.from);
   const m = before.match(/(\w+)\s*:\s*$/);
@@ -426,16 +427,17 @@ function getValueCompletions(state, pos) {
   const key = m[1];
   if (BOOL_KEYS.has(key))  return ['true','false'].map(v => ({ label: v, type: 'keyword' }));
   if (key === 'type')       return SA_TYPES.map(v => ({ label: v, type: 'class' }));
-  if (key === 'transform')  return TRANSFORMS.map(v => ({ label: v, type: 'keyword' }));
+  if (key === 'transform')  return (path.length === 0 ? TOP_TRANSFORMS : TRANSFORMS).map(v => ({ label: v, type: 'keyword' }));
   return null;
 }
 
 function xml2dbCompleter(context) {
   const word = context.matchBefore(/\w*/);
   if (!word || (word.from === word.to && !context.explicit)) return null;
-  const valueOpts = getValueCompletions(context.state, context.pos);
-  if (valueOpts) return { from: word.from, options: valueOpts };
   const { path } = getContext(context.state, context.pos);
+  const valueOpts = getValueCompletions(context.state, context.pos, path);
+  if (valueOpts) return { from: word.from, options: valueOpts };
+
   const keys = getKeyCompletions(path);
   if (!keys.length) return null;
   return { from: word.from, options: keys.map(k => typeof k === 'string' ? { label: k, type: 'property' } : k) };

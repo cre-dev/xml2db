@@ -146,6 +146,7 @@ class MetadataColumnConfig(TypedDict, total=False):
 class ModelConfig(TypedDict, total=False):
     as_columnstore: bool
     row_numbers: bool
+    transform: Any                 # False or "auto" (default)
     document_tree_hook: Any        # callable, Python only
     document_tree_node_hook: Any   # callable, Python only
     record_hash_column_name: str

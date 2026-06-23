@@ -147,6 +147,16 @@ class DataModel:
                 ("metadata_columns", list, []),
             ]
         }
+        transform_raw = cfg.get("transform", "auto")
+        if transform_raw is False or transform_raw == "false":
+            model_config["transform"] = False
+        elif transform_raw is True or transform_raw == "auto":
+            model_config["transform"] = True
+        else:
+            raise DataModelConfigError(
+                f"Invalid 'transform' value: '{transform_raw}'. Use false to disable all"
+                " automatic field transformations, or auto (the default) to keep them."
+            )
         return model_config
 
     @property
