@@ -92,7 +92,7 @@ def cmd_render(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
-# serve command — shared state
+# serve command: shared state
 # ---------------------------------------------------------------------------
 
 class _State:
@@ -237,7 +237,7 @@ _HTML = """\
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>xml2db — TMPL_TITLE</title>
+<title>xml2db: TMPL_TITLE</title>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -528,7 +528,7 @@ def cmd_serve(args: argparse.Namespace) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="xml2db",
-        description="xml2db — explore and configure XSD-to-database mappings",
+        description="xml2db: explore and configure XSD-to-database mappings",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 

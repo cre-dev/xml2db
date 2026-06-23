@@ -177,7 +177,7 @@ def test_duckdb_bulk_insert_quoted_csv_field_after_large_unquoted_sample(duckdb_
     read_csv bypasses auto-detection and must always be present.
     """
     table = _make_table(duckdb_engine, "quoted_field_test")
-    # 'vals' value that contains a comma — document.py's 'join' transform can produce
+    # 'vals' value that contains a comma; document.py's 'join' transform can produce
     # strings like '"val,ue",other' which csv.writer then wraps in outer quotes,
     # yielding a quoted CSV cell.
     problematic_value = '"val,ue",other_value'

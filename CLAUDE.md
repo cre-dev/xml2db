@@ -29,17 +29,17 @@ mkdocs serve
 
 `xml2db` maps an XSD schema to a relational database schema and loads XML files into it. The top-level flow is:
 
-1. **`DataModel`** (`model.py`) reads an XSD file using `xmlschema` + `lxml`, traverses the schema tree, and builds a set of `DataModelTable` objects — one per XSD `complexType`. It then creates SQLAlchemy tables from those objects.
+1. **`DataModel`** (`model.py`) reads an XSD file using `xmlschema` + `lxml`, traverses the schema tree, and builds a set of `DataModelTable` objects (one per XSD `complexType`). It then creates SQLAlchemy tables from those objects.
 2. **`DataModel.parse_xml()`** returns a **`Document`** (`document.py`), which holds the parsed flat data ready for insertion.
-3. **`XMLConverter`** (`xml_converter.py`) does the actual XML traversal, producing a nested "document tree" dict. Two strategies exist: iterative (`iterparse=True`) and recursive — tests assert they produce identical output.
+3. **`XMLConverter`** (`xml_converter.py`) does the actual XML traversal, producing a nested "document tree" dict. Two strategies exist: iterative (`iterparse=True`) and recursive; tests assert they produce identical output.
 4. **`Document.insert_into_target_tables()`** inserts the flat data into the database. **`Document.to_xml()`** converts it back.
 
 ### Table hierarchy (`table/`)
 
 Each XSD `complexType` becomes one of two concrete table classes:
 
-- **`DataModelTableReused`** — deduplicates identical subtrees via a SHA-256 hash column (`xml2db_record_hash`). This is the default. Relationships between a reused child and multiple parents require an intermediate join table (`DataModelRelationN` + `DataModelTransformedTable`).
-- **`DataModelTableDuplicated`** — stores rows without deduplication; parent FK lives directly in the child row. Set `"reuse": False` in `model_config` to use this per table.
+- **`DataModelTableReused`**: deduplicates identical subtrees via a SHA-256 hash column (`xml2db_record_hash`). This is the default. Relationships between a reused child and multiple parents require an intermediate join table (`DataModelRelationN` + `DataModelTransformedTable`).
+- **`DataModelTableDuplicated`**: stores rows without deduplication; parent FK lives directly in the child row. Set `"reuse": False` in `model_config` to use this per table.
 
 Relations are stored as `DataModelRelation1` (0..1 / 1..1) or `DataModelRelationN` (0..n / 1..n) in `DataModelTable.fields`.
 

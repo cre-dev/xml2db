@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 def _resolve_extra_args(extra_args):
     """Convert dict-form index specs to sqlalchemy.Index objects, pass others through."""
     if callable(extra_args):
-        return extra_args  # callable — Python-only, unchanged
+        return extra_args  # callable, Python-only, unchanged
     result = []
     for item in extra_args:
         if isinstance(item, dict):

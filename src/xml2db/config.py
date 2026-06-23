@@ -8,7 +8,7 @@ import sqlalchemy as sa
 
 from .exceptions import DataModelConfigError
 
-# Keys that require Python callables — cannot be expressed in YAML
+# Keys that require Python callables; cannot be expressed in YAML
 _CALLABLE_ONLY_KEYS: frozenset[str] = frozenset(
     {"document_tree_hook", "document_tree_node_hook", "record_hash_constructor"}
 )
@@ -74,7 +74,7 @@ def resolve_sa_type(type_spec: Any) -> Any:
             unknown type.
     """
     if not isinstance(type_spec, str):
-        return type_spec  # already a SQLAlchemy type — pass through
+        return type_spec  # already a SQLAlchemy type; pass through
 
     m = _TYPE_RE.match(type_spec.strip())
     if not m:
@@ -111,7 +111,7 @@ def resolve_sa_type(type_spec: Any) -> Any:
 # ---------------------------------------------------------------------------
 
 class FieldConfig(TypedDict, total=False):
-    type: Any  # str (e.g. "String(100)") or SQLAlchemy type — Python only when not a str
+    type: Any  # str (e.g. "String(100)") or SQLAlchemy type (Python only when not a str)
     rename: str
     transform: Any  # str | False
 
@@ -133,8 +133,8 @@ class TableConfig(TypedDict, total=False):
 
 
 class MetadataColumnConfig(TypedDict, total=False):
-    name: str   # Required — column name
-    type: Any   # Required — str (e.g. "String(100)") or SQLAlchemy type
+    name: str   # Required: column name
+    type: Any   # Required: str (e.g. "String(100)") or SQLAlchemy type
     nullable: bool
     default: Any
     server_default: Any
@@ -146,10 +146,10 @@ class MetadataColumnConfig(TypedDict, total=False):
 class ModelConfig(TypedDict, total=False):
     as_columnstore: bool
     row_numbers: bool
-    document_tree_hook: Any        # callable — Python only
-    document_tree_node_hook: Any   # callable — Python only
+    document_tree_hook: Any        # callable, Python only
+    document_tree_node_hook: Any   # callable, Python only
     record_hash_column_name: str
-    record_hash_constructor: Any   # callable — Python only
+    record_hash_constructor: Any   # callable, Python only
     record_hash_size: int
     metadata_columns: list[MetadataColumnConfig]
     tables: dict[str, TableConfig]
@@ -172,7 +172,7 @@ def _check_config(data: dict, *, from_yaml: bool) -> None:
                 "file. Pass a Python dict with the callable directly instead."
             )
 
-    # metadata_columns — each entry's 'type' must be a string
+    # metadata_columns: each entry's 'type' must be a string
     for i, col_cfg in enumerate(data.get("metadata_columns", [])):
         if not isinstance(col_cfg, dict):
             raise DataModelConfigError(
