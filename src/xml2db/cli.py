@@ -354,7 +354,7 @@ _HTML = """\
       <button class="tab" data-tab="ddl">DDL</button>
     </div>
     <div id="erd-names">
-      Names:
+      Names &amp; types:
       <label><input type="radio" name="erd_names" value="logical" checked> Logical</label>
       <label><input type="radio" name="erd_names" value="db"> DB</label>
     </div>

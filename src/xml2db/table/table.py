@@ -427,13 +427,17 @@ class DataModelTable:
             if use_db_names:
                 sa_col = col_by_key.get(logical)
                 if sa_col is not None:
-                    raw = (
+                    return (
                         sa_col.type.compile(dialect=sa_dialect)
                         if sa_dialect is not None
                         else str(sa_col.type)
                     )
-                    return raw.split("(")[0]
             return self.columns[logical].data_type
+
+        def col_type_suffix(logical):
+            if use_db_names:
+                return ""
+            return "-N" if self.columns[logical].occurs[1] is None else ""
 
         out = (
             [
@@ -449,7 +453,7 @@ class DataModelTable:
             + [f"{tname} {{"]
             + [
                 (
-                    f"    {col_type(field[1])}{'-N' if self.columns[field[1]].occurs[1] is None else ''} "
+                    f"    {col_type(field[1])}{col_type_suffix(field[1])} "
                     f"{col_name(field[1])}"
                 )
                 for field in self.fields
