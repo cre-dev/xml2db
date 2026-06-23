@@ -36,7 +36,7 @@ class DataModelTableTransformed(DataModelTable):
         Returns:
             True if choice transform is to be applied, False otherwise.
         """
-        if "choice_transform" in self.config:
+        if "choice_transform" in self.config and self.config["choice_transform"] != "auto":
             if isinstance(self.config["choice_transform"], bool):
                 if self.config["choice_transform"]:
                     if self._can_choice_transform_table():
@@ -137,7 +137,7 @@ class DataModelTableTransformed(DataModelTable):
             The default transformation that should be applied
         """
         field_config = self.config.get("fields", {}).get(field_name, {})
-        if "transform" in field_config:
+        if "transform" in field_config and field_config["transform"] != "auto":
             if field_config["transform"] is False:
                 return None
             if field_config["transform"] == "skip":
@@ -151,7 +151,7 @@ class DataModelTableTransformed(DataModelTable):
                     f"Transform value '{field_config['transform']}' cannot be applied"
                     f" to field '{field_name}' of table '{self.name}'."
                 )
-        elif self.data_model.model_config.get("transform", True):
+        if self.data_model.model_config.get("transform", True):
             if field_type == "col":
                 if self._can_transform_field("col", field_name, "join"):
                     return "join"

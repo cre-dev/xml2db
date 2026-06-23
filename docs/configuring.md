@@ -300,7 +300,7 @@ are not counted), and again only when it is not involved in a 1-n relationship e
 
 This behaviour can be disabled, or forced for larger children (more than 4 simple-type columns), using:
 
-`"transform":` `"elevate"` (default) or `"elevate_wo_prefix"` or `False` (disable).
+`"transform":` `"elevate"` (default) or `"elevate_wo_prefix"` or `False` (disable) or `"auto"` (explicit default).
 
 By default, the elevated field is prefixed with the child's name to clarify its origin and avoid name collisions.
 Use `"elevate_wo_prefix"` to skip the prefix.
@@ -370,7 +370,7 @@ idOfMarketParticipant[1, 1] (choice):
 This simplification is applied automatically when there are more than 2 options of the same data type. It can be
 forced on or disabled explicitly with the following option:
 
-`"choice_transform":` `True` (force on) or `False` (disable)
+`"choice_transform":` `True` (force on) or `False` (disable) or `"auto"` (explicit default)
 
 !!! example
     Disable choice group simplification for a choice group:

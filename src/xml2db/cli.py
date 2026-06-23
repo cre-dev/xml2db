@@ -359,13 +359,13 @@ const TABLE_KEYS = ['reuse','as_columnstore','choice_transform','extra_args','fi
 const FIELD_KEYS = ['type','rename','transform'];
 const META_KEYS  = ['name','type','nullable','default','server_default','comment','index','unique'];
 const INDEX_KEYS = ['name','columns','unique'];
-const BOOL_KEYS  = new Set(['reuse','as_columnstore','choice_transform','row_numbers',
-                             'nullable','unique','index']);
+const BOOL_KEYS        = new Set(['reuse','as_columnstore','row_numbers','nullable','unique','index']);
+const CHOICE_TRANSFORM = ['auto','true','false'];
 const SA_TYPES   = ['String','String(100)','Integer','BigInteger','SmallInteger','Float',
                     'Double','Numeric','Boolean','DateTime','DateTime(timezone=True)',
                     'Date','Time','Text','LargeBinary','JSON','Uuid'];
-const TRANSFORMS     = ['false','skip','elevate_wo_prefix'];
-const TOP_TRANSFORMS = ['false','auto'];
+const TRANSFORMS     = ['auto','false','skip','elevate_wo_prefix'];
+const TOP_TRANSFORMS = ['auto','false'];
 
 // Walk backwards from the current line to build the YAML key path at the cursor.
 // Uses indent-level heuristic: each time we see a line with smaller indentation
@@ -425,9 +425,10 @@ function getValueCompletions(state, pos, path) {
   const m = before.match(/(\w+)\s*:\s*$/);
   if (!m) return null;
   const key = m[1];
-  if (BOOL_KEYS.has(key))  return ['true','false'].map(v => ({ label: v, type: 'keyword' }));
-  if (key === 'type')       return SA_TYPES.map(v => ({ label: v, type: 'class' }));
-  if (key === 'transform')  return (path.length === 0 ? TOP_TRANSFORMS : TRANSFORMS).map(v => ({ label: v, type: 'keyword' }));
+  if (BOOL_KEYS.has(key))        return ['true','false'].map(v => ({ label: v, type: 'keyword' }));
+  if (key === 'choice_transform') return CHOICE_TRANSFORM.map(v => ({ label: v, type: 'keyword' }));
+  if (key === 'type')             return SA_TYPES.map(v => ({ label: v, type: 'class' }));
+  if (key === 'transform')        return (path.length === 0 ? TOP_TRANSFORMS : TRANSFORMS).map(v => ({ label: v, type: 'keyword' }));
   return null;
 }
 

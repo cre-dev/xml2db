@@ -124,9 +124,12 @@ class DataModelTable:
             raise DataModelConfigError("extra_args must be a list, a tuple or callable")
         config["extra_args"] = _resolve_extra_args(cfg.get("extra_args", []))
         if "choice_transform" in cfg:
-            config["choice_transform"] = check_type(
-                cfg, "choice_transform", bool, False
-            )
+            if cfg["choice_transform"] == "auto":
+                config["choice_transform"] = "auto"
+            else:
+                config["choice_transform"] = check_type(
+                    cfg, "choice_transform", bool, False
+                )
 
         config["fields"] = cfg.get("fields", {})
         config = self.data_model.dialect.validate_table_config(config)
