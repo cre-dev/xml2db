@@ -5,7 +5,9 @@ import argparse
 import html as _html
 import json
 import os
+import pathlib
 import threading
+import urllib.request
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Optional
@@ -89,6 +91,49 @@ def cmd_render(args: argparse.Namespace) -> None:
         print(f"Written to {args.output}")
     else:
         print(output)
+
+
+# ---------------------------------------------------------------------------
+# serve command: editor bundle
+# ---------------------------------------------------------------------------
+
+# Increment when the bundle is rebuilt so cached copies are refreshed.
+_EDITOR_BUNDLE_VERSION = "1"
+_EDITOR_BUNDLE_URL = (
+    "https://raw.githubusercontent.com/cre-dev/xml2db/main"
+    "/src/xml2db/static/editor.js"
+)
+
+
+def _get_editor_bundle() -> bytes:
+    """Return the CodeMirror editor bundle as bytes.
+
+    In a dev (editable) install the file is read directly from the source tree.
+    In a regular install it is downloaded once from GitHub and cached in
+    ~/.cache/xml2db/ so subsequent serves start instantly.
+    """
+    local = pathlib.Path(__file__).parent / "static" / "editor.js"
+    if local.exists():
+        return local.read_bytes()
+
+    cache_dir = pathlib.Path.home() / ".cache" / "xml2db"
+    cache_file = cache_dir / f"editor-v{_EDITOR_BUNDLE_VERSION}.js"
+    if cache_file.exists():
+        return cache_file.read_bytes()
+
+    print(f"Downloading editor bundle from {_EDITOR_BUNDLE_URL} ...")
+    try:
+        with urllib.request.urlopen(_EDITOR_BUNDLE_URL, timeout=30) as resp:
+            data = resp.read()
+    except Exception as exc:
+        raise RuntimeError(
+            f"Could not download editor bundle: {exc}\n"
+            "Check your internet connection or run xml2db from a source checkout."
+        ) from exc
+
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_file.write_bytes(data)
+    return data
 
 
 # ---------------------------------------------------------------------------
@@ -186,7 +231,7 @@ class _State:
 # HTTP handler
 # ---------------------------------------------------------------------------
 
-def _make_handler(state: _State):
+def _make_handler(state: _State, editor_bundle: bytes):
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, fmt, *args):  # silence default stderr logging
             pass
@@ -194,6 +239,12 @@ def _make_handler(state: _State):
         def do_GET(self):
             if self.path == "/":
                 self._serve_html()
+            elif self.path == "/static/editor.js":
+                self.send_response(200)
+                self.send_header("Content-Type", "application/javascript")
+                self.send_header("Content-Length", str(len(editor_bundle)))
+                self.end_headers()
+                self.wfile.write(editor_bundle)
             else:
                 self.send_error(404)
 
@@ -299,9 +350,7 @@ _HTML = """\
   </div>
 </main>
 <script type="module">
-import { basicSetup, EditorView } from "https://esm.sh/codemirror@6.0.2";
-import { yaml } from "https://esm.sh/@codemirror/lang-yaml";
-import { autocompletion } from "https://esm.sh/@codemirror/autocomplete";
+import { basicSetup, EditorView, yaml, autocompletion } from "/static/editor.js";
 
 // Schema info injected from server: { tableName: [fieldName, ...], ... }
 const SCHEMA_INFO = TMPL_SCHEMA_INFO_JSON;
@@ -401,7 +450,7 @@ const view = new EditorView({
     EditorView.updateListener.of(upd => {
       if (!upd.docChanged) return;
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(doRebuild, 500);
+      debounceTimer = setTimeout(() => { debounceTimer = null; doRebuild(); }, 500);
     }),
   ],
   parent: document.getElementById('editor'),
@@ -451,7 +500,7 @@ async function doRebuild() {
     const d = await r.json();
     outputs = d.outputs;
     if (d.error) { setMsg(d.error, true); }
-    else { setMsg('', false); await renderTab(); }
+    else { if (!debounceTimer) setMsg('', false); await renderTab(); }
   } catch(e) { setMsg('Network error: ' + String(e), true); }
 }
 
@@ -508,7 +557,8 @@ def cmd_serve(args: argparse.Namespace) -> None:
     if state.build_error:
         print(f"Warning: initial build error: {state.build_error}")
 
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), _make_handler(state))
+    editor_bundle = _get_editor_bundle()
+    server = ThreadingHTTPServer(("127.0.0.1", args.port), _make_handler(state, editor_bundle))
     url = f"http://127.0.0.1:{args.port}"
     print(f"Serving at {url}  (Ctrl+C to stop)")
 
