@@ -15,28 +15,32 @@ description: "xml2db is a Python package that automatically maps an XSD schema t
 XML files into a relational model that stays close to the source data while remaining easy to query as flat database
 tables.
 
-## How to load XML files into a database
+## How to get started
 
-Loading XML files into a relational database with `xml2db` can be as simple as:
+After `pip install xml2db`, open the interactive schema explorer to visualize your data model and configure it:
 
-``` py title="Loading XML into a database" linenums="1" 
-from xml2db import DataModel
-
-# Create a DataModel object from an XSD file
-data_model = DataModel(
-    xsd_file="path/to/file.xsd", 
-    connection_string="postgresql+psycopg2://testuser:testuser@localhost:5432/testdb",
-)
-
-# Parse an XML file based on this XSD schema
-document = data_model.parse_xml(xml_file="path/to/file.xml")
-
-# Load data into the database, creating target tables if need be
-document.insert_into_target_tables()
+``` bash
+xml2db serve path/to/schema.xsd
 ```
 
-The resulting data model closely follows the XSD schema. By default, `xml2db` applies a few simplifications to reduce
-complexity and storage footprint. The above code works out of the box for most schemas.
+This opens a browser with an ERD, tree views, and DDL for your schema, plus a YAML config editor with autocomplete. Edit the config and the diagram updates live. Save the config to a file when it looks right.
+
+Then import an XML file into the database:
+
+``` bash
+xml2db import file.xml schema.xsd \
+    --connection-string "postgresql+psycopg2://user:pw@host/db" \
+    --config model_config.yml
+```
+
+You can also render schema representations without the browser:
+
+``` bash
+xml2db render schema.xsd --format erd
+xml2db render schema.xsd --format ddl --db-type postgresql
+```
+
+See the [Getting started](getting_started.md) guide for full details and the Python API alternative.
 
 The raw data can then be transformed using [DBT](https://www.getdbt.com/), SQL views, or stored procedures to produce
 more user-friendly tables.
@@ -46,12 +50,10 @@ MS SQL Server, and DuckDB. You may need to install a connector package (e.g. `ps
 `pymysql` or `mysqlclient` for MySQL, `pyodbc` for MS SQL Server, or `duckdb-engine` for DuckDB). See
 [How it works](how_it_works.md#bulk-loading) for which drivers enable native bulk loading.
 
-## How to visualize your data model 
+## Data model visualization
 
-`xml2db` can also generate visual diagrams of your data model directly from an XSD file, using
+`xml2db` generates visual diagrams of your data model directly from an XSD file, using
 [Mermaid](https://mermaid.js.org/syntax/entityRelationshipDiagram.html) to represent tables and their relationships.
-
-This is useful to review the data model before deciding whether any [configuration](./configuring.md) is needed.
 
 It looks like this:
 

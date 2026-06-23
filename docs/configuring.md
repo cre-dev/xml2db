@@ -5,25 +5,57 @@ description: "Configure xml2db's data model via model_config: override column ty
 
 # Configuring your data model
 
-The data model is derived automatically from an XSD file you provide. It is a set of tables linked by foreign key
-relationships. Each `complexType` in the XSD corresponds to a table, named after the first element of that type (with
-deduplication if needed). Columns correspond to `simpleType` elements and attributes within the complex type, named
-after the XML element or attribute.
+The data model is derived automatically from an XSD file. Each `complexType` becomes a table, columns come from `simpleType` elements and attributes, and `xml2db` applies a few simplifications by default to reduce complexity.
 
-`xml2db` applies a few simplifications to the original data model by default, but they can also be opted-out or forced 
-through the configuration `dict` provided to the `DataModel` constructor.
-
-The column types can also be configured to override the default type mapping, using `sqlalchemy` types.
+Options apply at three levels: model, table, and field.
 
 !!! tip
-    We recommend that you first build the data model without any configuration, visualize it as a text tree or ER 
-    diagram (see the [Getting started](getting_started.md) page for directions on how to visualize data models) and 
-    then adapt the configuration if need be.
+    Start without any configuration, visualize the data model, then add options as needed. See the [Getting started](getting_started.md) page for how to visualize data models.
 
-Options apply at three levels: model, table, and field. The general structure of the configuration dict is:
+## Interactive configuration with the CLI
 
-```py title="Model config general structure" linenums="1" 
-{
+The easiest way to configure the model is the browser explorer:
+
+``` bash
+xml2db serve schema.xsd --config model_config.yml
+```
+
+The left panel is a YAML editor with autocomplete for all config keys, table names from your XSD, and field names. Edit the config and the ERD, tree views, and DDL update automatically. Click **Save** to write the config back to disk.
+
+## Config file format
+
+The config can be written as a YAML file and passed with `--config` (CLI) or `load_config()` (Python API):
+
+``` yaml title="model_config.yml"
+row_numbers: false
+record_hash_column_name: record_hash
+metadata_columns:
+  - name: input_file_path
+    type: String(256)
+tables:
+  my_table:
+    reuse: false
+    choice_transform: false
+    fields:
+      my_column:
+        type: String(100)
+        rename: col_name
+        transform: skip
+```
+
+SQLAlchemy type names in YAML are strings like `String(256)`, `Integer`, `DateTime(timezone=True)`. The full list of supported names: `String`, `Text`, `Integer`, `BigInteger`, `SmallInteger`, `Float`, `Double`, `Numeric`, `Boolean`, `DateTime`, `Date`, `Time`, `LargeBinary`, `JSON`, `Uuid`.
+
+Keys that require Python callables (`document_tree_hook`, `document_tree_node_hook`, `record_hash_constructor`) cannot be set in a YAML file. Pass a Python dict directly in that case.
+
+## Python dict config
+
+For programmatic use, or when you need callable hooks or SQLAlchemy type instances, pass a dict to `DataModel`:
+
+```py title="Model config general structure" linenums="1"
+from xml2db import DataModel
+import sqlalchemy
+
+model_config = {
     "document_tree_hook": None,
     "document_tree_node_hook": None,
     "row_numbers": False,
@@ -36,13 +68,22 @@ Options apply at three levels: model, table, and field. The general structure of
             "as_columnstore": False,
             "fields": {
                 "my_column": {
-                    "type": None #default type
-                } 
+                    "type": None,  # default type
+                }
             },
             "extra_args": [],
         }
-    }
+    },
 }
+
+data_model = DataModel(xsd_file="schema.xsd", model_config=model_config)
+```
+
+To load a YAML file into a Python dict, use `load_config`:
+
+``` py
+from xml2db import load_config
+model_config = load_config("model_config.yml")
 ```
 
 ## Model configuration
