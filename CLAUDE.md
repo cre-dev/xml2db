@@ -60,7 +60,7 @@ then commit the updated snapshot files alongside the code change.
 ## Writing style
 
 - After any code change, check whether docstrings, inline docs, or `docs/` pages need updating and update them as part of the same task.
-- After updating `docs/`, verify it builds without errors: `python -m mkdocs build`. Warnings are acceptable; errors are not.
+- After updating `docs/`, verify it builds without errors: `python -m mkdocs build --strict`. In strict mode warnings are also errors, matching CI.
 - Write docstrings and documentation concisely and directly. No em-dashes or en-dashes; use commas, colons, or plain sentences instead. Avoid AI-sounding phrasing such as bold lead-ins ("**Why this matters:**"), filler constructions ("it is worth noting", "this allows", "this ensures"), and verbose qualifiers.
 
 ### Key configuration options (`model_config`)
