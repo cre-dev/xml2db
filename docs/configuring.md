@@ -132,7 +132,7 @@ Field names in `model_config` come from two different points in the processing p
 | `transform` | **Source name**: the original XSD element or relation name, before any simplification | **Source tree** tab |
 | `type`, `rename` | **Target name**: the logical column name after elevation and prefixing | **Target tree** tab |
 
-**Why this matters:** elevation (the default for small mandatory children) collapses a child relation into prefixed columns in the parent. For example, if `timeInterval` is elevated, the target model has `timeInterval_start` and `timeInterval_end` — but `timeInterval` itself no longer appears in the target tree. To opt out of elevation you configure `fields.timeInterval.transform: false` using the **source name**. To rename an elevated result you configure `fields.timeInterval_start.rename: "start"` using the **target name**.
+**Why this matters:** elevation (the default for small mandatory children) collapses a child relation into prefixed columns in the parent. For example, if `timeInterval` is elevated, the target model has `timeInterval_start` and `timeInterval_end`, and `timeInterval` itself no longer appears in the target tree. To opt out of elevation you configure `fields.timeInterval.transform: false` using the **source name**. To rename an elevated result you configure `fields.timeInterval_start.rename: "start"` using the **target name**.
 
 If a field is not elevated (a direct column or a kept relation), its source and target names are identical and there is no ambiguity.
 
