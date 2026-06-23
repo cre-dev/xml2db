@@ -248,6 +248,29 @@ _HTML = """\
 <meta charset="utf-8">
 <title>xml2db: TMPL_TITLE</title>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "codemirror":                    "https://cdn.jsdelivr.net/npm/codemirror@6.0.2/dist/index.js",
+    "@codemirror/state":             "https://cdn.jsdelivr.net/npm/@codemirror/state@6.6.0/dist/index.js",
+    "@codemirror/view":              "https://cdn.jsdelivr.net/npm/@codemirror/view@6.43.1/dist/index.js",
+    "@codemirror/language":          "https://cdn.jsdelivr.net/npm/@codemirror/language@6.12.3/dist/index.js",
+    "@codemirror/commands":          "https://cdn.jsdelivr.net/npm/@codemirror/commands@6.10.3/dist/index.js",
+    "@codemirror/autocomplete":      "https://cdn.jsdelivr.net/npm/@codemirror/autocomplete@6.20.3/dist/index.js",
+    "@codemirror/search":            "https://cdn.jsdelivr.net/npm/@codemirror/search@6.7.1/dist/index.js",
+    "@codemirror/lint":              "https://cdn.jsdelivr.net/npm/@codemirror/lint@6.9.7/dist/index.js",
+    "@codemirror/lang-yaml":         "https://cdn.jsdelivr.net/npm/@codemirror/lang-yaml@6.1.3/dist/index.js",
+    "@lezer/common":                 "https://cdn.jsdelivr.net/npm/@lezer/common@1.5.2/dist/index.js",
+    "@lezer/highlight":              "https://cdn.jsdelivr.net/npm/@lezer/highlight@1.2.3/dist/index.js",
+    "@lezer/lr":                     "https://cdn.jsdelivr.net/npm/@lezer/lr@1.4.10/dist/index.js",
+    "@lezer/yaml":                   "https://cdn.jsdelivr.net/npm/@lezer/yaml@1.0.4/dist/index.js",
+    "@marijn/find-cluster-break":    "https://cdn.jsdelivr.net/npm/@marijn/find-cluster-break@1.0.2/src/index.js",
+    "crelt":                         "https://cdn.jsdelivr.net/npm/crelt@1.0.6/index.js",
+    "style-mod":                     "https://cdn.jsdelivr.net/npm/style-mod@4.1.3/src/style-mod.js",
+    "w3c-keyname":                   "https://cdn.jsdelivr.net/npm/w3c-keyname@2.2.8/index.js"
+  }
+}
+</script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: system-ui, sans-serif; display: flex; flex-direction: column;
@@ -318,9 +341,11 @@ _HTML = """\
   </div>
 </main>
 <script type="module">
-import { basicSetup, EditorView, indentWithTab, autocompletion, acceptCompletion } from "https://cdn.jsdelivr.net/npm/codemirror@6.0.2/+esm";
-import { keymap } from "https://cdn.jsdelivr.net/npm/@codemirror/view@6.43.1/+esm";
-import { yaml } from "https://cdn.jsdelivr.net/npm/@codemirror/lang-yaml@6.1.3/+esm";
+import { basicSetup, EditorView } from "codemirror";
+import { keymap } from "@codemirror/view";
+import { indentWithTab } from "@codemirror/commands";
+import { autocompletion, acceptCompletion } from "@codemirror/autocomplete";
+import { yaml } from "@codemirror/lang-yaml";
 
 // Schema info injected from server:
 // { tableName: { source: [sourceFieldName, ...], target: [targetFieldName, ...] }, ... }
