@@ -112,7 +112,7 @@ as dicts, the only required keys are `name` and `type` (a SQLAlchemy type object
 as keyword arguments to `sqlalchemy.Column`. Actual values need to be passed to 
 [`DataModel.parse_xml`](api/data_model.md#xml2db.model.DataModel.parse_xml) for each 
 parsed documents, as a `dict`, using the `metadata` argument.
-* `transform` (`false` or `"auto"`): controls whether automatic field transformations are applied. The default `"auto"` applies all transformations that are possible and beneficial according to the XSD structure (joining multi-value simple columns into a comma-separated string, elevating small mandatory children to the parent table, and collapsing choice groups into type/value columns). Set to `false` to disable all of these automatic transformations globally, keeping the model as close to the raw XSD structure as possible. Individual fields or tables can still be transformed via per-field or per-table `transform` / `choice_transform` config even when the global setting is `false`.
+* `transform` (`false` or `"auto"`): set to `false` to disable all automatic field transformations globally: no joining of multi-value columns, no elevation of child tables, no collapsing of choice groups. The default `"auto"` applies all of these where applicable. Per-field `transform` and per-table `choice_transform` still override the global setting.
 * `record_hash_column_name`: the column name to use to store records hash data (defaults to `xml2db_record_hash`).
 * `record_hash_constructor`: a function used to build a hash, with a signature similar to `hashlib` constructor 
 functions (defaults to `hashlib.sha1`).
@@ -125,7 +125,7 @@ table, or a child table.
 
 ### Source names vs target names
 
-Field names in `model_config` come from two different points in the processing pipeline, and **which one to use depends on the config key**:
+Field names in `model_config` come from two different points in the processing pipeline. Which one to use depends on the config key:
 
 | Config key | Name to use | Where to look |
 |---|---|---|
@@ -235,8 +235,7 @@ By default, XML simple type elements with types in `["string", "date", "dateTime
 occurrences >= 1 are joined in one column as comma separated values and optionally wrapped in double quotes if they 
 contain commas (an Excel-like csv format, which can be queried with `LIKE` statements in SQL).
 
-Configuration: `"transform":` `"join"` (default). It is not currently possible to use `False` to opt-out of an
-automatically applied `join`, as it would require a complex process of adding a new table.
+Configuration: `"transform":` `"join"` (default). Opting out of an automatically applied `join` is not supported, as it would require adding a new table.
 
 !!! example
     This config option is currently not very useful as it cannot be opted out.
