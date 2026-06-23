@@ -192,14 +192,21 @@ class _State:
                 "source_tree": model.source_tree,
                 "ddl": "".join(ddl_parts),
             }
-            schema_info = {
-                table.name: sorted(
+            schema_info = {}
+            for table in model.tables.values():
+                target_fields = sorted(
                     list(table.columns.keys())
                     + list(table.relations_1.keys())
                     + list(table.relations_n.keys())
                 )
-                for table in model.tables.values()
-            }
+                source_fields = sorted(set(
+                    fn for (tn, fn) in model.fields_transforms
+                    if tn == table.type_name
+                ))
+                schema_info[table.name] = {
+                    "target": target_fields,
+                    "source": source_fields,
+                }
             with self.lock:
                 self.outputs = outputs
                 self.schema_info = schema_info
@@ -364,7 +371,9 @@ _HTML = """\
 <script type="module">
 import { basicSetup, EditorView, yaml, autocompletion, keymap, indentWithTab, acceptCompletion } from "/static/editor.js";
 
-// Schema info injected from server: { tableName: [fieldName, ...], ... }
+// Schema info injected from server:
+// { tableName: { source: [sourceFieldName, ...], target: [targetFieldName, ...] }, ... }
+// source = XSD names (used by "transform"); target = post-simplification names (used by "type"/"rename")
 const SCHEMA_INFO = TMPL_SCHEMA_INFO_JSON;
 
 // ---- completion knowledge ----
@@ -410,8 +419,21 @@ function getKeyCompletions(path) {
   if (path[0] === 'tables') {
     if (path.length === 1) return Object.keys(SCHEMA_INFO);          // table names
     if (path.length === 2) return TABLE_KEYS;                         // table config keys
-    if (path.length === 3 && path[2] === 'fields')
-      return SCHEMA_INFO[path[1]] || [];                              // field names
+    if (path.length === 3 && path[2] === 'fields') {                  // field names
+      const info = SCHEMA_INFO[path[1]] || {};
+      const targetSet = new Set(info.target || []);
+      const sourceSet = new Set(info.source || []);
+      const opts = [];
+      for (const f of (info.source || [])) {
+        const inTarget = targetSet.has(f);
+        opts.push({ label: f, type: 'property', detail: inTarget ? undefined : 'source' });
+      }
+      for (const f of (info.target || [])) {
+        if (!sourceSet.has(f))
+          opts.push({ label: f, type: 'property', detail: 'target' });
+      }
+      return opts;
+    }
     if (path.length >= 4 && path[2] === 'fields') return FIELD_KEYS; // field config keys
   }
   if (path[0] === 'metadata_columns') return META_KEYS;
@@ -440,7 +462,7 @@ function xml2dbCompleter(context) {
   const { path } = getContext(context.state, context.pos);
   const keys = getKeyCompletions(path);
   if (!keys.length) return null;
-  return { from: word.from, options: keys.map(k => ({ label: k, type: 'property' })) };
+  return { from: word.from, options: keys.map(k => typeof k === 'string' ? { label: k, type: 'property' } : k) };
 }
 
 // ---- editor setup ----

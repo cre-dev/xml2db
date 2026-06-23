@@ -122,7 +122,25 @@ functions (defaults to `hashlib.sha1`).
 These configuration options are defined for a specific field of a specific table. A "field" refers to a column in the
 table, or a child table.
 
+### Source names vs target names
+
+Field names in `model_config` come from two different points in the processing pipeline, and **which one to use depends on the config key**:
+
+| Config key | Name to use | Where to look |
+|---|---|---|
+| `transform` | **Source name**: the original XSD element or relation name, before any simplification | **Source tree** tab |
+| `type`, `rename` | **Target name**: the logical column name after elevation and prefixing | **Target tree** tab |
+
+**Why this matters:** elevation (the default for small mandatory children) collapses a child relation into prefixed columns in the parent. For example, if `timeInterval` is elevated, the target model has `timeInterval_start` and `timeInterval_end` — but `timeInterval` itself no longer appears in the target tree. To opt out of elevation you configure `fields.timeInterval.transform: false` using the **source name**. To rename an elevated result you configure `fields.timeInterval_start.rename: "start"` using the **target name**.
+
+If a field is not elevated (a direct column or a kept relation), its source and target names are identical and there is no ambiguity.
+
+The browser explorer autocomplete (`xml2db serve`) offers both source and target field names and labels each accordingly.
+
 ### Data types
+
+!!! note "Uses target name"
+    Use the field name as it appears in the **Target tree** tab.
 
 By default, the data type defined in the database table for each column is based on a mapping between the data type 
 indicated in the XSD and a corresponding `sqlalchemy` type implemented in the following three methods:
@@ -168,6 +186,9 @@ defined as `sqlalchemy` types and will be passed to the `sqlalchemy.Column` cons
 
 ### Renaming columns
 
+!!! note "Uses target name"
+    Use the field name as it appears in the **Target tree** tab. For elevated fields, this is the prefixed name (e.g. `orderperson_name`), not the original child relation name.
+
 The physical database column name for any field can be overridden while keeping the original XML element name as the
 internal logical key. This is useful when XSD element names are awkward, conflict with reserved SQL words, or need to
 follow a naming convention that differs from the source schema.
@@ -206,6 +227,9 @@ Configuration: `"rename":` `"new_column_name"` (no default; omit to keep the ori
 
 ### Joining values for simple types
 
+!!! note "Uses source name"
+    Use the field name as it appears in the **Source tree** tab.
+
 By default, XML simple type elements with types in `["string", "date", "dateTime", "NMTOKEN", "time", "base64Binary", "decimal"]` and max 
 occurrences >= 1 are joined in one column as comma separated values and optionally wrapped in double quotes if they 
 contain commas (an Excel-like csv format, which can be queried with `LIKE` statements in SQL).
@@ -230,6 +254,9 @@ automatically applied `join`, as it would require a complex process of adding a 
     ```
 
 ### Skipping fields
+
+!!! note "Uses source name"
+    Use the field name as it appears in the **Source tree** tab.
 
 Any field (column or relation) can be excluded from the data model entirely by setting its transform to `"skip"`.
 The field will be absent from the target table schema and all data for it will be silently dropped during XML
@@ -260,6 +287,9 @@ Configuration: `"transform": "skip"`
     ```
 
 ### Elevate children to upper level
+
+!!! note "Uses source name"
+    Use the child relation name as it appears in the **Source tree** tab (the parent's field pointing to the child, before any elevation). This name may not appear in the Target tree at all if default elevation has already collapsed it.
 
 A mandatory child (min occurrences = 1, i.e. `[1, 1]`) is always elevated to its parent by default, as long as it
 is not involved in a 1-n relationship elsewhere in the schema.
