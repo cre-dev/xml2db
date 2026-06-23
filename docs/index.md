@@ -15,15 +15,19 @@ description: "xml2db is a Python package that automatically maps an XSD schema t
 XML files into a relational model that stays close to the source data while remaining easy to query as flat database
 tables.
 
-See the [Getting started](getting_started.md) guide for installation, CLI usage, and the Python API.
-
 The raw data can then be transformed using [DBT](https://www.getdbt.com/), SQL views, or stored procedures to produce
 more user-friendly tables.
+
+See the [Getting started](getting_started.md) guide for installation, CLI usage, and the Python API.
+
+## Supported backends
 
 Built on `sqlalchemy`, `xml2db` supports multiple database backends. Integration tests cover PostgreSQL, MySQL,
 MS SQL Server, and DuckDB. You may need to install a connector package (e.g. `psycopg2` or `psycopg` for PostgreSQL,
 `pymysql` or `mysqlclient` for MySQL, `pyodbc` for MS SQL Server, or `duckdb-engine` for DuckDB). See
 [How it works](how_it_works.md#bulk-loading) for which drivers enable native bulk loading.
+
+## Visualising data models
 
 `xml2db` generates visual diagrams of your data model directly from an XSD file, using
 [Mermaid](https://mermaid.js.org/syntax/entityRelationshipDiagram.html) to represent tables and their relationships.
