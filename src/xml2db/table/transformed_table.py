@@ -137,21 +137,21 @@ class DataModelTableTransformed(DataModelTable):
             The default transformation that should be applied
         """
         field_config = self.config.get("fields", {}).get(field_name, {})
-        if "transform" in field_config and field_config["transform"] != "auto":
-            if field_config["transform"] is False:
+        field_transform = field_config.get("transform")
+        if field_transform is not None and field_transform != "auto":
+            if field_transform is False:
                 return None
-            if field_config["transform"] == "skip":
+            if field_transform == "skip":
                 return "skip"
-            if self._can_transform_field(
-                field_type, field_name, field_config["transform"]
-            ):
-                return field_config["transform"]
+            if self._can_transform_field(field_type, field_name, field_transform):
+                return field_transform
             else:
                 raise DataModelConfigError(
-                    f"Transform value '{field_config['transform']}' cannot be applied"
+                    f"Transform value '{field_transform}' cannot be applied"
                     f" to field '{field_name}' of table '{self.name}'."
                 )
-        if self.data_model.model_config.get("transform", True):
+        # "auto" at field level always runs auto-detection, overriding global transform:false
+        if field_transform == "auto" or self.data_model.model_config.get("transform", True):
             if field_type == "col":
                 if self._can_transform_field("col", field_name, "join"):
                     return "join"
