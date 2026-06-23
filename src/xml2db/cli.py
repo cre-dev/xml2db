@@ -115,6 +115,7 @@ class _State:
                 self.config_yaml = f.read()
 
         self.outputs: dict = {"erd": "", "target_tree": "", "source_tree": "", "ddl": ""}
+        self.schema_info: dict = {}
         self.build_error = ""
         self._rebuild(self.config_yaml)
 
@@ -144,8 +145,17 @@ class _State:
                 "source_tree": model.source_tree,
                 "ddl": "".join(ddl_parts),
             }
+            schema_info = {
+                table.name: sorted(
+                    list(table.columns.keys())
+                    + list(table.relations_1.keys())
+                    + list(table.relations_n.keys())
+                )
+                for table in model.tables.values()
+            }
             with self.lock:
                 self.outputs = outputs
+                self.schema_info = schema_info
                 self.build_error = ""
                 self.config_yaml = yaml_text
             return outputs, ""
@@ -237,14 +247,15 @@ _HTML = """\
            display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
   header strong { color: #fff; }
   main { display: flex; flex: 1; overflow: hidden; }
-  #left { width: 360px; min-width: 140px; display: flex; flex-direction: column;
+  #left { width: 380px; min-width: 160px; display: flex; flex-direction: column;
           padding: 8px; gap: 6px; border-right: 1px solid #ddd; background: #fff;
           flex-shrink: 0; }
   #editor-label { font-size: 11px; font-weight: 600; color: #666; }
-  #editor { flex: 1; font-family: 'Menlo', 'Consolas', monospace; font-size: 12px;
-             border: 1px solid #ccc; border-radius: 3px; padding: 6px;
-             resize: none; outline: none; }
-  #editor:focus { border-color: #4a90e2; box-shadow: 0 0 0 2px #4a90e230; }
+  #editor { flex: 1; border: 1px solid #ccc; border-radius: 3px; overflow: hidden;
+            min-height: 0; }
+  #editor:focus-within { border-color: #4a90e2; box-shadow: 0 0 0 2px #4a90e230; }
+  .cm-editor { height: 100%; font-size: 12px; }
+  .cm-scroller { overflow: auto !important; }
   #msg { font-size: 11px; min-height: 14px; white-space: pre-wrap; word-break: break-word; }
   #msg.ok { color: #2a7a2a; }
   #msg.err { color: #c00; }
@@ -273,7 +284,7 @@ _HTML = """\
 <main>
   <div id="left">
     <div id="editor-label">model_config (YAML)</div>
-    <textarea id="editor" spellcheck="false">TMPL_CONFIG_YAML</textarea>
+    <div id="editor"></div>
     <div id="msg"></div>
     <button id="save-btn">Save to TMPL_SAVE_PATH</button>
   </div>
@@ -287,34 +298,129 @@ _HTML = """\
     <div id="content"></div>
   </div>
 </main>
-<script>
+<script type="module">
+import { EditorView, basicSetup } from "https://esm.sh/codemirror@6";
+import { yaml } from "https://esm.sh/@codemirror/lang-yaml";
+import { autocompletion } from "https://esm.sh/@codemirror/autocomplete";
+
+// Schema info injected from server: { tableName: [fieldName, ...], ... }
+const SCHEMA_INFO = TMPL_SCHEMA_INFO_JSON;
+
+// ---- completion knowledge ----
+const ROOT_KEYS  = ['as_columnstore','row_numbers','record_hash_column_name',
+                    'record_hash_size','metadata_columns','tables'];
+const TABLE_KEYS = ['reuse','as_columnstore','choice_transform','extra_args','fields'];
+const FIELD_KEYS = ['type','rename','transform'];
+const META_KEYS  = ['name','type','nullable','default','server_default','comment','index','unique'];
+const INDEX_KEYS = ['name','columns','unique'];
+const BOOL_KEYS  = new Set(['reuse','as_columnstore','choice_transform','row_numbers',
+                             'nullable','unique','index']);
+const SA_TYPES   = ['String','String(100)','Integer','BigInteger','SmallInteger','Float',
+                    'Double','Numeric','Boolean','DateTime','DateTime(timezone=True)',
+                    'Date','Time','Text','LargeBinary','JSON','Uuid'];
+const TRANSFORMS = ['false','skip','elevate_wo_prefix'];
+
+// Walk backwards from the current line to build the YAML key path at the cursor.
+// Uses indent-level heuristic: each time we see a line with smaller indentation
+// that looks like a YAML key, we add it to the path.
+function getContext(state, pos) {
+  const doc = state.doc;
+  const curLine = doc.lineAt(pos);
+  const trimmed = curLine.text.trimStart();
+  const rawIndent = curLine.text.length - trimmed.length;
+  const path = [];
+  let searchIndent = rawIndent;
+  for (let n = curLine.number - 1; n >= 1; n--) {
+    if (searchIndent <= 0) break;
+    const text = doc.line(n).text;
+    const s = text.trimStart();
+    if (!s) continue;
+    const li = text.length - s.length;
+    if (li >= searchIndent) continue;
+    // Match optional list marker ("- ") then a key name followed by ":"
+    const m = s.match(/^(?:-\s+)?(\S[^:#]*?):/);
+    if (m) { path.unshift(m[1].trim()); searchIndent = li; }
+  }
+  return { indent: rawIndent, path };
+}
+
+function getKeyCompletions(path) {
+  if (path.length === 0) return ROOT_KEYS;
+  if (path[0] === 'tables') {
+    if (path.length === 1) return Object.keys(SCHEMA_INFO);          // table names
+    if (path.length === 2) return TABLE_KEYS;                         // table config keys
+    if (path.length === 3 && path[2] === 'fields')
+      return SCHEMA_INFO[path[1]] || [];                              // field names
+    if (path.length >= 4 && path[2] === 'fields') return FIELD_KEYS; // field config keys
+  }
+  if (path[0] === 'metadata_columns') return META_KEYS;
+  if (path.includes('extra_args'))    return INDEX_KEYS;
+  return [];
+}
+
+// Detect "key: <cursor>" pattern and return value completions for that key.
+function getValueCompletions(state, pos) {
+  const line = state.doc.lineAt(pos);
+  const before = line.text.slice(0, pos - line.from);
+  const m = before.match(/(\w+)\s*:\s*$/);
+  if (!m) return null;
+  const key = m[1];
+  if (BOOL_KEYS.has(key))  return ['true','false'].map(v => ({ label: v, type: 'keyword' }));
+  if (key === 'type')       return SA_TYPES.map(v => ({ label: v, type: 'class' }));
+  if (key === 'transform')  return TRANSFORMS.map(v => ({ label: v, type: 'keyword' }));
+  return null;
+}
+
+function xml2dbCompleter(context) {
+  const word = context.matchBefore(/\w*/);
+  if (!word || (word.from === word.to && !context.explicit)) return null;
+  const valueOpts = getValueCompletions(context.state, context.pos);
+  if (valueOpts) return { from: word.from, options: valueOpts };
+  const { path } = getContext(context.state, context.pos);
+  const keys = getKeyCompletions(path);
+  if (!keys.length) return null;
+  return { from: word.from, options: keys.map(k => ({ label: k, type: 'property' })) };
+}
+
+// ---- editor setup ----
 mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
-const editor = document.getElementById('editor');
-const msg = document.getElementById('msg');
+const msg       = document.getElementById('msg');
 const contentEl = document.getElementById('content');
-
-let outputs = TMPL_INITIAL_OUTPUTS;
-let currentTab = 'erd';
+let outputs     = TMPL_INITIAL_OUTPUTS;
+let currentTab  = 'erd';
 let debounceTimer = null;
 let mermaidCounter = 0;
 
+const view = new EditorView({
+  doc: TMPL_CONFIG_YAML_JSON,
+  extensions: [
+    basicSetup,
+    yaml(),
+    autocompletion({ override: [xml2dbCompleter] }),
+    EditorView.updateListener.of(upd => {
+      if (!upd.docChanged) return;
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(doRebuild, 500);
+    }),
+  ],
+  parent: document.getElementById('editor'),
+});
+
+// ---- UI helpers ----
 function setMsg(text, isError) {
   msg.textContent = text;
   msg.className = text ? (isError ? 'err' : 'ok') : '';
 }
 
 function escapeHtml(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 async function renderTab() {
   if (currentTab === 'erd') {
     const erd = (outputs && outputs.erd) || '';
-    if (!erd) {
-      contentEl.innerHTML = '<p style="color:#999;padding:12px">No ERD available.</p>';
-      return;
-    }
+    if (!erd) { contentEl.innerHTML = '<p style="color:#999;padding:12px">No ERD available.</p>'; return; }
     try {
       const id = 'g' + (++mermaidCounter);
       const { svg } = await mermaid.render(id, erd);
@@ -323,12 +429,10 @@ async function renderTab() {
       contentEl.innerHTML = '<pre style="color:#c00;padding:12px">' + escapeHtml(String(e)) + '</pre>';
     }
   } else {
-    const text = (outputs && outputs[currentTab]) || '';
-    contentEl.innerHTML = '<pre>' + escapeHtml(text) + '</pre>';
+    contentEl.innerHTML = '<pre>' + escapeHtml((outputs && outputs[currentTab]) || '') + '</pre>';
   }
 }
 
-// Tab switching
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
@@ -338,44 +442,29 @@ document.querySelectorAll('.tab').forEach(btn => {
   });
 });
 
-// Debounced auto-rebuild on every keystroke
-editor.addEventListener('input', () => {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(async () => {
-    try {
-      const r = await fetch('/config', {
-        method: 'POST',
-        body: editor.value,
-        headers: { 'Content-Type': 'text/yaml' },
-      });
-      const d = await r.json();
-      outputs = d.outputs;
-      if (d.error) {
-        setMsg(d.error, true);
-      } else {
-        setMsg('', false);
-        await renderTab();
-      }
-    } catch(e) {
-      setMsg('Network error: ' + String(e), true);
-    }
-  }, 500);
-});
+async function doRebuild() {
+  try {
+    const r = await fetch('/config', {
+      method: 'POST', body: view.state.doc.toString(),
+      headers: { 'Content-Type': 'text/yaml' },
+    });
+    const d = await r.json();
+    outputs = d.outputs;
+    if (d.error) { setMsg(d.error, true); }
+    else { setMsg('', false); await renderTab(); }
+  } catch(e) { setMsg('Network error: ' + String(e), true); }
+}
 
-// Save
 document.getElementById('save-btn').addEventListener('click', async () => {
   try {
     const r = await fetch('/save', {
-      method: 'POST',
-      body: editor.value,
+      method: 'POST', body: view.state.doc.toString(),
       headers: { 'Content-Type': 'text/yaml' },
     });
     const d = await r.json();
     if (d.error) { setMsg(d.error, true); }
     else { setMsg('Saved to ' + d.saved_to, false); }
-  } catch(e) {
-    setMsg('Network error: ' + String(e), true);
-  }
+  } catch(e) { setMsg('Network error: ' + String(e), true); }
 });
 
 // Initial render
@@ -396,8 +485,9 @@ def _build_html(state: _State) -> str:
         _HTML
         .replace("TMPL_TITLE", _html.escape(header))
         .replace("TMPL_HEADER", _html.escape(header))
-        .replace("TMPL_CONFIG_YAML", _html.escape(state.config_yaml))
         .replace("TMPL_SAVE_PATH", _html.escape(state.config_file))
+        .replace("TMPL_SCHEMA_INFO_JSON", json.dumps(state.schema_info))
+        .replace("TMPL_CONFIG_YAML_JSON", json.dumps(state.config_yaml))
         .replace("TMPL_INITIAL_OUTPUTS", json.dumps(state.outputs))
         .replace("TMPL_INITIAL_ERROR", json.dumps(state.build_error))
     )
