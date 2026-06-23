@@ -299,7 +299,7 @@ _HTML = """\
   </div>
 </main>
 <script type="module">
-import { EditorView, basicSetup } from "https://esm.sh/codemirror@6";
+import { basicSetup, EditorView } from "https://esm.sh/codemirror@6.0.2";
 import { yaml } from "https://esm.sh/@codemirror/lang-yaml";
 import { autocompletion } from "https://esm.sh/@codemirror/autocomplete";
 
