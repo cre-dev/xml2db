@@ -98,7 +98,7 @@ def cmd_render(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 
 # Increment when the bundle is rebuilt so cached copies are refreshed.
-_EDITOR_BUNDLE_VERSION = "1"
+_EDITOR_BUNDLE_VERSION = "2"
 _EDITOR_BUNDLE_URL = (
     "https://raw.githubusercontent.com/cre-dev/xml2db/main"
     "/src/xml2db/static/editor.js"
@@ -350,7 +350,7 @@ _HTML = """\
   </div>
 </main>
 <script type="module">
-import { basicSetup, EditorView, yaml, autocompletion } from "/static/editor.js";
+import { basicSetup, EditorView, yaml, autocompletion, keymap, indentWithTab, acceptCompletion } from "/static/editor.js";
 
 // Schema info injected from server: { tableName: [fieldName, ...], ... }
 const SCHEMA_INFO = TMPL_SCHEMA_INFO_JSON;
@@ -447,6 +447,7 @@ const view = new EditorView({
     basicSetup,
     yaml(),
     autocompletion({ override: [xml2dbCompleter] }),
+    keymap.of([{ key: "Tab", run: acceptCompletion }, indentWithTab]),
     EditorView.updateListener.of(upd => {
       if (!upd.docChanged) return;
       clearTimeout(debounceTimer);
