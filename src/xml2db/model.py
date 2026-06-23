@@ -579,7 +579,7 @@ class DataModel:
         return parent_table
 
     def get_entity_rel_diagram(
-        self, text_context: bool = True, use_db_names: bool = False, sa_dialect=None
+        self, text_context: bool = True, use_db_names: bool = False, sa_dialect: object = None
     ) -> str:
         """Build an entity relationship diagram for the data model
 
