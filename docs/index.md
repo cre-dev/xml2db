@@ -25,8 +25,6 @@ MS SQL Server, and DuckDB. You may need to install a connector package (e.g. `ps
 `pymysql` or `mysqlclient` for MySQL, `pyodbc` for MS SQL Server, or `duckdb-engine` for DuckDB). See
 [How it works](how_it_works.md#bulk-loading) for which drivers enable native bulk loading.
 
-## Data model visualization
-
 `xml2db` generates visual diagrams of your data model directly from an XSD file, using
 [Mermaid](https://mermaid.js.org/syntax/entityRelationshipDiagram.html) to represent tables and their relationships.
 
