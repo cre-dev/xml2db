@@ -39,7 +39,7 @@ def test_load_stats(conn_string):
         assert stats.duration_merge > 0
         assert stats.duration_cleanup > 0
 
-        # second load of same file — reused rows should be existing (backends that
+        # second load of same file; reused rows should be existing (backends that
         # report rowcount); on DuckDB both will be 0, which is also acceptable
         doc2 = model.parse_xml(xml_path, metadata={"src": "b"})
         stats2 = doc2.insert_into_target_tables()

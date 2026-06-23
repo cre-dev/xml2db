@@ -12,6 +12,7 @@ from sqlalchemy import (
 
 from .column import DataModelColumn
 from .transformed_table import DataModelTableTransformed
+from ..config import resolve_sa_type
 
 
 def shorten_str(x: str, max_len: int = 30) -> str:
@@ -61,7 +62,7 @@ class DataModelTableReused(DataModelTableTransformed):
                 for metadata_col in self.data_model.model_config["metadata_columns"]:
                     yield Column(
                         metadata_col["name"],
-                        metadata_col["type"],
+                        resolve_sa_type(metadata_col["type"]),
                         **{
                             k: v
                             for k, v in metadata_col.items()

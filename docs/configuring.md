@@ -5,25 +5,47 @@ description: "Configure xml2db's data model via model_config: override column ty
 
 # Configuring your data model
 
-The data model is derived automatically from an XSD file you provide. It is a set of tables linked by foreign key
-relationships. Each `complexType` in the XSD corresponds to a table, named after the first element of that type (with
-deduplication if needed). Columns correspond to `simpleType` elements and attributes within the complex type, named
-after the XML element or attribute.
+The data model is derived automatically from an XSD file. Each `complexType` becomes a table, columns come from `simpleType` elements and attributes, and `xml2db` applies a few simplifications by default to reduce complexity.
 
-`xml2db` applies a few simplifications to the original data model by default, but they can also be opted-out or forced 
-through the configuration `dict` provided to the `DataModel` constructor.
-
-The column types can also be configured to override the default type mapping, using `sqlalchemy` types.
+Options apply at three levels: model, table, and field.
 
 !!! tip
-    We recommend that you first build the data model without any configuration, visualize it as a text tree or ER 
-    diagram (see the [Getting started](getting_started.md) page for directions on how to visualize data models) and 
-    then adapt the configuration if need be.
+    Start without any configuration, visualize the data model, then add options as needed. The `xml2db serve` command opens an interactive browser explorer with a live-updating ERD, tree views, DDL, and a YAML config editor. See [Getting started](getting_started.md) for details.
 
-Options apply at three levels: model, table, and field. The general structure of the configuration dict is:
+## Config file format
 
-```py title="Model config general structure" linenums="1" 
-{
+The config can be written as a YAML file and passed with `--config` (CLI) or `load_config()` (Python API):
+
+``` yaml title="model_config.yml"
+row_numbers: false
+record_hash_column_name: record_hash
+metadata_columns:
+  - name: input_file_path
+    type: String(256)
+tables:
+  my_table:
+    reuse: false
+    choice_transform: false
+    fields:
+      my_column:
+        type: String(100)
+        rename: col_name
+        transform: skip
+```
+
+SQLAlchemy type names in YAML are strings like `String(256)`, `Integer`, `DateTime(timezone=True)`. The full list of supported names: `String`, `Text`, `Integer`, `BigInteger`, `SmallInteger`, `Float`, `Double`, `Numeric`, `Boolean`, `DateTime`, `Date`, `Time`, `LargeBinary`, `JSON`, `Uuid`.
+
+Keys that require Python callables (`document_tree_hook`, `document_tree_node_hook`, `record_hash_constructor`) cannot be set in a YAML file. Pass a Python dict directly in that case.
+
+## Python dict config
+
+For programmatic use, or when you need callable hooks or SQLAlchemy type instances, pass a dict to `DataModel`:
+
+```py title="Model config general structure" linenums="1"
+from xml2db import DataModel
+import sqlalchemy
+
+model_config = {
     "document_tree_hook": None,
     "document_tree_node_hook": None,
     "row_numbers": False,
@@ -36,13 +58,22 @@ Options apply at three levels: model, table, and field. The general structure of
             "as_columnstore": False,
             "fields": {
                 "my_column": {
-                    "type": None #default type
-                } 
+                    "type": None,  # default type
+                }
             },
             "extra_args": [],
         }
-    }
+    },
 }
+
+data_model = DataModel(xsd_file="schema.xsd", model_config=model_config)
+```
+
+To load a YAML file into a Python dict, use `load_config`:
+
+``` py
+from xml2db import load_config
+model_config = load_config("model_config.yml")
 ```
 
 ## Model configuration
@@ -71,6 +102,7 @@ as dicts, the only required keys are `name` and `type` (a SQLAlchemy type object
 as keyword arguments to `sqlalchemy.Column`. Actual values need to be passed to 
 [`DataModel.parse_xml`](api/data_model.md#xml2db.model.DataModel.parse_xml) for each 
 parsed documents, as a `dict`, using the `metadata` argument.
+* `transform` (`false` or `"auto"`): set to `false` to disable all automatic field transformations globally: no joining of multi-value columns, no elevation of child tables, no collapsing of choice groups. The default `"auto"` applies all of these where applicable. Per-field `transform` and per-table `choice_transform` still override the global setting.
 * `record_hash_column_name`: the column name to use to store records hash data (defaults to `xml2db_record_hash`).
 * `record_hash_constructor`: a function used to build a hash, with a signature similar to `hashlib` constructor 
 functions (defaults to `hashlib.sha1`).
@@ -81,7 +113,25 @@ functions (defaults to `hashlib.sha1`).
 These configuration options are defined for a specific field of a specific table. A "field" refers to a column in the
 table, or a child table.
 
+### Source names vs target names
+
+Field names in `model_config` come from two different points in the processing pipeline. Which one to use depends on the config key:
+
+| Config key | Name to use | Where to look |
+|---|---|---|
+| `transform` | **Source name**: the original XSD element or relation name, before any simplification | **Source tree** tab |
+| `type`, `rename` | **Target name**: the logical column name after elevation and prefixing | **Target tree** tab |
+
+Elevation (the default for small mandatory children) collapses a child relation into prefixed columns in the parent. For example, if `timeInterval` is elevated, the target model has `timeInterval_start` and `timeInterval_end`, and `timeInterval` itself no longer appears in the target tree. To opt out of elevation you configure `fields.timeInterval.transform: false` using the **source name**. To rename an elevated result you configure `fields.timeInterval_start.rename: "start"` using the **target name**.
+
+If a field is not elevated (a direct column or a kept relation), its source and target names are identical and there is no ambiguity.
+
+The browser explorer autocomplete (`xml2db serve`) offers both source and target field names and labels each accordingly.
+
 ### Data types
+
+!!! note "Uses target name"
+    Use the field name as it appears in the **Target tree** tab.
 
 By default, the data type defined in the database table for each column is based on a mapping between the data type 
 indicated in the XSD and a corresponding `sqlalchemy` type implemented in the following three methods:
@@ -127,6 +177,9 @@ defined as `sqlalchemy` types and will be passed to the `sqlalchemy.Column` cons
 
 ### Renaming columns
 
+!!! note "Uses target name"
+    Use the field name as it appears in the **Target tree** tab. For elevated fields, this is the prefixed name (e.g. `orderperson_name`), not the original child relation name.
+
 The physical database column name for any field can be overridden while keeping the original XML element name as the
 internal logical key. This is useful when XSD element names are awkward, conflict with reserved SQL words, or need to
 follow a naming convention that differs from the source schema.
@@ -165,12 +218,14 @@ Configuration: `"rename":` `"new_column_name"` (no default; omit to keep the ori
 
 ### Joining values for simple types
 
+!!! note "Uses source name"
+    Use the field name as it appears in the **Source tree** tab.
+
 By default, XML simple type elements with types in `["string", "date", "dateTime", "NMTOKEN", "time", "base64Binary", "decimal"]` and max 
 occurrences >= 1 are joined in one column as comma separated values and optionally wrapped in double quotes if they 
 contain commas (an Excel-like csv format, which can be queried with `LIKE` statements in SQL).
 
-Configuration: `"transform":` `"join"` (default). It is not currently possible to use `False` to opt-out of an
-automatically applied `join`, as it would require a complex process of adding a new table.
+Configuration: `"transform":` `"join"` (default). Opting out of an automatically applied `join` is not supported, as it would require adding a new table.
 
 !!! example
     This config option is currently not very useful as it cannot be opted out.
@@ -189,6 +244,9 @@ automatically applied `join`, as it would require a complex process of adding a 
     ```
 
 ### Skipping fields
+
+!!! note "Uses source name"
+    Use the field name as it appears in the **Source tree** tab.
 
 Any field (column or relation) can be excluded from the data model entirely by setting its transform to `"skip"`.
 The field will be absent from the target table schema and all data for it will be silently dropped during XML
@@ -220,6 +278,9 @@ Configuration: `"transform": "skip"`
 
 ### Elevate children to upper level
 
+!!! note "Uses source name"
+    Use the child relation name as it appears in the **Source tree** tab (the parent's field pointing to the child, before any elevation). This name may not appear in the Target tree at all if default elevation has already collapsed it.
+
 A mandatory child (min occurrences = 1, i.e. `[1, 1]`) is always elevated to its parent by default, as long as it
 is not involved in a 1-n relationship elsewhere in the schema.
 
@@ -228,7 +289,7 @@ are not counted), and again only when it is not involved in a 1-n relationship e
 
 This behaviour can be disabled, or forced for larger children (more than 4 simple-type columns), using:
 
-`"transform":` `"elevate"` (default) or `"elevate_wo_prefix"` or `False` (disable).
+`"transform":` `"elevate"` (default) or `"elevate_wo_prefix"` or `False` (disable) or `"auto"` (explicit default).
 
 By default, the elevated field is prefixed with the child's name to clarify its origin and avoid name collisions.
 Use `"elevate_wo_prefix"` to skip the prefix.
@@ -298,7 +359,7 @@ idOfMarketParticipant[1, 1] (choice):
 This simplification is applied automatically when there are more than 2 options of the same data type. It can be
 forced on or disabled explicitly with the following option:
 
-`"choice_transform":` `True` (force on) or `False` (disable)
+`"choice_transform":` `True` (force on) or `False` (disable) or `"auto"` (explicit default)
 
 !!! example
     Disable choice group simplification for a choice group:

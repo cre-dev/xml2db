@@ -300,7 +300,7 @@ def test_mssql_bulk_load_true_raises_without_bcp(mssql_engine):
     import unittest.mock as mock
 
     if shutil.which("bcp") is None:
-        # BCP already absent — just confirm the error is raised directly.
+        # BCP already absent; just confirm the error is raised directly.
         table, meta = _make_table(mssql_engine, "mssql_bi_bulk_load_true_no_bcp")
         try:
             records = [{"id": i, "label": f"r{i}"} for i in range(_BCP_THRESHOLD)]
@@ -311,7 +311,7 @@ def test_mssql_bulk_load_true_raises_without_bcp(mssql_engine):
         finally:
             _drop(meta, mssql_engine)
     else:
-        # BCP present — patch shutil.which to simulate absence.
+        # BCP present; patch shutil.which to simulate absence.
         table, meta = _make_table(mssql_engine, "mssql_bi_bulk_load_true_no_bcp")
         try:
             records = [{"id": i, "label": f"r{i}"} for i in range(_BCP_THRESHOLD)]

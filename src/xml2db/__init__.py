@@ -8,6 +8,7 @@ from .table import (
     DataModelRelationN,
     DataModelRelation1,
 )
+from .config import ModelConfig, TableConfig, FieldConfig, load_config, parse_yaml_config
 
 __all__ = [
     "DataModel",
@@ -20,4 +21,9 @@ __all__ = [
     "DataModelColumn",
     "DataModelRelation1",
     "DataModelRelationN",
+    "ModelConfig",
+    "TableConfig",
+    "FieldConfig",
+    "load_config",
+    "parse_yaml_config",
 ]
