@@ -33,6 +33,34 @@ def _get_sa_dialect(db_type: str | None):
     return module.dialect() if module is not None else None
 
 
+def cmd_import(args: argparse.Namespace) -> None:
+    config = load_config(args.config) if args.config else None
+    metadata = dict(kv.split("=", 1) for kv in args.metadata) if args.metadata else None
+
+    model = DataModel(
+        xsd_file=args.xsd_file,
+        short_name=args.short_name,
+        model_config=config,
+        connection_string=args.connection_string,
+        db_schema=args.db_schema,
+    )
+    doc = model.parse_xml(
+        xml_file=args.xml_file,
+        metadata=metadata,
+        skip_validation=not args.validate,
+        iterparse=not args.no_iterparse,
+        recover=args.recover,
+    )
+    stats = doc.insert_into_target_tables()
+    print(
+        f"Imported {args.xml_file}: "
+        f"{stats.inserted} rows inserted, {stats.existing} rows already existed "
+        f"({stats.duration_temp_insert:.2f}s staging, "
+        f"{stats.duration_merge:.2f}s merge, "
+        f"{stats.duration_cleanup:.2f}s cleanup)"
+    )
+
+
 def cmd_render(args: argparse.Namespace) -> None:
     config = load_config(args.config) if args.config else None
     db_type = getattr(args, "db_type", None)
@@ -414,6 +442,25 @@ def main() -> None:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
+    i = sub.add_parser("import", help="Parse an XML file and load it into a database")
+    i.add_argument("xml_file", help="Path to the XML file to import")
+    i.add_argument("xsd_file", help="Path to the XSD schema file")
+    i.add_argument("--connection-string", "-d", required=True, metavar="DSN",
+                   help="SQLAlchemy connection string (e.g. postgresql+psycopg2://user:pw@host/db)")
+    i.add_argument("--config", "-c", metavar="FILE", help="YAML model config file")
+    i.add_argument("--short-name", default="DocumentRoot", metavar="NAME",
+                   help="Data model short name (default: DocumentRoot)")
+    i.add_argument("--db-schema", metavar="SCHEMA", default=None,
+                   help="Database schema to use")
+    i.add_argument("--metadata", "-m", nargs="*", metavar="KEY=VALUE",
+                   help="Metadata values for root table metadata_columns (e.g. -m source=file.xml)")
+    i.add_argument("--validate", action="store_true",
+                   help="Validate the XML against the schema before importing")
+    i.add_argument("--no-iterparse", action="store_true",
+                   help="Use recursive parser instead of iterparse (higher memory usage)")
+    i.add_argument("--recover", action="store_true",
+                   help="Attempt to parse malformed XML")
+
     r = sub.add_parser("render", help="Print ERD, tree or DDL to stdout or a file")
     r.add_argument("xsd_file", help="Path to the XSD schema file")
     r.add_argument("--config", "-c", metavar="FILE", help="YAML model config file")
@@ -443,7 +490,9 @@ def main() -> None:
                    help="Database backend for DDL tab (postgresql, mssql, mysql, …)")
 
     args = parser.parse_args()
-    if args.command == "render":
+    if args.command == "import":
+        cmd_import(args)
+    elif args.command == "render":
         cmd_render(args)
     else:
         cmd_serve(args)
