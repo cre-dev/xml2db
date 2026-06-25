@@ -310,6 +310,15 @@ _HTML = """<!DOCTYPE html>
                background: #fafafa; flex-shrink: 0; }
   #erd-names.visible { display: flex; }
   #erd-names label { display: flex; align-items: center; gap: 3px; cursor: pointer; }
+  #zoom-controls { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+  .zoom-btn { padding: 2px 8px; border: 1px solid #bbb; border-radius: 3px; cursor: pointer;
+              font-size: 13px; background: #f0f0f0; line-height: 1.4; }
+  .zoom-btn:hover { background: #e0e0e0; }
+  #zoom-level { font-size: 11px; color: #555; min-width: 36px; text-align: center; }
+  #content.erd-mode { overflow: hidden; padding: 0; cursor: grab; user-select: none; }
+  #content.erd-mode.dragging { cursor: grabbing; }
+  #content.erd-mode svg { max-width: none; }
+  #erd-canvas { transform-origin: 0 0; display: inline-block; padding: 14px; }
 </style>
 </head>
 <body>
@@ -335,6 +344,12 @@ _HTML = """<!DOCTYPE html>
       Names &amp; types:
       <label><input type="radio" name="erd_names" value="logical" checked> Logical</label>
       <label><input type="radio" name="erd_names" value="db"> DB</label>
+      <div id="zoom-controls">
+        <button class="zoom-btn" id="zoom-out">&#8722;</button>
+        <span id="zoom-level">100%</span>
+        <button class="zoom-btn" id="zoom-in">+</button>
+        <button class="zoom-btn" id="zoom-reset">Reset</button>
+      </div>
     </div>
     <div id="content"></div>
   </div>
@@ -453,10 +468,31 @@ let outputs      = TMPL_INITIAL_OUTPUTS;
 let currentTab   = 'erd';
 let debounceTimer = null;
 let mermaidCounter = 0;
+let erdScale = 1, erdX = 0, erdY = 0;
+let erdLastContent = null;
+let dragState = null;
 
 function erdKey() {
   return document.querySelector('input[name="erd_names"]:checked').value === 'db'
     ? 'erd_db' : 'erd';
+}
+
+function updateErdTransform() {
+  const canvas = document.getElementById('erd-canvas');
+  if (canvas) canvas.style.transform = `translate(${erdX}px,${erdY}px) scale(${erdScale})`;
+}
+function updateZoomLabel() {
+  const el = document.getElementById('zoom-level');
+  if (el) el.textContent = Math.round(erdScale * 100) + '%';
+}
+function applyZoom(newScale, cx, cy) {
+  newScale = Math.max(0.1, Math.min(10, newScale));
+  const ratio = newScale / erdScale;
+  erdX = cx - ratio * (cx - erdX);
+  erdY = cy - ratio * (cy - erdY);
+  erdScale = newScale;
+  updateErdTransform();
+  updateZoomLabel();
 }
 
 const view = new EditorView({
@@ -489,16 +525,27 @@ async function renderTab() {
   if (currentTab === 'erd') {
     erdNamesEl.classList.add('visible');
     const erd = (outputs && outputs[erdKey()]) || '';
-    if (!erd) { contentEl.innerHTML = '<p style="color:#999;padding:12px">No ERD available.</p>'; return; }
+    if (!erd) {
+      contentEl.classList.remove('erd-mode');
+      contentEl.innerHTML = '<p style="color:#999;padding:12px">No ERD available.</p>';
+      return;
+    }
     try {
       const id = 'g' + (++mermaidCounter);
       const { svg } = await mermaid.render(id, erd);
-      contentEl.innerHTML = svg;
+      if (erd !== erdLastContent) { erdScale = 1; erdX = 0; erdY = 0; erdLastContent = erd; }
+      contentEl.classList.add('erd-mode');
+      contentEl.innerHTML = '<div id="erd-canvas"></div>';
+      document.getElementById('erd-canvas').innerHTML = svg;
+      updateErdTransform();
+      updateZoomLabel();
     } catch(e) {
+      contentEl.classList.remove('erd-mode');
       contentEl.innerHTML = '<pre style="color:#c00;padding:12px">' + escapeHtml(String(e)) + '</pre>';
     }
   } else {
     erdNamesEl.classList.remove('visible');
+    contentEl.classList.remove('erd-mode');
     contentEl.innerHTML = '<pre>' + escapeHtml((outputs && outputs[currentTab]) || '') + '</pre>';
   }
 }
@@ -514,6 +561,43 @@ document.querySelectorAll('.tab').forEach(btn => {
 
 document.querySelectorAll('input[name="erd_names"]').forEach(radio => {
   radio.addEventListener('change', () => { if (currentTab === 'erd') renderTab(); });
+});
+
+document.getElementById('zoom-in').addEventListener('click', () => {
+  const r = contentEl.getBoundingClientRect();
+  applyZoom(erdScale * 1.25, r.width / 2, r.height / 2);
+});
+document.getElementById('zoom-out').addEventListener('click', () => {
+  const r = contentEl.getBoundingClientRect();
+  applyZoom(erdScale / 1.25, r.width / 2, r.height / 2);
+});
+document.getElementById('zoom-reset').addEventListener('click', () => {
+  erdScale = 1; erdX = 0; erdY = 0;
+  updateErdTransform();
+  updateZoomLabel();
+});
+
+contentEl.addEventListener('wheel', e => {
+  if (!contentEl.classList.contains('erd-mode')) return;
+  e.preventDefault();
+  const rect = contentEl.getBoundingClientRect();
+  applyZoom(erdScale * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX - rect.left, e.clientY - rect.top);
+}, { passive: false });
+
+contentEl.addEventListener('mousedown', e => {
+  if (!contentEl.classList.contains('erd-mode') || e.button !== 0) return;
+  dragState = { startX: e.clientX - erdX, startY: e.clientY - erdY };
+  contentEl.classList.add('dragging');
+  e.preventDefault();
+});
+window.addEventListener('mousemove', e => {
+  if (!dragState) return;
+  erdX = e.clientX - dragState.startX;
+  erdY = e.clientY - dragState.startY;
+  updateErdTransform();
+});
+window.addEventListener('mouseup', () => {
+  if (dragState) { dragState = null; contentEl.classList.remove('dragging'); }
 });
 
 async function doRebuild() {
