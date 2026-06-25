@@ -80,6 +80,9 @@ model_config = load_config("model_config.yml")
 
 The following options can be passed as top-level keys of the model configuration `dict`:
 
+* `as_columnstore` (`bool`): for MS SQL Server, create clustered columnstore indexes on all tables. This can be also set up at
+the table level for each table. However, for `n-n` relationships tables, this option is the only way to configure the
+clustered columnstore indexes. The default value is `False` (disabled).
 * `document_tree_hook` (`Callable`): sets a hook function which can modify the data extracted from the XML. It gives direct
 access to the underlying tree data structure just before it is extracted to be loaded to the database. This can be used,
 for instance, to prune or modify some parts of the document tree before loading it into the database. The document tree
@@ -89,24 +92,21 @@ the declarative [`"transform": "skip"`](#skipping-fields) option is simpler.
 similar with `document_tree_hook`, but it is called as soon as a node is completed, not waiting for the entire parsing to
 finish. It is especially useful if you intend to filter out some nodes and reduce memory footprint while parsing. For
 straightforward field exclusion, see [`"transform": "skip"`](#skipping-fields).
-* `row_numbers` (`bool`): adds `xml2db_row_number` columns either to `n-n` relationships tables, or directly to data tables when 
-deduplication of rows is opted out. This allows recording the original order of elements in the source XML, which is not
-always respected otherwise. It was implemented primarily for round-trip tests, but could serve other purposes. The 
-default value is `False` (disabled).
-* `as_columnstore` (`bool`): for MS SQL Server, create clustered columnstore indexes on all tables. This can be also set up at
-the table level for each table. However, for `n-n` relationships tables, this option is the only way to configure the
-clustered columnstore indexes. The default value is `False` (disabled).
 * `metadata_columns` (`list`): a list of extra columns that you want to add to the root table of your model. This is
 useful for instance to add the name of the file which has been parsed, or a timestamp, etc. Columns should be specified
 as dicts, the only required keys are `name` and `type` (a SQLAlchemy type object); other keys will be passed directly
 as keyword arguments to `sqlalchemy.Column`. Actual values need to be passed to 
 [`DataModel.parse_xml`](api/data_model.md#xml2db.model.DataModel.parse_xml) for each 
 parsed documents, as a `dict`, using the `metadata` argument.
-* `transform` (`false` or `"auto"`): set to `false` to disable all automatic field transformations globally: no joining of multi-value columns, no elevation of child tables, no collapsing of choice groups. The default `"auto"` applies all of these where applicable. Per-field `transform` and per-table `choice_transform` still override the global setting.
 * `record_hash_column_name`: the column name to use to store records hash data (defaults to `xml2db_record_hash`).
 * `record_hash_constructor`: a function used to build a hash, with a signature similar to `hashlib` constructor 
 functions (defaults to `hashlib.sha1`).
 * `record_hash_size`: the byte size of the record hash (defaults to 20, which is the size of a `sha-1` hash).
+* `row_numbers` (`bool`): adds `xml2db_row_number` columns either to `n-n` relationships tables, or directly to data tables when 
+deduplication of rows is opted out. This allows recording the original order of elements in the source XML, which is not
+always respected otherwise. It was implemented primarily for round-trip tests, but could serve other purposes. The 
+default value is `False` (disabled).
+* `transform` (`false` or `"auto"`): set to `false` to disable all automatic field transformations globally: no joining of multi-value columns, no elevation of child tables, no collapsing of choice groups. The default `"auto"` applies all of these where applicable. Per-field `transform` and per-table `choice_transform` still override the global setting.
 
 ## Fields configuration
 
