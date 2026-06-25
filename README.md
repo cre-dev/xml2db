@@ -10,6 +10,37 @@ Starting from an XSD schema which represents a given XML structure, `xml2db` bui
 tables linked to each other by foreign keys relationships. Then, it allows parsing and loading XML files into the 
 database, and getting them back from the database into XML format if needed.
 
+## CLI
+
+After installation, `xml2db` is available as a command-line tool with three subcommands.
+
+Explore your XSD schema and configure the data model interactively in a browser:
+
+```bash
+xml2db serve path/to/schema.xsd
+```
+
+This opens a page with an ERD, source/target tree views, DDL output, and a live YAML config editor with autocomplete.
+
+Import an XML file directly from the command line:
+
+```bash
+xml2db import file.xml schema.xsd \
+    --connection-string "postgresql+psycopg2://user:pw@host/db" \
+    --config model_config.yml
+```
+
+Render the ERD, trees, or DDL to stdout or a file without starting a server:
+
+```bash
+xml2db render schema.xsd --format erd
+xml2db render schema.xsd --format ddl --db-type postgresql
+```
+
+See the [CLI reference](https://cre-dev.github.io/xml2db/cli/) for all options.
+
+## Python API
+
 Loading XML files into a relational database with `xml2db` can be as simple as:
 
 ```python
