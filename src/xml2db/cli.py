@@ -384,7 +384,7 @@ function getContext(state, pos) {
     const li = text.length - s.length;
     if (li >= searchIndent) continue;
     // Match optional list marker ("- ") then a key name followed by ":"
-    const m = s.match(/^(?:-\s+)?(\S[^:#]*?):/);
+    const m = s.match(/^(?:-\\s+)?(\\S[^:#]*?):/);
     if (m) { path.unshift(m[1].trim()); searchIndent = li; }
   }
   return { indent: rawIndent, path };
@@ -421,7 +421,7 @@ function getKeyCompletions(path) {
 function getValueCompletions(state, pos, path) {
   const line = state.doc.lineAt(pos);
   const before = line.text.slice(0, pos - line.from);
-  const m = before.match(/(\w+)\s*:\s*$/);
+  const m = before.match(/(\\w+)\\s*:\\s*$/);
   if (!m) return null;
   const key = m[1];
   if (BOOL_KEYS.has(key))        return ['true','false'].map(v => ({ label: v, type: 'keyword' }));
@@ -432,7 +432,7 @@ function getValueCompletions(state, pos, path) {
 }
 
 function xml2dbCompleter(context) {
-  const word = context.matchBefore(/\w*/);
+  const word = context.matchBefore(/\\w*/);
   if (!word || (word.from === word.to && !context.explicit)) return null;
   const { path } = getContext(context.state, context.pos);
   const valueOpts = getValueCompletions(context.state, context.pos, path);
