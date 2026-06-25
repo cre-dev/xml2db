@@ -241,8 +241,7 @@ def _make_handler(state: _State):
 # HTML template
 # ---------------------------------------------------------------------------
 
-_HTML = """\
-<!DOCTYPE html>
+_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">

@@ -39,7 +39,8 @@ This opens a browser with four tabs:
 - **Source tree**: a text tree of the raw XSD structure before simplification
 - **DDL**: `CREATE TABLE` statements for the target schema
 
-The left panel is a YAML config editor with autocomplete for table names, field names, and all config options. Edit the config and the diagram updates automatically (with a short debounce). When the config looks right, click **Save** to write it to a file (default: `model_config.yml`).
+The left panel is a YAML config editor with autocomplete for table names, field names, and all config options. Edit the config and the diagram updates automatically. 
+When the config looks right, click **Save** to write it to a file (default: `model_config.yml`).
 
 You can also render these representations directly to stdout or a file without the browser:
 
@@ -54,7 +55,7 @@ See [Configuring your data model](configuring.md) for a full description of the 
 
 ## Importing XML files
 
-Once the data model looks right, import an XML file into the database:
+Once you are happy with the data model, import an XML file into the database (config is optional):
 
 ``` bash
 xml2db import file.xml schema.xsd \
@@ -96,7 +97,7 @@ with open("data_model_erd.md", "w") as f:
     f.write(data_model.get_entity_rel_diagram())
 ```
 
-The diagram uses [Mermaid](https://mermaid.js.org/syntax/entityRelationshipDiagram.html). PyCharm and GitHub both render Mermaid natively.
+The diagram uses [Mermaid](https://mermaid.js.org/syntax/entityRelationshipDiagram.html). Your IDE should be able to render Mermaid preview.
 
 ``` py title="Write source and target trees to files" linenums="1"
 with open("source_tree.txt", "w") as f:

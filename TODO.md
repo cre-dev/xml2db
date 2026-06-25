@@ -1,0 +1,4 @@
+- SyntaxWarning in mkdocs build due to misinterpreted docstring in src\xml2db\cli.py
+- Solve link warning in 
+- Reorder config options alphabetically in configuring.md
+- write content for cli.md

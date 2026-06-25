@@ -32,7 +32,7 @@ class DataModel:
     It is the main entry point for `xml2db`.
 
     This class allows parsing an XSD file to build  a representation of the XML schema, simplify it and convert it into
-    a set of database tables. It also allows [parsing XML documents](./#xml2db.model.DataModel.parse_xml) that fit this
+    a set of database tables. It also allows [parsing XML documents](data_model.md#xml2db.model.DataModel.parse_xml) that fit this
     XML schema and importing their content into a database.
 
     Args:
