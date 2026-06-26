@@ -318,7 +318,7 @@ _HTML = """<!DOCTYPE html>
   #content.erd-mode { overflow: hidden; padding: 0; cursor: grab; user-select: none; }
   #content.erd-mode.dragging { cursor: grabbing; }
   #content.erd-mode svg { max-width: none; }
-  #erd-canvas { transform-origin: 0 0; display: inline-block; padding: 14px; }
+  #erd-canvas { transform-origin: 0 0; display: inline-block; padding: 14px; height: 100%; width: 100%; }
 </style>
 </head>
 <body>

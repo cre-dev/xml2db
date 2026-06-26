@@ -2,7 +2,7 @@ site_name: xml2db
 site_url: https://cre-dev.github.io/xml2db
 repo_url: https://github.com/cre-dev/xml2db
 repo_name: cre-dev/xml2db
-copyright: Copyright &copy; 2024 Commission de régulation de l'énergie
+copyright: Copyright &copy; 2026 Commission de régulation de l'énergie
 site_description: xml2db is a Python package to load XML files into a relational database. It handles complex XML and
   works out of the box, without any custom mapping rules.
 
