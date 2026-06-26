@@ -1,14 +1,31 @@
 # Loading XML files into a relational database
 
-`xml2db` is a Python package which allows parsing and loading XML files into a relational database. It handles complex 
+`xml2db` is a Python package that parses and loads XML files into a relational database. It handles complex 
 XML files which cannot be denormalized to flat tables, and works out of the box, without any custom mapping rules.
 
-It can be used within an [Extract, Load, Transform](https://docs.getdbt.com/terms/elt) data pipeline pattern as it 
-allows loading XML files into a relational data model which is very close from the source data, yet easy to work with.
+It fits naturally into an [Extract, Load, Transform](https://docs.getdbt.com/terms/elt) pipeline: it 
+loads XML files into a relational data model that stays close to the source data while remaining easy to query as 
+flat database tables. The raw data can then be transformed using [DBT](https://www.getdbt.com/), SQL views, or stored procedures to produce
+more user-friendly tables.
 
 Starting from an XSD schema which represents a given XML structure, `xml2db` builds a data model, i.e. a set of database 
 tables linked to each other by foreign keys relationships. Then, it allows parsing and loading XML files into the 
 database, and getting them back from the database into XML format if needed.
+
+This package uses `sqlalchemy` to interact with the database, so it should work with different database backends. 
+Automated integration tests run against PostgreSQL, MySQL, MS SQL Server and DuckDB. You may have to install additional 
+packages to connect to your database (e.g. `psycopg2` or `psycopg` for PostgreSQL, `pymysql` or `mysqlclient` for
+MySQL, `pyodbc` for MS SQL Server, or `duckdb-engine` for DuckDB).
+
+**Please read the [package documentation website](https://cre-dev.github.io/xml2db) for all the details!**
+
+## Installation
+
+The package can be installed, preferably in a virtual environment, using `pip`:
+
+``` bash
+pip install xml2db
+```
 
 ## CLI
 
@@ -20,7 +37,8 @@ Explore your XSD schema and configure the data model interactively in a browser:
 xml2db serve path/to/schema.xsd
 ```
 
-This opens a page with an ERD, source/target tree views, DDL output, and a live YAML config editor with autocomplete.
+This opens a page with an Entity Relationship Diagram, source/target tree views, DDL output, and a live YAML config 
+editor with autocomplete.
 
 Import an XML file directly from the command line:
 
@@ -57,28 +75,6 @@ document = data_model.parse_xml(
 )
 # Insert the document content into the database
 document.insert_into_target_tables()
-```
-
-The data model created by `xml2db` will be close to the XSD schema. However, `xml2db` will perform a few systematic 
-simplifications aimed at limiting the complexity of the resulting data model and the storage footprint. The resulting 
-data model can be configured, but the above code will work out of the box, with reasonable defaults.
-
-The raw data loaded into the database can then be processed if need be, using for instance [DBT](https://www.getdbt.com/),
-SQL views or stored procedures aimed at extracting, correcting and formatting the data into more user-friendly tables.
-
-This package uses `sqlalchemy` to interact with the database, so it should work with different database backends. 
-Automated integration tests run against PostgreSQL, MySQL, MS SQL Server and DuckDB. You may have to install additional 
-packages to connect to your database (e.g. `psycopg2` or `psycopg` for PostgreSQL, `pymysql` or `mysqlclient` for
-MySQL, `pyodbc` for MS SQL Server, or `duckdb-engine` for DuckDB).
-
-**Please read the [package documentation website](https://cre-dev.github.io/xml2db) for all the details!**
-
-## Installation
-
-The package can be installed, preferably in a virtual environment, using `pip`:
-
-``` bash
-pip install xml2db
 ```
 
 ## Testing
