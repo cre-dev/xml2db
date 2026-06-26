@@ -4,7 +4,9 @@ from __future__ import annotations
 import argparse
 import html as _html
 import json
+import logging
 import os
+import sys
 import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -52,9 +54,12 @@ def cmd_import(args: argparse.Namespace) -> None:
         recover=args.recover,
     )
     stats = doc.insert_into_target_tables()
+    if stats.row_counts_available:
+        counts = f"{stats.inserted} rows inserted, {stats.existing} rows already existed"
+    else:
+        counts = "import complete (row counts not available for this backend)"
     print(
-        f"Imported {args.xml_file}: "
-        f"{stats.inserted} rows inserted, {stats.existing} rows already existed "
+        f"Imported {args.xml_file}: {counts} "
         f"({stats.duration_temp_insert:.2f}s staging, "
         f"{stats.duration_merge:.2f}s merge, "
         f"{stats.duration_cleanup:.2f}s cleanup)"
@@ -684,6 +689,12 @@ def cmd_serve(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
+    # Show WARNING and below on stderr; ERROR+ is handled by the except block below.
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter("%(message)s"))
+    _handler.addFilter(lambda r: r.levelno < logging.ERROR)
+    logging.basicConfig(handlers=[_handler], level=logging.WARNING)
+
     parser = argparse.ArgumentParser(
         prog="xml2db",
         description="xml2db: explore and configure XSD-to-database mappings",
@@ -740,12 +751,18 @@ def main() -> None:
                    help="Database backend for DDL tab (postgresql, mssql, mysql, …)")
 
     args = parser.parse_args()
-    if args.command == "import":
-        cmd_import(args)
-    elif args.command == "render":
-        cmd_render(args)
-    else:
-        cmd_serve(args)
+    try:
+        if args.command == "import":
+            cmd_import(args)
+        elif args.command == "render":
+            cmd_render(args)
+        else:
+            cmd_serve(args)
+    except KeyboardInterrupt:
+        pass
+    except Exception as e:
+        print(f"error: {e}", file=sys.stderr)
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

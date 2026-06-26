@@ -25,18 +25,21 @@ class MergeStats:
 
     Attributes:
         inserted: Rows from the document that were written to target tables.
-            May be 0 on backends that do not report rowcount for ``INSERT … FROM SELECT``
-            (e.g. DuckDB).
+            0 when ``row_counts_available`` is ``False``.
         existing: Rows from the document that were not written because an identical record
             was already present (hash-deduplicated for reused tables, or because a parent
             record was already existing for duplicated tables).
-            May be 0 on backends that do not report rowcount for ``INSERT … FROM SELECT``.
+            0 when ``row_counts_available`` is ``False``.
         duration: Seconds spent executing merge statements.
+        row_counts_available: ``False`` when the backend does not report rowcount for
+            ``INSERT … FROM SELECT`` (e.g. DuckDB); ``inserted`` and ``existing`` are
+            then meaningless.
     """
 
     inserted: int
     existing: int
     duration: float
+    row_counts_available: bool = True
 
 
 @dataclass
@@ -45,15 +48,17 @@ class LoadStats:
 
     Attributes:
         inserted: Rows from the document that were written to target tables.
-            May be 0 on backends that do not report rowcount for ``INSERT … FROM SELECT``
-            (e.g. DuckDB).
+            0 when ``row_counts_available`` is ``False``.
         existing: Rows from the document that were not written because an identical record
             was already present (hash-deduplicated for reused tables, or because a parent
             record was already existing for duplicated tables).
-            May be 0 on backends that do not report rowcount for ``INSERT … FROM SELECT``.
+            0 when ``row_counts_available`` is ``False``.
         duration_temp_insert: Seconds spent inserting data into temporary staging tables.
         duration_merge: Seconds spent merging temporary tables into target tables.
         duration_cleanup: Seconds spent dropping temporary tables.
+        row_counts_available: ``False`` when the backend does not report rowcount for
+            ``INSERT … FROM SELECT`` (e.g. DuckDB); ``inserted`` and ``existing`` are
+            then meaningless.
     """
 
     inserted: int
@@ -61,6 +66,7 @@ class LoadStats:
     duration_temp_insert: float
     duration_merge: float
     duration_cleanup: float
+    row_counts_available: bool = True
 
 
 class Document:
@@ -476,6 +482,7 @@ class Document:
         """
         inserted = 0
         existing = 0
+        row_counts_available = False
         t0 = time.perf_counter()
         for tables in (
             [self.model.fk_ordered_tables]
@@ -494,17 +501,24 @@ class Document:
                             # INSERT … FROM SELECT (e.g. DuckDB); skip those tables.
                             if result.rowcount >= 0:
                                 table_inserted = result.rowcount
+                                row_counts_available = True
                     if table_inserted is not None:
                         inserted += table_inserted
                         if tb.is_reused and tb.type_name in self.data:
                             existing += (
                                 len(self.data[tb.type_name]["records"]) - table_inserted
                             )
-        if inserted == 0:
-            logger.info("No rows were inserted!")
-        else:
-            logger.info(f"Inserted rows: {inserted}, existing rows: {existing}")
-        return MergeStats(inserted=inserted, existing=existing, duration=time.perf_counter() - t0)
+        if row_counts_available:
+            if inserted == 0:
+                logger.info("No rows were inserted!")
+            else:
+                logger.info(f"Inserted rows: {inserted}, existing rows: {existing}")
+        return MergeStats(
+            inserted=inserted,
+            existing=existing,
+            duration=time.perf_counter() - t0,
+            row_counts_available=row_counts_available,
+        )
 
     def insert_into_target_tables(
         self,
@@ -574,6 +588,7 @@ class Document:
             duration_temp_insert=duration_temp,
             duration_merge=merge_stats.duration,
             duration_cleanup=duration_cleanup,
+            row_counts_available=merge_stats.row_counts_available,
         )
 
     def extract_from_database(
