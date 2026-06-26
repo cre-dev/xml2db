@@ -290,12 +290,12 @@ if __name__ == "__main__":
 !!! Note
     For backends that support concurrent writers, you can increase throughput
     by splitting
-    [`Document.insert_into_target_tables`](document.md/#xml2db.document.Document.insert_into_target_tables)
+    [`Document.insert_into_target_tables`](api/document.md#xml2db.document.Document.insert_into_target_tables)
     into separate calls to lower level methods 
-    [`Document.insert_into_temp_tables`](document.md/#xml2db.document.Document.insert_into_temp_tables)
+    [`Document.insert_into_temp_tables`](api/document.md#xml2db.document.Document.insert_into_temp_tables)
     (run concurrently, since each process has a unique temp-table prefix, so
     there are no collisions) and
-    [`Document.merge_into_target_tables`](document.md/#xml2db.document.Document.merge_into_target_tables)
+    [`Document.merge_into_target_tables`](api/document.md#xml2db.document.Document.merge_into_target_tables)
     (serialised via lock).
     See the [API overview](api/overview.md#advanced-use-loading-data-into-the-database) for more details.
 
