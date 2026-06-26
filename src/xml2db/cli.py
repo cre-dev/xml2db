@@ -4,7 +4,9 @@ from __future__ import annotations
 import argparse
 import html as _html
 import json
+import logging
 import os
+import sys
 import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -52,9 +54,12 @@ def cmd_import(args: argparse.Namespace) -> None:
         recover=args.recover,
     )
     stats = doc.insert_into_target_tables()
+    if stats.row_counts_available:
+        counts = f"{stats.inserted} rows inserted, {stats.existing} rows already existed"
+    else:
+        counts = "import complete (row counts not available for this backend)"
     print(
-        f"Imported {args.xml_file}: "
-        f"{stats.inserted} rows inserted, {stats.existing} rows already existed "
+        f"Imported {args.xml_file}: {counts} "
         f"({stats.duration_temp_insert:.2f}s staging, "
         f"{stats.duration_merge:.2f}s merge, "
         f"{stats.duration_cleanup:.2f}s cleanup)"
@@ -241,8 +246,7 @@ def _make_handler(state: _State):
 # HTML template
 # ---------------------------------------------------------------------------
 
-_HTML = """\
-<!DOCTYPE html>
+_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -311,6 +315,15 @@ _HTML = """\
                background: #fafafa; flex-shrink: 0; }
   #erd-names.visible { display: flex; }
   #erd-names label { display: flex; align-items: center; gap: 3px; cursor: pointer; }
+  #zoom-controls { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+  .zoom-btn { padding: 2px 8px; border: 1px solid #bbb; border-radius: 3px; cursor: pointer;
+              font-size: 13px; background: #f0f0f0; line-height: 1.4; }
+  .zoom-btn:hover { background: #e0e0e0; }
+  #zoom-level { font-size: 11px; color: #555; min-width: 36px; text-align: center; }
+  #content.erd-mode { overflow: hidden; padding: 0; cursor: grab; user-select: none; }
+  #content.erd-mode.dragging { cursor: grabbing; }
+  #content.erd-mode svg { max-width: none; }
+  #erd-canvas { transform-origin: 0 0; display: inline-block; padding: 14px; height: 100%; width: 100%; }
 </style>
 </head>
 <body>
@@ -336,6 +349,12 @@ _HTML = """\
       Names &amp; types:
       <label><input type="radio" name="erd_names" value="logical" checked> Logical</label>
       <label><input type="radio" name="erd_names" value="db"> DB</label>
+      <div id="zoom-controls">
+        <button class="zoom-btn" id="zoom-out">&#8722;</button>
+        <span id="zoom-level">100%</span>
+        <button class="zoom-btn" id="zoom-in">+</button>
+        <button class="zoom-btn" id="zoom-reset">Reset</button>
+      </div>
     </div>
     <div id="content"></div>
   </div>
@@ -385,7 +404,7 @@ function getContext(state, pos) {
     const li = text.length - s.length;
     if (li >= searchIndent) continue;
     // Match optional list marker ("- ") then a key name followed by ":"
-    const m = s.match(/^(?:-\s+)?(\S[^:#]*?):/);
+    const m = s.match(/^(?:-\\s+)?(\\S[^:#]*?):/);
     if (m) { path.unshift(m[1].trim()); searchIndent = li; }
   }
   return { indent: rawIndent, path };
@@ -422,7 +441,7 @@ function getKeyCompletions(path) {
 function getValueCompletions(state, pos, path) {
   const line = state.doc.lineAt(pos);
   const before = line.text.slice(0, pos - line.from);
-  const m = before.match(/(\w+)\s*:\s*$/);
+  const m = before.match(/(\\w+)\\s*:\\s*$/);
   if (!m) return null;
   const key = m[1];
   if (BOOL_KEYS.has(key))        return ['true','false'].map(v => ({ label: v, type: 'keyword' }));
@@ -433,7 +452,7 @@ function getValueCompletions(state, pos, path) {
 }
 
 function xml2dbCompleter(context) {
-  const word = context.matchBefore(/\w*/);
+  const word = context.matchBefore(/\\w*/);
   if (!word || (word.from === word.to && !context.explicit)) return null;
   const { path } = getContext(context.state, context.pos);
   const valueOpts = getValueCompletions(context.state, context.pos, path);
@@ -454,10 +473,31 @@ let outputs      = TMPL_INITIAL_OUTPUTS;
 let currentTab   = 'erd';
 let debounceTimer = null;
 let mermaidCounter = 0;
+let erdScale = 1, erdX = 0, erdY = 0;
+let erdLastContent = null;
+let dragState = null;
 
 function erdKey() {
   return document.querySelector('input[name="erd_names"]:checked').value === 'db'
     ? 'erd_db' : 'erd';
+}
+
+function updateErdTransform() {
+  const canvas = document.getElementById('erd-canvas');
+  if (canvas) canvas.style.transform = `translate(${erdX}px,${erdY}px) scale(${erdScale})`;
+}
+function updateZoomLabel() {
+  const el = document.getElementById('zoom-level');
+  if (el) el.textContent = Math.round(erdScale * 100) + '%';
+}
+function applyZoom(newScale, cx, cy) {
+  newScale = Math.max(0.1, Math.min(10, newScale));
+  const ratio = newScale / erdScale;
+  erdX = cx - ratio * (cx - erdX);
+  erdY = cy - ratio * (cy - erdY);
+  erdScale = newScale;
+  updateErdTransform();
+  updateZoomLabel();
 }
 
 const view = new EditorView({
@@ -490,16 +530,27 @@ async function renderTab() {
   if (currentTab === 'erd') {
     erdNamesEl.classList.add('visible');
     const erd = (outputs && outputs[erdKey()]) || '';
-    if (!erd) { contentEl.innerHTML = '<p style="color:#999;padding:12px">No ERD available.</p>'; return; }
+    if (!erd) {
+      contentEl.classList.remove('erd-mode');
+      contentEl.innerHTML = '<p style="color:#999;padding:12px">No ERD available.</p>';
+      return;
+    }
     try {
       const id = 'g' + (++mermaidCounter);
       const { svg } = await mermaid.render(id, erd);
-      contentEl.innerHTML = svg;
+      if (erd !== erdLastContent) { erdScale = 1; erdX = 0; erdY = 0; erdLastContent = erd; }
+      contentEl.classList.add('erd-mode');
+      contentEl.innerHTML = '<div id="erd-canvas"></div>';
+      document.getElementById('erd-canvas').innerHTML = svg;
+      updateErdTransform();
+      updateZoomLabel();
     } catch(e) {
+      contentEl.classList.remove('erd-mode');
       contentEl.innerHTML = '<pre style="color:#c00;padding:12px">' + escapeHtml(String(e)) + '</pre>';
     }
   } else {
     erdNamesEl.classList.remove('visible');
+    contentEl.classList.remove('erd-mode');
     contentEl.innerHTML = '<pre>' + escapeHtml((outputs && outputs[currentTab]) || '') + '</pre>';
   }
 }
@@ -515,6 +566,43 @@ document.querySelectorAll('.tab').forEach(btn => {
 
 document.querySelectorAll('input[name="erd_names"]').forEach(radio => {
   radio.addEventListener('change', () => { if (currentTab === 'erd') renderTab(); });
+});
+
+document.getElementById('zoom-in').addEventListener('click', () => {
+  const r = contentEl.getBoundingClientRect();
+  applyZoom(erdScale * 1.25, r.width / 2, r.height / 2);
+});
+document.getElementById('zoom-out').addEventListener('click', () => {
+  const r = contentEl.getBoundingClientRect();
+  applyZoom(erdScale / 1.25, r.width / 2, r.height / 2);
+});
+document.getElementById('zoom-reset').addEventListener('click', () => {
+  erdScale = 1; erdX = 0; erdY = 0;
+  updateErdTransform();
+  updateZoomLabel();
+});
+
+contentEl.addEventListener('wheel', e => {
+  if (!contentEl.classList.contains('erd-mode')) return;
+  e.preventDefault();
+  const rect = contentEl.getBoundingClientRect();
+  applyZoom(erdScale * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX - rect.left, e.clientY - rect.top);
+}, { passive: false });
+
+contentEl.addEventListener('mousedown', e => {
+  if (!contentEl.classList.contains('erd-mode') || e.button !== 0) return;
+  dragState = { startX: e.clientX - erdX, startY: e.clientY - erdY };
+  contentEl.classList.add('dragging');
+  e.preventDefault();
+});
+window.addEventListener('mousemove', e => {
+  if (!dragState) return;
+  erdX = e.clientX - dragState.startX;
+  erdY = e.clientY - dragState.startY;
+  updateErdTransform();
+});
+window.addEventListener('mouseup', () => {
+  if (dragState) { dragState = null; contentEl.classList.remove('dragging'); }
 });
 
 async function doRebuild() {
@@ -601,6 +689,12 @@ def cmd_serve(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
+    # Show WARNING and below on stderr; ERROR+ is handled by the except block below.
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter("%(message)s"))
+    _handler.addFilter(lambda r: r.levelno < logging.ERROR)
+    logging.basicConfig(handlers=[_handler], level=logging.WARNING)
+
     parser = argparse.ArgumentParser(
         prog="xml2db",
         description="xml2db: explore and configure XSD-to-database mappings",
@@ -657,12 +751,18 @@ def main() -> None:
                    help="Database backend for DDL tab (postgresql, mssql, mysql, …)")
 
     args = parser.parse_args()
-    if args.command == "import":
-        cmd_import(args)
-    elif args.command == "render":
-        cmd_render(args)
-    else:
-        cmd_serve(args)
+    try:
+        if args.command == "import":
+            cmd_import(args)
+        elif args.command == "render":
+            cmd_render(args)
+        else:
+            cmd_serve(args)
+    except KeyboardInterrupt:
+        pass
+    except Exception as e:
+        print(f"error: {e}", file=sys.stderr)
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

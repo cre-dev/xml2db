@@ -9,7 +9,7 @@ description: "xml2db is a Python package that automatically maps an XSD schema t
 
 * it automatically maps an XSD schema to a set of tables in the database
 * it can handle complex XML files which cannot be denormalized into flat tables
-* it works out of the box, without any custom mapping rules.
+* it works out of the box, without any custom mapping rules, while still configurable.
 
 `xml2db` fits naturally into an ETL or [ELT (Extract, Load, Transform)](https://docs.getdbt.com/terms/elt) pipeline. It loads
 XML files into a relational model that stays close to the source data while remaining easy to query as flat database
@@ -30,7 +30,8 @@ MS SQL Server, and DuckDB. You may need to install a connector package (e.g. `ps
 ## Visualising data models
 
 `xml2db` generates visual diagrams of your data model directly from an XSD file, using
-[Mermaid](https://mermaid.js.org/syntax/entityRelationshipDiagram.html) to represent tables and their relationships.
+[Mermaid](https://mermaid.js.org/syntax/entityRelationshipDiagram.html) to represent tables and their relationships. You can see this representation and others
+through the interactive configuration panel in your browser (`xml2db serve`).
 
 It looks like this:
 
