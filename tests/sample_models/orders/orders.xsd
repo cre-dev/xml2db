@@ -92,6 +92,17 @@
             <xs:element name="price" type="bt:dectype"/>
             <xs:element name="currency" type="bt:currencytype"/>
             <xs:element name="delivery" type="deliveryType" minOccurs="0" maxOccurs="1"/>
+            <!-- 'detail' is declared twice with a different anonymous complex type, here and in
+                 shipordertype: both types share the local name 'detail' and each one needs its
+                 own table -->
+            <xs:element name="detail" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="weight" type="bt:dectype"/>
+                        <xs:element name="unit" type="bt:stringtype"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
         </xs:sequence>
     </xs:complexType>
 
@@ -100,6 +111,14 @@
             <xs:element name="orderperson" type="contacttype" minOccurs="1" maxOccurs="1"/>
             <xs:element name="shipto" type="contacttype" minOccurs="0" maxOccurs="1"/>
             <xs:element name="item" maxOccurs="unbounded" type="itemtype"/>
+            <xs:element name="detail" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="reference" type="bt:stringtype"/>
+                        <xs:element name="carrier" type="bt:stringtype"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
         </xs:sequence>
         <xs:attribute name="orderid" type="bt:stringtype" use="required" />
         <xs:attribute name="processed_at" type="xs:dateTime" />

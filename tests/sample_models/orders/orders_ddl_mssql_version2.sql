@@ -31,6 +31,26 @@ CREATE TABLE orderperson (
 )
 
 
+CREATE TABLE detail_1 (
+	pk_detail_1 INTEGER NOT NULL IDENTITY, 
+	reference VARCHAR(1000) NULL, 
+	carrier VARCHAR(1000) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
+	CONSTRAINT cx_pk_detail_1 PRIMARY KEY CLUSTERED (pk_detail_1), 
+	CONSTRAINT detail_1_xml2db_record_hash UNIQUE (xml2db_record_hash)
+)
+
+
+CREATE TABLE detail (
+	pk_detail INTEGER NOT NULL IDENTITY, 
+	weight DOUBLE PRECISION NULL, 
+	unit VARCHAR(1000) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
+	CONSTRAINT cx_pk_detail PRIMARY KEY CLUSTERED (pk_detail), 
+	CONSTRAINT detail_xml2db_record_hash UNIQUE (xml2db_record_hash)
+)
+
+
 CREATE TABLE intfeature_with_peculiarly_long_suffix_which_overflow_max_length (
 	pk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length INTEGER NOT NULL IDENTITY, 
 	id VARCHAR(1000) NULL, 
@@ -95,6 +115,14 @@ CREATE TABLE item (
 )
 
 
+CREATE TABLE item_detail (
+	fk_item INTEGER NOT NULL, 
+	fk_detail INTEGER NOT NULL, 
+	FOREIGN KEY(fk_item) REFERENCES item (pk_item), 
+	FOREIGN KEY(fk_detail) REFERENCES detail (pk_detail)
+)
+
+
 CREATE TABLE shiporder (
 	pk_shiporder INTEGER NOT NULL IDENTITY, 
 	temp_pk_shiporder INTEGER NULL, 
@@ -128,6 +156,14 @@ CREATE TABLE shiporder_item (
 	FOREIGN KEY(fk_item) REFERENCES item (pk_item)
 )
 
+
+CREATE TABLE shiporder_detail_detail_1 (
+	fk_shiporder INTEGER NOT NULL, 
+	fk_detail_1 INTEGER NOT NULL, 
+	FOREIGN KEY(fk_shiporder) REFERENCES shiporder (pk_shiporder), 
+	FOREIGN KEY(fk_detail_1) REFERENCES detail_1 (pk_detail_1)
+)
+
 CREATE CLUSTERED INDEX ix_fk_product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length ON product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length (fk_product, fk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length)
 
 CREATE INDEX ix_product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length_fk_intfeature_with_peculiarly_long__3ab3 ON product_features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length (fk_intfeature_with_peculiarly_long_suffix_which_overflow_max_length)
@@ -136,7 +172,15 @@ CREATE CLUSTERED INDEX ix_fk_product_features_stringfeature ON product_features_
 
 CREATE INDEX ix_product_features_stringfeature_fk_stringfeature ON product_features_stringfeature (fk_stringfeature)
 
+CREATE CLUSTERED INDEX ix_fk_item_detail ON item_detail (fk_item, fk_detail)
+
+CREATE INDEX ix_item_detail_fk_detail ON item_detail (fk_detail)
+
 CREATE CLUSTERED INDEX ix_fk_shiporder_item ON shiporder_item (fk_shiporder, fk_item)
 
 CREATE INDEX ix_shiporder_item_fk_item ON shiporder_item (fk_item)
+
+CREATE CLUSTERED INDEX ix_fk_shiporder_detail_detail_1 ON shiporder_detail_detail_1 (fk_shiporder, fk_detail_1)
+
+CREATE INDEX ix_shiporder_detail_detail_1_fk_detail_1 ON shiporder_detail_detail_1 (fk_detail_1)
 

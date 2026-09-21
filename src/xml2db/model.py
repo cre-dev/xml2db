@@ -117,6 +117,7 @@ class DataModel:
         self.temp_prefix = str(uuid4())[:8] if temp_prefix is None else temp_prefix
 
         self.tables = {}
+        self.types_keys = {}
         self.names_types_map = {}
         self.root_table = None
 
@@ -274,6 +275,40 @@ class DataModel:
         for tb in self.fk_ordered_tables:
             tb.build_sqlalchemy_tables()
 
+    def _get_type_key(self, node) -> str:
+        """Get the key identifying the XSD type of a node among the data model tables.
+
+        Types are keyed by their local name, which is not unique when a schema imports other schemas: two namespaces
+        may define different types sharing the same local name. A numeric suffix is appended in this case, so that
+        each XSD type gets its own table.
+
+        Args:
+            node: the XSD node whose type key is needed
+
+        Returns:
+            The key of the type in `self.tables`.
+        """
+        xsd_type = getattr(node, "type", None)
+        if xsd_type is None:
+            return self.data_flow_name
+        if xsd_type in self.types_keys:
+            return self.types_keys[xsd_type]
+        key = xsd_type.local_name
+        if key is None:
+            key = node.local_name
+        reserved_keys = set(self.types_keys.values())
+        if key in reserved_keys:
+            i = 1
+            while f"{key}_{i}" in reserved_keys:
+                i += 1
+            key = f"{key}_{i}"
+            logger.warning(
+                f"two different XSD types share the local name '{xsd_type.local_name or node.local_name}', "
+                f"the second one is mapped to the table key '{key}'"
+            )
+        self.types_keys[xsd_type] = key
+        return key
+
     def _parse_tree(self, parent_node: xmlschema.XsdElement, nodes_path: list = None):
         """Parse a node of an XML schema recursively and create a target data model without any simplification
 
@@ -292,13 +327,7 @@ class DataModel:
         """
 
         # find current node type and name and returns corresponding table if it already exists
-        parent_type = (
-            parent_node.type.local_name
-            if hasattr(parent_node, "type")
-            else self.data_flow_name
-        )
-        if parent_type is None:
-            parent_type = parent_node.local_name
+        parent_type = self._get_type_key(parent_node)
 
         nodes_path = (nodes_path if nodes_path else []) + [parent_type]
 
@@ -511,7 +540,7 @@ class DataModel:
 
                 elif ct.is_complex():
                     # ignoring recursive definitions by skipping these fields
-                    if child.type.local_name in nodes_path:
+                    if self._get_type_key(child) in nodes_path:
                         logger.warning(
                             f"type '{child.type.local_name}' contains a recursive definition"
                         )

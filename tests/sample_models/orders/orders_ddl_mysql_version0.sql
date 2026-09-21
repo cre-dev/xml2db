@@ -20,6 +20,26 @@ CREATE TABLE orderperson (
 )
 
 
+CREATE TABLE detail_1 (
+	pk_detail_1 INTEGER NOT NULL AUTO_INCREMENT, 
+	reference VARCHAR(255), 
+	carrier VARCHAR(255), 
+	record_hash BINARY(20), 
+	CONSTRAINT cx_pk_detail_1 PRIMARY KEY (pk_detail_1), 
+	CONSTRAINT detail_1_xml2db_record_hash UNIQUE (record_hash)
+)
+
+
+CREATE TABLE detail (
+	pk_detail INTEGER NOT NULL AUTO_INCREMENT, 
+	weight DOUBLE, 
+	unit VARCHAR(255), 
+	record_hash BINARY(20), 
+	CONSTRAINT cx_pk_detail PRIMARY KEY (pk_detail), 
+	CONSTRAINT detail_xml2db_record_hash UNIQUE (record_hash)
+)
+
+
 CREATE TABLE intfeature_with_peculiarly_long_suffix_which_ove_5868736 (
 	pk_intfeature_with_peculiarly_long_suffix_which__85b659b INTEGER NOT NULL AUTO_INCREMENT, 
 	id VARCHAR(255), 
@@ -55,6 +75,14 @@ CREATE TABLE item (
 	CONSTRAINT item_xml2db_record_hash UNIQUE (record_hash), 
 	FOREIGN KEY(delivery_from_fk_orderperson) REFERENCES orderperson (pk_orderperson), 
 	FOREIGN KEY(delivery_to_fk_orderperson) REFERENCES orderperson (pk_orderperson)
+)
+
+
+CREATE TABLE item_detail (
+	fk_item INTEGER NOT NULL, 
+	fk_detail INTEGER NOT NULL, 
+	FOREIGN KEY(fk_item) REFERENCES item (pk_item), 
+	FOREIGN KEY(fk_detail) REFERENCES detail (pk_detail)
 )
 
 
@@ -96,6 +124,14 @@ CREATE TABLE shiporder_item (
 )
 
 
+CREATE TABLE shiporder_detail_detail_1 (
+	fk_shiporder INTEGER NOT NULL, 
+	fk_detail_1 INTEGER NOT NULL, 
+	FOREIGN KEY(fk_shiporder) REFERENCES shiporder (pk_shiporder), 
+	FOREIGN KEY(fk_detail_1) REFERENCES detail_1 (pk_detail_1)
+)
+
+
 CREATE TABLE orders (
 	pk_orders INTEGER NOT NULL AUTO_INCREMENT, 
 	batch_id VARCHAR(255), 
@@ -114,6 +150,10 @@ CREATE TABLE orders_shiporder (
 	FOREIGN KEY(fk_shiporder) REFERENCES shiporder (pk_shiporder)
 )
 
+CREATE INDEX ix_item_detail_fk_detail ON item_detail (fk_detail)
+
+CREATE INDEX ix_item_detail_fk_item ON item_detail (fk_item)
+
 CREATE INDEX ix_item_product_features_intfeature_with_peculiarly_779d_b099 ON item_product_features_intfeature_with_peculiarly_779d1ac (fk_intfeature_with_peculiarly_long_suffix_which__00590e9)
 
 CREATE INDEX ix_item_product_features_intfeature_with_peculiarly_779d_4520 ON item_product_features_intfeature_with_peculiarly_779d1ac (fk_item)
@@ -125,6 +165,10 @@ CREATE INDEX ix_item_product_features_stringfeature_fk_stringfeature ON item_pro
 CREATE INDEX ix_shiporder_item_fk_item ON shiporder_item (fk_item)
 
 CREATE INDEX ix_shiporder_item_fk_shiporder ON shiporder_item (fk_shiporder)
+
+CREATE INDEX ix_shiporder_detail_detail_1_fk_detail_1 ON shiporder_detail_detail_1 (fk_detail_1)
+
+CREATE INDEX ix_shiporder_detail_detail_1_fk_shiporder ON shiporder_detail_detail_1 (fk_shiporder)
 
 CREATE INDEX ix_orders_shiporder_fk_orders ON orders_shiporder (fk_orders)
 

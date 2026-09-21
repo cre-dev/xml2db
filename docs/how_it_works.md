@@ -124,6 +124,12 @@ the process much more complex. Whenever a field which would introduce a dependen
 discarded with a warning, which means that the corresponding data in XML files will not be imported. The rest of the
 data should be processed correctly.
 
+#### Wildcards
+
+Elements declared as `xs:any` are discarded with a warning, because a wildcard does not tell which elements may
+appear, and therefore which tables to create. When the content of such an element follows a known schema, declaring it
+explicitly in a wrapper schema makes it importable.
+
 #### Mixed content elements
 
 XML elements with mixed content can contain both text and children elements (tags). `xml2db` offers partial support for

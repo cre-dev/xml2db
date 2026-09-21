@@ -57,6 +57,25 @@ cd tests/sample_models && python models.py
 
 then commit the updated snapshot files alongside the code change.
 
+## Fixing bugs
+
+Aim at the smallest change that fixes the bug. Keep the fix local to the code that is wrong, do
+not refactor around it, and do not widen the scope to related cases that are not reported.
+
+Cover the fix by extending what already exists rather than adding new files:
+
+- Add the failing construct as a sub-case of an existing sample model, typically
+  `tests/sample_models/orders/orders.xsd` with matching data in `tests/sample_models/orders/xml/`,
+  and comment in the XSD what the construct tests. New sample models are for new kinds of schema,
+  not for single edge cases.
+- Add assertions to the existing test module covering that area instead of creating a test file
+  for one case. The parametrized tests pick up sample models and XML files automatically, so a
+  construct added to a sample model is exercised by the parsing, round-trip and insertion tests
+  without new test code.
+- Regenerate the snapshots when the data model changes, as described above.
+
+Check that the bug reproduces before the fix and is gone after it.
+
 ## Writing style
 
 - After any code change, check whether docstrings, inline docs, or `docs/` pages need updating and update them as part of the same task.

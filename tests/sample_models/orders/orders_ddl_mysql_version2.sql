@@ -31,6 +31,26 @@ CREATE TABLE orderperson (
 )
 
 
+CREATE TABLE detail_1 (
+	pk_detail_1 INTEGER NOT NULL AUTO_INCREMENT, 
+	reference VARCHAR(255), 
+	carrier VARCHAR(255), 
+	xml2db_record_hash BINARY(20), 
+	CONSTRAINT cx_pk_detail_1 PRIMARY KEY (pk_detail_1), 
+	CONSTRAINT detail_1_xml2db_record_hash UNIQUE (xml2db_record_hash)
+)
+
+
+CREATE TABLE detail (
+	pk_detail INTEGER NOT NULL AUTO_INCREMENT, 
+	weight DOUBLE, 
+	unit VARCHAR(255), 
+	xml2db_record_hash BINARY(20), 
+	CONSTRAINT cx_pk_detail PRIMARY KEY (pk_detail), 
+	CONSTRAINT detail_xml2db_record_hash UNIQUE (xml2db_record_hash)
+)
+
+
 CREATE TABLE intfeature_with_peculiarly_long_suffix_which_ove_5868736 (
 	pk_intfeature_with_peculiarly_long_suffix_which__85b659b INTEGER NOT NULL AUTO_INCREMENT, 
 	id VARCHAR(255), 
@@ -95,6 +115,14 @@ CREATE TABLE item (
 )
 
 
+CREATE TABLE item_detail (
+	fk_item INTEGER NOT NULL, 
+	fk_detail INTEGER NOT NULL, 
+	FOREIGN KEY(fk_item) REFERENCES item (pk_item), 
+	FOREIGN KEY(fk_detail) REFERENCES detail (pk_detail)
+)
+
+
 CREATE TABLE shiporder (
 	pk_shiporder INTEGER NOT NULL AUTO_INCREMENT, 
 	temp_pk_shiporder INTEGER, 
@@ -128,6 +156,14 @@ CREATE TABLE shiporder_item (
 	FOREIGN KEY(fk_item) REFERENCES item (pk_item)
 )
 
+
+CREATE TABLE shiporder_detail_detail_1 (
+	fk_shiporder INTEGER NOT NULL, 
+	fk_detail_1 INTEGER NOT NULL, 
+	FOREIGN KEY(fk_shiporder) REFERENCES shiporder (pk_shiporder), 
+	FOREIGN KEY(fk_detail_1) REFERENCES detail_1 (pk_detail_1)
+)
+
 CREATE INDEX ix_product_features_intfeature_with_peculiarly_long_82a4_da9b ON product_features_intfeature_with_peculiarly_long_82a4847 (fk_intfeature_with_peculiarly_long_suffix_which__00590e9)
 
 CREATE INDEX ix_product_features_intfeature_with_peculiarly_long_82a4_6910 ON product_features_intfeature_with_peculiarly_long_82a4847 (fk_product)
@@ -136,7 +172,15 @@ CREATE INDEX ix_product_features_stringfeature_fk_product ON product_features_st
 
 CREATE INDEX ix_product_features_stringfeature_fk_stringfeature ON product_features_stringfeature (fk_stringfeature)
 
+CREATE INDEX ix_item_detail_fk_detail ON item_detail (fk_detail)
+
+CREATE INDEX ix_item_detail_fk_item ON item_detail (fk_item)
+
 CREATE INDEX ix_shiporder_item_fk_item ON shiporder_item (fk_item)
 
 CREATE INDEX ix_shiporder_item_fk_shiporder ON shiporder_item (fk_shiporder)
+
+CREATE INDEX ix_shiporder_detail_detail_1_fk_detail_1 ON shiporder_detail_detail_1 (fk_detail_1)
+
+CREATE INDEX ix_shiporder_detail_detail_1_fk_shiporder ON shiporder_detail_detail_1 (fk_shiporder)
 

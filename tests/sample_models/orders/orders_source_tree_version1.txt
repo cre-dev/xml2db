@@ -93,3 +93,9 @@ orders:
                     coordinates[0, 1]: string
                     extra[0, 1]:
                     a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length[0, 1]: string
+            detail[0, None]:
+                weight[1, 1]: decimal
+                unit[1, 1]: string
+        detail[0, None]:
+            reference[1, 1]: string
+            carrier[1, 1]: string

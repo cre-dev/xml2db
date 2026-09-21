@@ -2,6 +2,7 @@
 erDiagram
     shiporder ||--o| orderperson : "shipto"
     shiporder ||--|{ item : "item*"
+    shiporder ||--o{ detail_1 : "detail*"
     shiporder {
         string orderid
         dateTime processed_at
@@ -22,6 +23,7 @@ erDiagram
     item ||--|| product : "product"
     item ||--o| orderperson : "delivery_from"
     item ||--o| orderperson : "delivery_to"
+    item ||--o{ detail : "detail*"
     item {
         string note
         integer quantity
@@ -41,6 +43,14 @@ erDiagram
     intfeature_with_peculiarly_long_suffix_which_overflow_max_length {
         string id
         integer value
+    }
+    detail {
+        decimal weight
+        string unit
+    }
+    detail_1 {
+        string reference
+        string carrier
     }
     orderperson {
         string name_attr
