@@ -132,6 +132,11 @@ text and children elements within a node. When using
 [`Document.to_xml`](api/document.md#xml2db.document.Document.to_xml), text value will always appear before children 
 elements.
 
+#### Wildcards
+
+Wildcards (`xs:any` elements and `xs:anyAttribute` attributes) allow content that the schema does not describe. Schemas
+containing them are accepted, but the matching content is not imported and a warning is logged.
+
 ## Loading process
 
 This section explains in detail how parsing and loading work. Loading an XML file breaks down into the following steps.
