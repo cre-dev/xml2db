@@ -9,10 +9,10 @@ on:
 
 jobs:
   integration-tests:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:9.7
         command: --local-infile=1
         env:
           MYSQL_DATABASE: test_db
@@ -36,12 +36,12 @@ jobs:
           mysql --host 127.0.0.1 --port 3306 -uroot -psecretroot -e "SHOW VARIABLES LIKE 'local_infile'"
         
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v7
         with:
-          python-version: 3.12
+          python-version: 3.14
           
       - name: Install dependencies
         run: |
