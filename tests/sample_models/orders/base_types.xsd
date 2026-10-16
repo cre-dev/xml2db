@@ -51,4 +51,12 @@
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
+    <!-- companyIdType has the same local name as a different type in orders.xsd: each type
+         needs its own table. Its elements are unqualified to keep XML documents in no namespace -->
+    <xs:complexType name="companyIdType">
+        <xs:sequence>
+            <xs:element name="vat" type="bt:stringtype" form="unqualified"/>
+            <xs:element name="registry" type="bt:stringtype" form="unqualified"/>
+        </xs:sequence>
+    </xs:complexType>
 </xs:schema>

@@ -2,6 +2,7 @@
 erDiagram
     shiporder ||--o| orderperson : "shipto"
     shiporder ||--|{ item : "item*"
+    shiporder ||--o{ detail_1 : "detail*"
     shiporder {
         string orderid
         dateTime processed_at
@@ -18,10 +19,13 @@ erDiagram
         string orderperson_companyId_value
         string orderperson_coordinates
         string orderperson_a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length
+        string carrierId_vat
+        string carrierId_registry
     }
     item ||--|| product : "product"
     item ||--o| orderperson : "delivery_from"
     item ||--o| orderperson : "delivery_to"
+    item ||--o{ detail : "detail*"
     item {
         string note
         integer quantity
@@ -41,6 +45,14 @@ erDiagram
     intfeature_with_peculiarly_long_suffix_which_overflow_max_length {
         string id
         integer value
+    }
+    detail {
+        decimal weight
+        string unit
+    }
+    detail_1 {
+        string reference
+        string carrier
     }
     orderperson {
         string name_attr
