@@ -67,6 +67,8 @@ CREATE TABLE shiporder (
 	processed_at DATETIMEOFFSET NULL, 
 	fk_orderperson INTEGER NULL, 
 	shipto_fk_orderperson INTEGER NULL, 
+	[carrierId_vat] VARCHAR(1000) NULL, 
+	[carrierId_registry] VARCHAR(1000) NULL, 
 	record_hash BINARY(16) NULL, 
 	CONSTRAINT cx_pk_shiporder PRIMARY KEY CLUSTERED (pk_shiporder), 
 	CONSTRAINT shiporder_xml2db_record_hash UNIQUE (record_hash), 

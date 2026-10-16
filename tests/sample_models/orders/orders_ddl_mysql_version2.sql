@@ -143,6 +143,8 @@ CREATE TABLE shiporder (
 	orderperson_coordinates VARCHAR(255), 
 	orderperson_a_very_long_field_type_that_makes_co_ee3c2ee VARCHAR(255), 
 	shipto_fk_orderperson INTEGER, 
+	`carrierId_vat` VARCHAR(255), 
+	`carrierId_registry` VARCHAR(255), 
 	CONSTRAINT cx_pk_shiporder PRIMARY KEY (pk_shiporder), 
 	FOREIGN KEY(fk_parent_orders) REFERENCES orders (pk_orders), 
 	FOREIGN KEY(shipto_fk_orderperson) REFERENCES orderperson (pk_orderperson)

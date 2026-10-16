@@ -79,5 +79,9 @@
       <reference>BL-2023-45</reference>
       <carrier>Acme Transport</carrier>
     </detail>
+    <carrierId>
+      <vat>FR40303265045</vat>
+      <registry>RCS Lyon</registry>
+    </carrierId>
   </shiporder>
 </orders>

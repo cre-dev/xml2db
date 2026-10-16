@@ -67,6 +67,8 @@ CREATE TABLE shiporder (
 	processed_at TIMESTAMP WITH TIME ZONE, 
 	fk_orderperson INTEGER, 
 	shipto_fk_orderperson INTEGER, 
+	"carrierId_vat" VARCHAR(1000), 
+	"carrierId_registry" VARCHAR(1000), 
 	record_hash BYTEA, 
 	CONSTRAINT cx_pk_shiporder PRIMARY KEY (pk_shiporder), 
 	CONSTRAINT shiporder_xml2db_record_hash UNIQUE (record_hash), 

@@ -12,6 +12,8 @@ erDiagram
     shiporder {
         string orderid
         dateTime processed_at
+        string carrierId_vat
+        string carrierId_registry
     }
     item ||--o| orderperson : "delivery_from"
     item ||--o| orderperson : "delivery_to"

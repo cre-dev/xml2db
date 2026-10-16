@@ -19,6 +19,8 @@ erDiagram
         string orderperson_companyId_value
         string orderperson_coordinates
         string orderperson_a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length
+        string carrierId_vat
+        string carrierId_registry
     }
     item ||--|| product : "product"
     item ||--o| orderperson : "delivery_from"

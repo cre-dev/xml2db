@@ -143,6 +143,8 @@ CREATE TABLE shiporder (
 	orderperson_coordinates VARCHAR(1000) NULL, 
 	orderperson_a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length VARCHAR(1000) NULL, 
 	shipto_fk_orderperson INTEGER NULL, 
+	[carrierId_vat] VARCHAR(1000) NULL, 
+	[carrierId_registry] VARCHAR(1000) NULL, 
 	CONSTRAINT cx_pk_shiporder PRIMARY KEY CLUSTERED (pk_shiporder), 
 	FOREIGN KEY(fk_parent_orders) REFERENCES orders (pk_orders), 
 	FOREIGN KEY(shipto_fk_orderperson) REFERENCES orderperson (pk_orderperson)

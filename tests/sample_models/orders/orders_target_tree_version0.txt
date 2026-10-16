@@ -79,3 +79,5 @@ orders:
         detail[0, None]:
             reference[1, 1]: string
             carrier[1, 1]: string
+        carrierId_vat[0, 1]: string
+        carrierId_registry[0, 1]: string

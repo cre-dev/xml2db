@@ -25,6 +25,8 @@ erDiagram
     shiporder {
         string orderid
         dateTime processed_at
+        string carrierId_vat
+        string carrierId_registry
     }
     stringfeature {
         string id
