@@ -70,6 +70,8 @@ CREATE TABLE item (
 	currency CHAR(3) NULL, 
 	delivery_from_fk_orderperson INTEGER NULL, 
 	delivery_to_fk_orderperson INTEGER NULL, 
+	catalog_ref_id VARCHAR(1000) NULL, 
+	catalog_ref_urn VARCHAR(1000) NULL, 
 	record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_item PRIMARY KEY CLUSTERED (pk_item), 
 	CONSTRAINT item_xml2db_record_hash UNIQUE (record_hash), 

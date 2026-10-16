@@ -31,6 +31,8 @@ erDiagram
         integer quantity
         decimal price
         string currency
+        string catalog_ref_id
+        anyURI catalog_ref_urn
     }
     product ||--o{ intfeature_with_peculiarly_long_suffix_which_overflow_max_length : "features_intfeature_with_peculiarly_long_suffix_which_overflow_max_length*"
     product ||--o{ stringfeature : "features_stringfeature*"

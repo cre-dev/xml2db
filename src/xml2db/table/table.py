@@ -163,6 +163,8 @@ class DataModelTable:
             allow_empty: is nullable?
             ngroup: a string id signaling that the column belongs to a nested sequence
         """
+        if name in self.columns and self.columns[name].data_type == data_type:
+            return
         self.columns[name] = DataModelColumn(
             name,
             [(name, None)],

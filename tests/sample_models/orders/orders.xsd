@@ -84,6 +84,18 @@
         </xs:choice>
     </xs:complexType>
 
+    <!-- catalogRefType tests the case where the same simple element appears in two branches
+         of a xs:choice (sequence branch and standalone branch) -->
+    <xs:complexType name="catalogRefType">
+        <xs:choice>
+            <xs:sequence>
+                <xs:element name="id" type="bt:stringtype"/>
+                <xs:element name="urn" type="xs:anyURI" minOccurs="0"/>
+            </xs:sequence>
+            <xs:element name="urn" type="xs:anyURI"/>
+        </xs:choice>
+    </xs:complexType>
+
     <xs:complexType name="itemtype">
         <xs:sequence>
             <xs:element name="product" type="producttype" minOccurs="1" maxOccurs="1"/>
@@ -104,6 +116,7 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="catalog_ref" type="catalogRefType" minOccurs="0"/>
         </xs:sequence>
     </xs:complexType>
 

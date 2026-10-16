@@ -120,6 +120,8 @@ CREATE TABLE item (
 	currency VARCHAR(3), 
 	delivery_from_fk_orderperson INTEGER, 
 	delivery_to_fk_orderperson INTEGER, 
+	catalog_ref_id VARCHAR(1000), 
+	catalog_ref_urn VARCHAR(1000), 
 	CONSTRAINT cx_pk_item PRIMARY KEY (pk_item), 
 	FOREIGN KEY(fk_parent_shiporder) REFERENCES shiporder (pk_shiporder), 
 	FOREIGN KEY(delivery_from_fk_orderperson) REFERENCES orderperson (pk_orderperson), 

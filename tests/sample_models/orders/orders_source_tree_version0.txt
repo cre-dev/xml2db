@@ -96,6 +96,9 @@ orders:
             detail[0, None]:
                 weight[1, 1]: decimal
                 unit[1, 1]: string
+            catalog_ref[0, 1] (choice):
+                id[0, 1]: string
+                urn[0, 1]: anyURI
         detail[0, None]:
             reference[1, 1]: string
             carrier[1, 1]: string
