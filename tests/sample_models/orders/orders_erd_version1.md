@@ -12,6 +12,8 @@ erDiagram
         integer quantity
         decimal price
         string currency
+        string catalog_ref_id
+        anyURI catalog_ref_urn
     }
     orders ||--o{ shiporder : "shiporder*"
     orders {

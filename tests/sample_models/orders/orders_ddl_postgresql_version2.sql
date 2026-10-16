@@ -106,6 +106,8 @@ CREATE TABLE item (
 	currency VARCHAR(3), 
 	delivery_from_fk_orderperson INTEGER, 
 	delivery_to_fk_orderperson INTEGER, 
+	catalog_ref_id VARCHAR(1000), 
+	catalog_ref_urn VARCHAR(1000), 
 	xml2db_record_hash BYTEA, 
 	CONSTRAINT cx_pk_item PRIMARY KEY (pk_item), 
 	CONSTRAINT item_xml2db_record_hash UNIQUE (xml2db_record_hash), 

@@ -55,6 +55,10 @@
         <weight>0.8</weight>
         <unit>m3</unit>
       </detail>
+      <catalog_ref>
+        <id>CAT-001</id>
+        <urn>urn:catalog:product:1</urn>
+      </catalog_ref>
     </item>
     <item>
       <product>
@@ -74,6 +78,9 @@
           <country>US</country>
         </to>
       </delivery>
+      <catalog_ref>
+        <urn>urn:catalog:product:1</urn>
+      </catalog_ref>
     </item>
     <detail>
       <reference>BL-2023-45</reference>
