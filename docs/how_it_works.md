@@ -126,9 +126,9 @@ data should be processed correctly.
 
 #### Wildcards
 
-Elements declared as `xs:any` are discarded with a warning, because a wildcard does not tell which elements may
-appear, and therefore which tables to create. When the content of such an element follows a known schema, declaring it
-explicitly in a wrapper schema makes it importable.
+Wildcards (`xs:any` elements and `xs:anyAttribute` attributes) allow content that the schema does not describe. Schemas
+containing them are accepted, but the matching content is not imported and a warning is logged. When the content of such
+an element follows a known schema, declaring it explicitly in a wrapper schema makes it importable.
 
 #### Mixed content elements
 
@@ -137,11 +137,6 @@ this: the text value will be stored in a specific column named `value`, but it w
 text and children elements within a node. When using 
 [`Document.to_xml`](api/document.md#xml2db.document.Document.to_xml), text value will always appear before children 
 elements.
-
-#### Wildcards
-
-Wildcards (`xs:any` elements and `xs:anyAttribute` attributes) allow content that the schema does not describe. Schemas
-containing them are accepted, but the matching content is not imported and a warning is logged.
 
 ## Loading process
 
