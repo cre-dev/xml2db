@@ -9,10 +9,10 @@ on:
 
 jobs:
   integration-tests:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     services:
       mssql:
-        image: mcr.microsoft.com/mssql/server:2019-latest
+        image: mcr.microsoft.com/mssql/server:2022-latest
         env:
           SA_PASSWORD: MyTestPassword1
           ACCEPT_EULA: 'Y'
@@ -21,12 +21,12 @@ jobs:
           
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v7
         with:
-          python-version: 3.12
+          python-version: 3.14
           
       - name: Install dependencies
         run: |

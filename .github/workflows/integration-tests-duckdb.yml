@@ -13,17 +13,12 @@ jobs:
 
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v7
         with:
-          python-version: 3.12
-
-      - name: Set timezone required for tests
-        uses: szenius/set-timezone@v2.0
-        with:
-          timezoneLinux: "Europe/Paris"
+          python-version: 3.14
 
       - name: Install package
         run: |
@@ -35,4 +30,5 @@ jobs:
           pytest tests -x
         env:
           DB_STRING: "duckdb:///:memory:"
+          TZ: "Europe/Paris"
 

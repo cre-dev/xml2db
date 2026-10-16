@@ -457,6 +457,11 @@ class DataModel:
         # go through item attributes and add them as columns, adding a suffix if an element with the same name exists
         children_names = None
         for attrib_name, attrib in parent_node.attributes.items():
+            if attrib_name is None:
+                logger.warning(
+                    f"type '{parent_type}' contains a xsd:anyAttribute, which is ignored"
+                )
+                continue
             if children_names is None:
                 children_names = [child.local_name for child in parent_node]
             (

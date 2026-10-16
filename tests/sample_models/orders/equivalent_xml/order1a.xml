@@ -13,7 +13,7 @@
       <companyId>
         <bic>JIDAZIO786DAZH</bic>
       </companyId>
-      <extra>
+      <extra source="crm">
         <profileName>profile 1</profileName>
       </extra>
     </orderperson>
