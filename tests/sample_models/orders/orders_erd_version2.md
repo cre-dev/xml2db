@@ -1,6 +1,5 @@
 ```mermaid
 erDiagram
-    shiporder ||--o| orderperson : "shipto"
     shiporder ||--|{ item : "item*"
     shiporder ||--o{ detail_1 : "detail*"
     shiporder {
@@ -19,6 +18,19 @@ erDiagram
         string orderperson_companyId_value
         string orderperson_coordinates
         string orderperson_a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length
+        string shipto_name_attr
+        string shipto_name
+        string shipto_address
+        string shipto_city
+        string shipto_zip_codingSystem
+        string shipto_zip_state
+        string shipto_zip_value
+        string shipto_country
+        string-N shipto_phoneNumber
+        string shipto_companyId_type
+        string shipto_companyId_value
+        string shipto_coordinates
+        string shipto_a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length
         string carrierId_vat
         string carrierId_registry
     }
@@ -52,10 +64,6 @@ erDiagram
         decimal weight
         string unit
     }
-    detail_1 {
-        string reference
-        string carrier
-    }
     orderperson {
         string name_attr
         string name
@@ -70,6 +78,10 @@ erDiagram
         string companyId_value
         string coordinates
         string a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length
+    }
+    detail_1 {
+        string reference
+        string carrier
     }
     orders ||--o{ shiporder : "shiporder"
     orders {

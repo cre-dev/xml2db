@@ -145,6 +145,35 @@ def test_field_rename():
     assert "orderid" in records[0]
 
 
+def test_document_tree_hooks():
+    """Test that document_tree_hook and document_tree_node_hook can modify parsed data"""
+
+    def node_hook(node):
+        node_type, content, node_hash = node
+        if node_type == "itemtype":
+            content["currency"] = ["USD"]
+        return node
+
+    def tree_hook(tree):
+        tree[1]["version"] = [3]
+        return tree
+
+    model = DataModel(
+        str(os.path.join(models_path, "orders", "orders.xsd")),
+        model_config={
+            "document_tree_hook": tree_hook,
+            "document_tree_node_hook": node_hook,
+        },
+    )
+    for iterparse in (True, False):
+        doc = model.parse_xml(
+            str(os.path.join(models_path, "orders", "xml", "order1.xml")),
+            iterparse=iterparse,
+        )
+        assert doc.data["orderstype"]["records"][0]["version"] == 3
+        assert {r["currency"] for r in doc.data["itemtype"]["records"]} == {"USD"}
+
+
 def test_field_skip_relation():
     """Test that transform='skip' on a relation removes its generated columns and prunes the child table"""
     model = DataModel(

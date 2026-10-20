@@ -32,9 +32,8 @@ CREATE TABLE zip (
 
 CREATE TABLE "companyId" (
 	"pk_companyId" SERIAL NOT NULL, 
-	ace VARCHAR(1000), 
-	bic VARCHAR(1000), 
-	lei VARCHAR(1000), 
+	type VARCHAR(3), 
+	value VARCHAR(1000), 
 	xml2db_record_hash BYTEA, 
 	CONSTRAINT "cx_pk_companyId" PRIMARY KEY ("pk_companyId"), 
 	CONSTRAINT "companyId_xml2db_record_hash" UNIQUE (xml2db_record_hash)

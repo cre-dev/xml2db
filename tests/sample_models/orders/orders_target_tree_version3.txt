@@ -16,9 +16,8 @@ orders:
             country[1, 1]: string
             phoneNumber[0, None]: string
             companyId[0, 1] (choice):
-                ace[0, 1]: string
-                bic[0, 1]: string
-                lei[0, 1]: string
+                type[1, 1]: string
+                value[1, 1]: string
             coordinates[0, 1]: string
             a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length[0, 1]: string
         shipto[0, 1]:
@@ -33,9 +32,8 @@ orders:
             country[1, 1]: string
             phoneNumber[0, None]: string
             companyId[0, 1] (choice):
-                ace[0, 1]: string
-                bic[0, 1]: string
-                lei[0, 1]: string
+                type[1, 1]: string
+                value[1, 1]: string
             coordinates[0, 1]: string
             a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length[0, 1]: string
         item[1, None]:
@@ -66,9 +64,8 @@ orders:
                     country[1, 1]: string
                     phoneNumber[0, None]: string
                     companyId[0, 1] (choice):
-                        ace[0, 1]: string
-                        bic[0, 1]: string
-                        lei[0, 1]: string
+                        type[1, 1]: string
+                        value[1, 1]: string
                     coordinates[0, 1]: string
                     a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length[0, 1]: string
                 to[0, 1]:
@@ -83,9 +80,8 @@ orders:
                     country[1, 1]: string
                     phoneNumber[0, None]: string
                     companyId[0, 1] (choice):
-                        ace[0, 1]: string
-                        bic[0, 1]: string
-                        lei[0, 1]: string
+                        type[1, 1]: string
+                        value[1, 1]: string
                     coordinates[0, 1]: string
                     a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length[0, 1]: string
             detail[0, None]:

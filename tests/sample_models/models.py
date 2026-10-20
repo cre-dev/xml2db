@@ -74,11 +74,16 @@ models = [
             {
                 "config": {
                     "tables": {
-                        "shiporder": {"reuse": False},
+                        "shiporder": {
+                            "reuse": False,
+                            # shipto is optional with many columns: auto-detection would not elevate it
+                            "fields": {"shipto": {"transform": "elevate"}},
+                        },
                         "item": {
                             "fields": {
                                 "product": {"transform": False},
                                 "comment": {"transform": "skip"},
+                                "quantity": {"type": "BigInteger"},
                             }
                         },
                     },
@@ -97,6 +102,8 @@ models = [
                         "item": {"fields": {"comment": {"transform": "skip"}}},
                         # without elevation, an empty extra element would add a row
                         "orderperson": {"fields": {"extra": {"transform": "skip"}}},
+                        # overrides the global transform: false
+                        "companyId": {"choice_transform": True},
                     },
                     "metadata_columns": [
                         {

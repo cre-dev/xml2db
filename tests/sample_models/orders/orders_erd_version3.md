@@ -66,9 +66,8 @@ erDiagram
         anyURI urn
     }
     companyId {
-        string ace
-        string bic
-        string lei
+        string type
+        string value
     }
     zip {
         string codingSystem

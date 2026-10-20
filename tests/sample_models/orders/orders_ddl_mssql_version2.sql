@@ -10,6 +10,16 @@ CREATE TABLE orders (
 )
 
 
+CREATE TABLE detail_1 (
+	pk_detail_1 INTEGER NOT NULL IDENTITY, 
+	reference VARCHAR(1000) NULL, 
+	carrier VARCHAR(1000) NULL, 
+	xml2db_record_hash BINARY(20) NULL, 
+	CONSTRAINT cx_pk_detail_1 PRIMARY KEY CLUSTERED (pk_detail_1), 
+	CONSTRAINT detail_1_xml2db_record_hash UNIQUE (xml2db_record_hash)
+)
+
+
 CREATE TABLE orderperson (
 	pk_orderperson INTEGER NOT NULL IDENTITY, 
 	name_attr VARCHAR(1000) NULL, 
@@ -28,16 +38,6 @@ CREATE TABLE orderperson (
 	xml2db_record_hash BINARY(20) NULL, 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY CLUSTERED (pk_orderperson), 
 	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (xml2db_record_hash)
-)
-
-
-CREATE TABLE detail_1 (
-	pk_detail_1 INTEGER NOT NULL IDENTITY, 
-	reference VARCHAR(1000) NULL, 
-	carrier VARCHAR(1000) NULL, 
-	xml2db_record_hash BINARY(20) NULL, 
-	CONSTRAINT cx_pk_detail_1 PRIMARY KEY CLUSTERED (pk_detail_1), 
-	CONSTRAINT detail_1_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -101,7 +101,7 @@ CREATE TABLE item (
 	pk_item INTEGER NOT NULL IDENTITY, 
 	fk_product INTEGER NULL, 
 	note VARCHAR(1000) NULL, 
-	quantity INTEGER NULL, 
+	quantity BIGINT NULL, 
 	price DOUBLE PRECISION NULL, 
 	currency CHAR(3) NULL, 
 	delivery_from_fk_orderperson INTEGER NULL, 
@@ -144,12 +144,23 @@ CREATE TABLE shiporder (
 	[orderperson_companyId_value] VARCHAR(1000) NULL, 
 	orderperson_coordinates VARCHAR(1000) NULL, 
 	orderperson_a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length VARCHAR(1000) NULL, 
-	shipto_fk_orderperson INTEGER NULL, 
+	shipto_name_attr VARCHAR(1000) NULL, 
+	shipto_name VARCHAR(1000) NULL, 
+	shipto_address VARCHAR(1000) NULL, 
+	shipto_city VARCHAR(1000) NULL, 
+	[shipto_zip_codingSystem] VARCHAR(1000) NULL, 
+	shipto_zip_state VARCHAR(1000) NULL, 
+	shipto_zip_value VARCHAR(1000) NULL, 
+	shipto_country VARCHAR(1000) NULL, 
+	[shipto_phoneNumber] VARCHAR(8000) NULL, 
+	[shipto_companyId_type] CHAR(3) NULL, 
+	[shipto_companyId_value] VARCHAR(1000) NULL, 
+	shipto_coordinates VARCHAR(1000) NULL, 
+	shipto_a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length VARCHAR(1000) NULL, 
 	[carrierId_vat] VARCHAR(1000) NULL, 
 	[carrierId_registry] VARCHAR(1000) NULL, 
 	CONSTRAINT cx_pk_shiporder PRIMARY KEY CLUSTERED (pk_shiporder), 
-	FOREIGN KEY(fk_parent_orders) REFERENCES orders (pk_orders), 
-	FOREIGN KEY(shipto_fk_orderperson) REFERENCES orderperson (pk_orderperson)
+	FOREIGN KEY(fk_parent_orders) REFERENCES orders (pk_orders)
 )
 
 
