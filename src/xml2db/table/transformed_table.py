@@ -150,12 +150,13 @@ class DataModelTableTransformed(DataModelTable):
                     f"Transform value '{field_transform}' cannot be applied"
                     f" to field '{field_name}' of table '{self.name}'."
                 )
+        # "join" is how simple values are read at parsing stage, so global transform:false does not turn it off
+        if field_type == "col":
+            if self._can_transform_field("col", field_name, "join"):
+                return "join"
         # "auto" at field level always runs auto-detection, overriding global transform:false
-        if field_transform == "auto" or self.data_model.model_config.get("transform", True):
-            if field_type == "col":
-                if self._can_transform_field("col", field_name, "join"):
-                    return "join"
-            elif field_type == "rel1":
+        elif field_transform == "auto" or self.data_model.model_config.get("transform", True):
+            if field_type == "rel1":
                 if (
                     self.relations_1[field_name].occurs[0] == 1
                     or len(self.relations_1[field_name].other_table.columns) <= 4

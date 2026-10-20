@@ -106,7 +106,7 @@ functions (defaults to `hashlib.sha1`).
 deduplication of rows is opted out. This allows recording the original order of elements in the source XML, which is not
 always respected otherwise. It was implemented primarily for round-trip tests, but could serve other purposes. The 
 default value is `False` (disabled).
-* `transform` (`false` or `"auto"`): set to `false` to disable all automatic field transformations globally: no joining of multi-value columns, no elevation of child tables, no collapsing of choice groups. The default `"auto"` applies all of these where applicable. Per-field `transform` and per-table `choice_transform` still override the global setting.
+* `transform` (`false` or `"auto"`): set to `false` to disable automatic field transformations globally: no elevation of child tables, no collapsing of choice groups. Multi-value columns are still joined, as opting out of `join` is not supported. The default `"auto"` applies all of these where applicable. Per-field `transform` and per-table `choice_transform` still override the global setting.
 
 ## Fields configuration
 

@@ -90,6 +90,22 @@ models = [
                     ],
                 }
             },
+            {
+                "config": {
+                    "transform": False,
+                    "tables": {
+                        "item": {"fields": {"comment": {"transform": "skip"}}},
+                        # without elevation, an empty extra element would add a row
+                        "orderperson": {"fields": {"extra": {"transform": "skip"}}},
+                    },
+                    "metadata_columns": [
+                        {
+                            "name": "input_file_path",
+                            "type": sqlalchemy.String(256),
+                        }
+                    ],
+                }
+            },
         ],
     },
     {
