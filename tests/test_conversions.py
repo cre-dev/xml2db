@@ -183,6 +183,7 @@ def test_field_skip_relation():
                 "item": {
                     "fields": {
                         "delivery": {"transform": "skip"},
+                        "product": {"transform": "skip"},
                     }
                 }
             }
@@ -198,6 +199,10 @@ def test_field_skip_relation():
 
     # deliveryType has no other parents, so it should be pruned from the model
     assert "deliveryType" not in model.tables
+    # types only reachable through a skipped field are pruned as well
+    assert "producttype" not in model.tables
+    assert "intfeaturetype" not in model.tables
+    assert "stringfeaturetype" not in model.tables
 
     # parsing works even for XML files that contain <delivery>; delivery data is silently dropped
     doc = model.parse_xml(str(os.path.join(models_path, "orders", "xml", "order3.xml")))

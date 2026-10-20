@@ -307,6 +307,15 @@ class DataModelTableTransformed(DataModelTable):
                     out_fields.append(("col", field_name, field))
 
             else:
+                # skip before simplifying the child table, which would keep the tables beneath it
+                field_config = self.config.get("fields", {}).get(field_name, {})
+                if field_config.get("transform") == "skip":
+                    if field_type == "rel1":
+                        del self.relations_1[field_name]
+                    elif field_type == "reln":
+                        del self.relations_n[field_name]
+                    continue
+
                 # simplify child table
                 (
                     types_transforms_child,
@@ -317,13 +326,7 @@ class DataModelTableTransformed(DataModelTable):
 
                 # check if children can be "elevated" to the upper level
                 transform = self._get_field_transform(field_type, field_name)
-                if transform == "skip":
-                    if field_type == "rel1":
-                        del self.relations_1[field_name]
-                    elif field_type == "reln":
-                        del self.relations_n[field_name]
-                    # don't add to out_fields, don't set keep_table, don't add to fields_transforms
-                elif transform is not None:
+                if transform is not None:
                     if field_type == "rel1":
                         elevated_fields = self._elevate_relation_1(
                             field_name, transform
