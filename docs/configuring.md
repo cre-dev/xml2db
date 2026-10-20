@@ -252,8 +252,8 @@ Any field (column or relation) can be excluded from the data model entirely by s
 The field will be absent from the target table schema and all data for it will be silently dropped during XML
 parsing. This is useful for PII columns, large binary blobs, or fields that are irrelevant for analysis.
 
-For a skipped relation, the child table is also pruned from the model unless it is referenced by another relation
-elsewhere in the schema.
+For a skipped relation, the child table and the tables beneath it are also pruned from the model, unless they are
+referenced by another relation elsewhere in the schema.
 
 Configuration: `"transform": "skip"`
 
