@@ -1,0 +1,98 @@
+orders:
+    batch_id[0, 1]: string
+    version[1, 1]: int
+    shiporder[0, None]:
+        orderid[0, 1]: string
+        processed_at[0, 1]: dateTime
+        orderperson[1, 1]:
+            name_attr[0, 1]: string
+            name[1, 1]: string
+            address[1, 1]: string
+            city[1, 1]: string
+            zip[1, 1]:
+                codingSystem[0, 1]: string
+                state[0, 1]: string
+                value[0, 1]: string
+            country[1, 1]: string
+            phoneNumber[0, None]: string
+            companyId[0, 1] (choice):
+                type[1, 1]: string
+                value[1, 1]: string
+            coordinates[0, 1]: string
+            a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length[0, 1]: string
+        shipto[0, 1]:
+            name_attr[0, 1]: string
+            name[1, 1]: string
+            address[1, 1]: string
+            city[1, 1]: string
+            zip[1, 1]:
+                codingSystem[0, 1]: string
+                state[0, 1]: string
+                value[0, 1]: string
+            country[1, 1]: string
+            phoneNumber[0, None]: string
+            companyId[0, 1] (choice):
+                type[1, 1]: string
+                value[1, 1]: string
+            coordinates[0, 1]: string
+            a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length[0, 1]: string
+        item[1, None]:
+            product[1, 1]:
+                name[1, 1]: string
+                version[1, 1]: string
+                features[0, 1]:
+                    intfeature_with_peculiarly_long_suffix_which_overflow_max_length[0, None]:
+                        id[1, 1]: string
+                        value[1, 1]: integer
+                    stringfeature[0, None]:
+                        id[1, 1]: string
+                        value[1, 1]: string
+            note[0, 1]: string
+            quantity[1, 1]: integer
+            price[1, 1]: decimal
+            currency[1, 1]: string
+            delivery[0, 1] (choice):
+                from[0, 1]:
+                    name_attr[0, 1]: string
+                    name[1, 1]: string
+                    address[1, 1]: string
+                    city[1, 1]: string
+                    zip[1, 1]:
+                        codingSystem[0, 1]: string
+                        state[0, 1]: string
+                        value[0, 1]: string
+                    country[1, 1]: string
+                    phoneNumber[0, None]: string
+                    companyId[0, 1] (choice):
+                        type[1, 1]: string
+                        value[1, 1]: string
+                    coordinates[0, 1]: string
+                    a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length[0, 1]: string
+                to[0, 1]:
+                    name_attr[0, 1]: string
+                    name[1, 1]: string
+                    address[1, 1]: string
+                    city[1, 1]: string
+                    zip[1, 1]:
+                        codingSystem[0, 1]: string
+                        state[0, 1]: string
+                        value[0, 1]: string
+                    country[1, 1]: string
+                    phoneNumber[0, None]: string
+                    companyId[0, 1] (choice):
+                        type[1, 1]: string
+                        value[1, 1]: string
+                    coordinates[0, 1]: string
+                    a_very_long_field_type_that_makes_col_name_exceeds_max_identifier_length[0, 1]: string
+            detail[0, None]:
+                weight[1, 1]: decimal
+                unit[1, 1]: string
+            catalog_ref[0, 1] (choice):
+                id[0, 1]: string
+                urn[0, 1]: anyURI
+        detail[0, None]:
+            reference[1, 1]: string
+            carrier[1, 1]: string
+        carrierId[0, 1]:
+            vat[1, 1]: string
+            registry[1, 1]: string

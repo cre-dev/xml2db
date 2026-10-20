@@ -10,6 +10,16 @@ CREATE TABLE orders (
 )
 
 
+CREATE TABLE detail_1 (
+	pk_detail_1 SERIAL NOT NULL, 
+	reference VARCHAR(1000), 
+	carrier VARCHAR(1000), 
+	xml2db_record_hash BYTEA, 
+	CONSTRAINT cx_pk_detail_1 PRIMARY KEY (pk_detail_1), 
+	CONSTRAINT detail_1_xml2db_record_hash UNIQUE (xml2db_record_hash)
+)
+
+
 CREATE TABLE orderperson (
 	pk_orderperson SERIAL NOT NULL, 
 	name_attr VARCHAR(1000), 
@@ -28,16 +38,6 @@ CREATE TABLE orderperson (
 	xml2db_record_hash BYTEA, 
 	CONSTRAINT cx_pk_orderperson PRIMARY KEY (pk_orderperson), 
 	CONSTRAINT orderperson_xml2db_record_hash UNIQUE (xml2db_record_hash)
-)
-
-
-CREATE TABLE detail_1 (
-	pk_detail_1 SERIAL NOT NULL, 
-	reference VARCHAR(1000), 
-	carrier VARCHAR(1000), 
-	xml2db_record_hash BYTEA, 
-	CONSTRAINT cx_pk_detail_1 PRIMARY KEY (pk_detail_1), 
-	CONSTRAINT detail_1_xml2db_record_hash UNIQUE (xml2db_record_hash)
 )
 
 
@@ -101,7 +101,7 @@ CREATE TABLE item (
 	pk_item SERIAL NOT NULL, 
 	fk_product INTEGER, 
 	note VARCHAR(1000), 
-	quantity INTEGER, 
+	quantity BIGINT, 
 	price DOUBLE PRECISION, 
 	currency VARCHAR(3), 
 	delivery_from_fk_orderperson INTEGER, 
@@ -144,12 +144,23 @@ CREATE TABLE shiporder (
 	"orderperson_companyId_value" VARCHAR(1000), 
 	orderperson_coordinates VARCHAR(1000), 
 	orderperson_a_very_long_field_type_that_makes_col_name__ee3c2ee VARCHAR(1000), 
-	shipto_fk_orderperson INTEGER, 
+	shipto_name_attr VARCHAR(1000), 
+	shipto_name VARCHAR(1000), 
+	shipto_address VARCHAR(1000), 
+	shipto_city VARCHAR(1000), 
+	"shipto_zip_codingSystem" VARCHAR(1000), 
+	shipto_zip_state VARCHAR(1000), 
+	shipto_zip_value VARCHAR(1000), 
+	shipto_country VARCHAR(1000), 
+	"shipto_phoneNumber" VARCHAR(8000), 
+	"shipto_companyId_type" VARCHAR(3), 
+	"shipto_companyId_value" VARCHAR(1000), 
+	shipto_coordinates VARCHAR(1000), 
+	shipto_a_very_long_field_type_that_makes_col_name_excee_65b3e2f VARCHAR(1000), 
 	"carrierId_vat" VARCHAR(1000), 
 	"carrierId_registry" VARCHAR(1000), 
 	CONSTRAINT cx_pk_shiporder PRIMARY KEY (pk_shiporder), 
-	FOREIGN KEY(fk_parent_orders) REFERENCES orders (pk_orders), 
-	FOREIGN KEY(shipto_fk_orderperson) REFERENCES orderperson (pk_orderperson)
+	FOREIGN KEY(fk_parent_orders) REFERENCES orders (pk_orders)
 )
 
 
