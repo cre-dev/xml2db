@@ -20,12 +20,92 @@ more user-friendly tables.
 
 See the [Getting started](getting_started.md) guide for installation, CLI usage, and the Python API.
 
+## From XML to tables
+
+Take this XSD-described file, where each invoice has a customer and repeated lines:
+
+``` xml title="invoices.xml"
+<invoices>
+  <invoice id="INV-001" date="2026-10-01">
+    <customer><name>Alice</name><country>FR</country></customer>
+    <line><sku>X1</sku><quantity>2</quantity><price>9.90</price></line>
+    <line><sku>Y7</sku><quantity>1</quantity><price>24.00</price></line>
+  </invoice>
+  <invoice id="INV-002" date="2026-10-02">
+    <customer><name>Bob</name><country>DE</country></customer>
+    <line><sku>X1</sku><quantity>2</quantity><price>9.90</price></line>
+  </invoice>
+</invoices>
+```
+
+A single command, with no mapping to write:
+
+``` bash
+xml2db import invoices.xml invoices.xsd --connection-string "duckdb:///invoices.duckdb"
+```
+
+gives an `invoice` table, a `line` table and an `invoice_line` table linking them, plus tables for the `invoices` root
+element. The `customer` element has a single occurrence, so its fields become columns of `invoice`. The `X1` line appears twice in the file but is stored once.
+
+=== "invoice"
+
+    | pk_invoice | id      | date       | customer_name | customer_country |
+    |-----------:|---------|------------|---------------|------------------|
+    | 1          | INV-001 | 2026-10-01 | Alice         | FR               |
+    | 2          | INV-002 | 2026-10-02 | Bob           | DE               |
+
+=== "line"
+
+    | pk_line | sku | quantity | price |
+    |--------:|-----|---------:|------:|
+    | 1       | X1  | 2        | 9.9   |
+    | 2       | Y7  | 1        | 24.0  |
+
+=== "invoice_line"
+
+    | fk_invoice | fk_line |
+    |-----------:|--------:|
+    | 1          | 1       |
+    | 1          | 2       |
+    | 2          | 1       |
+
+The tables are then queried with plain SQL joins:
+
+``` sql
+SELECT i.id, i.customer_name, l.sku, l.quantity, l.price
+FROM invoice i
+JOIN invoice_line il ON il.fk_invoice = i.pk_invoice
+JOIN line l ON l.pk_line = il.fk_line;
+```
+
+## When to use xml2db
+
+Many XML files do not need `xml2db`. The table below compares it with common alternatives.
+
+| Situation | Usually enough | What xml2db adds |
+|---|---|---|
+| A few fields from flat, record-like XML | `pandas.read_xml`, a short `lxml` script, or the XML functions of your database | Little: these are simpler |
+| One repeated record element with shallow nesting | XML readers that turn each record into a row, such as Spark's XML data source or DuckDB XML extensions | Normalized tables instead of nested columns to explode |
+| Deep nesting, repeated elements at several levels, large XSD | Hand-written mappings, one per element | Tables, keys and loading code generated from the XSD, no mapping to maintain |
+| Recurring feed of files following the same schema | A custom script per feed | The same load for every file, with redundant content stored once |
+| All the data must be kept, or written back to XML | Hand-written mappings, with the risk of dropping fields | Every element and attribute kept, with a round trip back to XML |
+
+`xml2db` needs an XSD schema. Files are parsed in memory: files around 500 MB work in practice. Recursive schemas,
+wildcards and mixed content are only partly supported, see the [caveats](how_it_works.md#caveats).
+
 ## Supported backends
 
 Built on `sqlalchemy`, `xml2db` supports multiple database backends. Integration tests cover PostgreSQL, MySQL,
-MS SQL Server, and DuckDB. You may need to install a connector package (e.g. `psycopg2` or `psycopg` for PostgreSQL,
-`pymysql` or `mysqlclient` for MySQL, `pyodbc` for MS SQL Server, or `duckdb-engine` for DuckDB). See
-[How it works](how_it_works.md#bulk-loading) for which drivers enable native bulk loading.
+MS SQL Server, and DuckDB. Each backend has its own page with connection strings, bulk loading and configuration
+advice:
+
+* [PostgreSQL](databases/postgresql.md)
+* [SQL Server](databases/sql_server.md)
+* [MySQL and MariaDB](databases/mysql.md)
+* [DuckDB](databases/duckdb.md)
+* [SQLite, Parquet, Delta Lake and other targets through DuckDB](databases/other_targets.md)
+
+To only generate `CREATE TABLE` statements from an XSD, see [XSD to SQL tables](xsd_to_sql.md).
 
 ## Visualising data models
 

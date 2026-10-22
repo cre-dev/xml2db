@@ -9,6 +9,13 @@ site_description: xml2db is a Python package to load XML files into a relational
 nav:
   - Introduction: "index.md"
   - Getting started: "getting_started.md"
+  - Databases:
+      - PostgreSQL: "databases/postgresql.md"
+      - SQL Server: "databases/sql_server.md"
+      - MySQL and MariaDB: "databases/mysql.md"
+      - DuckDB: "databases/duckdb.md"
+      - SQLite, Parquet, Delta Lake: "databases/other_targets.md"
+  - XSD to SQL tables: "xsd_to_sql.md"
   - Configuring: "configuring.md"
   - How it works: "how_it_works.md"
   - CLI usage: "cli.md"
@@ -54,6 +61,8 @@ markdown_extensions:
       pygments_lang_class: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid

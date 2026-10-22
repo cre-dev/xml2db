@@ -197,6 +197,9 @@ missing tool, or server configuration), it falls back silently to SQLAlchemy's s
 | MS SQL Server | `bcp` utility | `bcp` on PATH; SQL or Windows/Kerberos auth | 100 rows |
 | DuckDB | `read_csv()` | built-in | 100 rows |
 
+The pages for [PostgreSQL](databases/postgresql.md#bulk-loading), [SQL Server](databases/sql_server.md#bulk-loading),
+[MySQL](databases/mysql.md#bulk-loading) and [DuckDB](databases/duckdb.md#bulk-loading) give the setup details.
+
 The threshold column means that batches smaller than that number always use `executemany` (avoiding temp-file overhead
 for small inserts). PostgreSQL's `COPY` is in-protocol and has no file overhead, so there is no threshold.
 

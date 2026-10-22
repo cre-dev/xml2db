@@ -15,9 +15,28 @@ database, and getting them back from the database into XML format if needed.
 This package uses `sqlalchemy` to interact with the database, so it should work with different database backends. 
 Automated integration tests run against PostgreSQL, MySQL, MS SQL Server and DuckDB. You may have to install additional 
 packages to connect to your database (e.g. `psycopg2` or `psycopg` for PostgreSQL, `pymysql` or `mysqlclient` for
-MySQL, `pyodbc` for MS SQL Server, or `duckdb-engine` for DuckDB).
+MySQL, `pyodbc` for MS SQL Server, or `duckdb-engine` for DuckDB). Through DuckDB, the loaded tables can also be
+copied to SQLite, Parquet files or Delta Lake.
 
 **Please read the [package documentation website](https://cre-dev.github.io/xml2db) for all the details!**
+
+## When to use xml2db
+
+| Situation | Usually enough | What xml2db adds |
+|---|---|---|
+| A few fields from flat, record-like XML | `pandas.read_xml`, a short `lxml` script, or the XML functions of your database | Little: these are simpler |
+| One repeated record element with shallow nesting | XML readers that turn each record into a row, such as Spark's XML data source or DuckDB XML extensions | Normalized tables instead of nested columns to explode |
+| Deep nesting, repeated elements at several levels, large XSD | Hand-written mappings, one per element | Tables, keys and loading code generated from the XSD, no mapping to maintain |
+| Recurring feed of files following the same schema | A custom script per feed | The same load for every file, with redundant content stored once |
+| All the data must be kept, or written back to XML | Hand-written mappings, with the risk of dropping fields | Every element and attribute kept, with a round trip back to XML |
+
+`xml2db` needs an XSD schema. See the documentation for an [example](https://cre-dev.github.io/xml2db/#from-xml-to-tables)
+and for database-specific guides: [PostgreSQL](https://cre-dev.github.io/xml2db/databases/postgresql/),
+[SQL Server](https://cre-dev.github.io/xml2db/databases/sql_server/),
+[MySQL and MariaDB](https://cre-dev.github.io/xml2db/databases/mysql/),
+[DuckDB](https://cre-dev.github.io/xml2db/databases/duckdb/),
+[SQLite, Parquet and Delta Lake](https://cre-dev.github.io/xml2db/databases/other_targets/). To only generate SQL
+tables from an XSD, see [XSD to SQL tables](https://cre-dev.github.io/xml2db/xsd_to_sql/).
 
 ## Installation
 
