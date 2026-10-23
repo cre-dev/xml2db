@@ -120,12 +120,12 @@ Parsing XML is slow compared to running SQL on tables already in a database. Sin
 attribute, you do not need to decide upfront which data to extract and how to reshape it:
 
 * explore the loaded tables with SQL before choosing transformations;
-* when a new question comes, or the transformation logic changes, rerun SQL instead of parsing the files again;
+* when a new question comes, or the transformation logic changes, rerun the SQL on the loaded tables;
 * keep the `xml2db` tables as a raw layer, and build the tables people query on top of them with
   [dbt](dbt.md), SQL views or stored procedures.
 
 The same applies when the final tables live elsewhere: load into [DuckDB](databases/duckdb.md), transform with SQL,
-then [export the result](databases/other_targets.md) to Parquet files, Delta Lake or SQLite.
+then [export the result](databases/other_targets.md) to Parquet files, Delta Lake or Iceberg.
 
 ## When to use xml2db
 
@@ -134,7 +134,7 @@ Many XML files do not need `xml2db`. The table below compares it with common alt
 | Situation | Usually enough | What xml2db adds |
 |---|---|---|
 | A few fields from flat, record-like XML | `pandas.read_xml`, a short `lxml` script, or the XML functions of your database | Little: these are simpler |
-| One repeated record element with shallow nesting | XML readers that turn each record into a row, such as Spark's XML data source or DuckDB XML extensions | Normalized tables instead of nested columns to explode |
+| One repeated record element with shallow nesting | XML readers that turn each record into a row, such as Spark's XML data source or DuckDB XML extensions | Normalized tables, with no nested columns to explode |
 | Deep nesting, repeated elements at several levels, large XSD | Hand-written mappings, one per element | Tables, keys and loading code generated from the XSD, no mapping to maintain |
 | Recurring feed of files following the same schema | A custom script per feed | The same load for every file, with redundant content stored once |
 | Needs not settled yet: which fields, which aggregations | Extracting the fields you expect to need, and parsing the files again when needs change | Everything loaded once: new questions are answered with SQL |
@@ -153,7 +153,7 @@ advice:
 * [SQL Server](databases/sql_server.md)
 * [MySQL and MariaDB](databases/mysql.md)
 * [DuckDB](databases/duckdb.md)
-* [SQLite, Parquet, Delta Lake and other targets through DuckDB](databases/other_targets.md)
+* [Parquet, Delta Lake, Iceberg and other targets through DuckDB](databases/other_targets.md)
 
 To build transformed tables on top of the loaded data, see [Transform with dbt](dbt.md). To only generate
 `CREATE TABLE` statements from an XSD, see [XSD to SQL tables](xsd_to_sql.md).

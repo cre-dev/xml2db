@@ -81,6 +81,7 @@ Check that the bug reproduces before the fix and is gone after it.
 - After any code change, check whether docstrings, inline docs, or `docs/` pages need updating and update them as part of the same task.
 - After updating `docs/`, verify it builds without errors: `python -m mkdocs build --strict`. In strict mode warnings are also errors, matching CI.
 - Write docstrings and documentation concisely and directly. No em-dashes or en-dashes; use commas, colons, or plain sentences instead. Avoid AI-sounding phrasing such as bold lead-ins ("**Why this matters:**"), filler constructions ("it is worth noting", "this allows", "this ensures"), and verbose qualifiers.
+- Avoid contrast constructions used for emphasis, such as "X, not Y", "not X but Y", "X rather than Y" or "X instead of Y". State what is true directly; keep a comparison only when the reader needs both sides.
 
 ### Key configuration options (`model_config`)
 

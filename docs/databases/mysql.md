@@ -51,8 +51,8 @@ following batches of the same `DataModel`.
 
 ## String sizes
 
-Strings without a `maxLength` in the XSD become `VARCHAR(255)` on MySQL, instead of `VARCHAR(1000)` on other
-backends. Longer values are rejected in strict SQL mode, which is the default. Override the type of free-text fields:
+Strings without a `maxLength` in the XSD become `VARCHAR(255)` on MySQL, while other backends use
+`VARCHAR(1000)`. Longer values are rejected in strict SQL mode, which is the default. Override the type of free-text fields:
 
 ``` yaml title="model_config.yml"
 tables:

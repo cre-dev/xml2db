@@ -174,9 +174,9 @@ recommended in [Multiprocessing](how_it_works.md#multiprocessing), and keep the 
 
 ## Corrected records
 
-Deduplication compares whole records, not business keys. When a later file contains a corrected version of an
-invoice, the new version is stored as a new row, with a higher key. A model can keep the latest version of each
-invoice:
+Deduplication compares whole records, so two versions of an invoice with the same identifier are two different
+records. When a later file contains a corrected version of an invoice, it is stored as a new row, with a higher key.
+A model can keep the latest version of each invoice:
 
 ``` sql title="models/marts/dim_invoice_latest.sql"
 select invoice_id, invoice_date, customer_name, customer_country, pk_invoice
@@ -200,4 +200,4 @@ With `dbt-duckdb`, the `external` materialization writes a model to a Parquet fi
 select * from {{ ref('fct_invoice_lines') }}
 ```
 
-See [SQLite, Parquet or Delta Lake](databases/other_targets.md) for other targets.
+See [Parquet, Delta Lake or Iceberg](databases/other_targets.md) for other targets.

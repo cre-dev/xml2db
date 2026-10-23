@@ -55,11 +55,11 @@ load one file at a time, as shown in [Multiprocessing](../how_it_works.md#multip
 ## Keys and names
 
 Primary keys are filled from DuckDB sequences, named `pk_sequ_<table>`. Table and column names longer than 63
-characters are shortened with a hash suffix, as for PostgreSQL. This limit comes from the SQLAlchemy integration, not
-from DuckDB.
+characters are shortened with a hash suffix, as for PostgreSQL. This limit comes from the SQLAlchemy integration: DuckDB
+itself accepts longer names.
 
 ## Transforming and exporting
 
 Keep the DuckDB file as the raw copy of your XML data, and build the tables you need with SQL views or
-[dbt](../dbt.md). DuckDB extensions then export them to Parquet files, SQLite, Delta Lake, DuckLake and other targets
-that `xml2db` does not support directly: see [SQLite, Parquet or Delta Lake](other_targets.md).
+[dbt](../dbt.md). DuckDB then exports them to Parquet files, Delta Lake, Iceberg and other targets that `xml2db` does
+not support directly: see [Parquet, Delta Lake or Iceberg](other_targets.md).

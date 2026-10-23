@@ -43,7 +43,7 @@ With `psycopg2` or `psycopg` (version 3), staging tables are filled with `COPY .
 in-memory CSV buffer and streamed to the server, with no temporary file. `COPY` is used for every batch, whatever its
 size. Other drivers, such as `pg8000`, fall back to standard `executemany` inserts.
 
-`insert_into_target_tables(bulk_load=True)` raises an error instead of falling back when the driver does not support
+`insert_into_target_tables(bulk_load=True)` raises an error when the driver does not support
 `COPY`. See [Bulk loading](../how_it_works.md#bulk-loading) for the other options.
 
 ## Table and column names

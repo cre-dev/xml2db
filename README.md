@@ -17,7 +17,7 @@ This package uses `sqlalchemy` to interact with the database, so it should work 
 Automated integration tests run against PostgreSQL, MySQL, MS SQL Server and DuckDB. You may have to install additional 
 packages to connect to your database (e.g. `psycopg2` or `psycopg` for PostgreSQL, `pymysql` or `mysqlclient` for
 MySQL, `pyodbc` for MS SQL Server, or `duckdb-engine` for DuckDB). Through DuckDB, the loaded tables can also be
-transformed and exported to SQLite, Parquet files or Delta Lake.
+transformed and exported to Parquet files, Delta Lake or Iceberg.
 
 **Please read the [package documentation website](https://cre-dev.github.io/xml2db) for all the details!**
 
@@ -26,7 +26,7 @@ transformed and exported to SQLite, Parquet files or Delta Lake.
 | Situation | Usually enough | What xml2db adds |
 |---|---|---|
 | A few fields from flat, record-like XML | `pandas.read_xml`, a short `lxml` script, or the XML functions of your database | Little: these are simpler |
-| One repeated record element with shallow nesting | XML readers that turn each record into a row, such as Spark's XML data source or DuckDB XML extensions | Normalized tables instead of nested columns to explode |
+| One repeated record element with shallow nesting | XML readers that turn each record into a row, such as Spark's XML data source or DuckDB XML extensions | Normalized tables, with no nested columns to explode |
 | Deep nesting, repeated elements at several levels, large XSD | Hand-written mappings, one per element | Tables, keys and loading code generated from the XSD, no mapping to maintain |
 | Recurring feed of files following the same schema | A custom script per feed | The same load for every file, with redundant content stored once |
 | Needs not settled yet: which fields, which aggregations | Extracting the fields you expect to need, and parsing the files again when needs change | Everything loaded once: new questions are answered with SQL |
@@ -37,7 +37,7 @@ and for database-specific guides: [PostgreSQL](https://cre-dev.github.io/xml2db/
 [SQL Server](https://cre-dev.github.io/xml2db/databases/sql_server/),
 [MySQL and MariaDB](https://cre-dev.github.io/xml2db/databases/mysql/),
 [DuckDB](https://cre-dev.github.io/xml2db/databases/duckdb/),
-[SQLite, Parquet and Delta Lake](https://cre-dev.github.io/xml2db/databases/other_targets/). To transform the loaded
+[Parquet, Delta Lake and Iceberg](https://cre-dev.github.io/xml2db/databases/other_targets/). To transform the loaded
 data, see [Transform with dbt](https://cre-dev.github.io/xml2db/dbt/). To only generate SQL tables from an XSD, see
 [XSD to SQL tables](https://cre-dev.github.io/xml2db/xsd_to_sql/).
 
