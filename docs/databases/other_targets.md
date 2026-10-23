@@ -17,10 +17,10 @@ which files and table formats such as Parquet or Delta Lake do not offer.
 
 When the transformation changes, rerun steps 2 and 3 from the DuckDB file: the XML files are parsed once.
 
-The examples below use the invoices schema of the [introduction](../index.md#from-xml-to-tables). The single-file
-Parquet, Delta Lake, DuckLake and PostgreSQL examples were tested with DuckDB 2.0 and local files. The other examples
-follow the DuckDB documentation but were not tested with `xml2db`: they should work, check the linked pages for
-details.
+The examples below use the invoices schema of the [introduction](../index.md#from-xml-to-tables). The examples
+for single Parquet files, Delta Lake, DuckLake, PostgreSQL, DataFrames, CSV, JSON and Excel were tested with DuckDB 2.0
+and local files. The examples for partitioned Parquet files, object storage, Iceberg and MySQL follow the DuckDB
+documentation but were not tested with `xml2db`: they should work, check the linked pages for details.
 
 ## Load everything into DuckDB
 
@@ -165,18 +165,24 @@ key, foreign keys or indexes: add them on the server if needed.
 
 ## DataFrames
 
-To continue the analysis in Python, DuckDB results should convert directly to pandas or Polars DataFrames:
+To continue the analysis in Python, convert DuckDB results to pandas or Polars DataFrames:
 
 ``` py
-invoice_lines = con.sql("FROM invoice_lines").df()  # pandas; .pl() for Polars
+invoice_lines = con.sql("FROM invoice_lines").df()  # pandas
+invoice_lines = con.sql("FROM invoice_lines").pl()  # Polars
 ```
+
+pandas converts `DECIMAL` columns to floating point numbers, while Polars keeps them as decimals.
 
 ## Other formats
 
-DuckDB also writes CSV and JSON files with `COPY`, and the `excel` extension should allow writing `.xlsx` files for
-small extracts (Excel sheets hold about one million rows):
+DuckDB also writes CSV and JSON files, and `.xlsx` files with the `excel` extension, for small extracts (Excel sheets
+hold about one million rows):
 
 ``` py
+con.execute("COPY invoice_lines TO 'invoice_lines.csv'")
+con.execute("COPY invoice_lines TO 'invoice_lines.json'")  # one JSON object per line
+
 con.execute("INSTALL excel")
 con.execute("LOAD excel")
 con.execute("COPY invoice_lines TO 'invoice_lines.xlsx' (FORMAT xlsx, HEADER true)")
