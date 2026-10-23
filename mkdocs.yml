@@ -15,6 +15,7 @@ nav:
       - MySQL and MariaDB: "databases/mysql.md"
       - DuckDB: "databases/duckdb.md"
       - SQLite, Parquet, Delta Lake: "databases/other_targets.md"
+  - Transform with dbt: "dbt.md"
   - XSD to SQL tables: "xsd_to_sql.md"
   - Configuring: "configuring.md"
   - How it works: "how_it_works.md"

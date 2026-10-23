@@ -11,18 +11,54 @@ description: "xml2db is a Python package that automatically maps an XSD schema t
 * it can handle complex XML files which cannot be denormalized into flat tables
 * it works out of the box, without any custom mapping rules, while still configurable.
 
-`xml2db` fits naturally into an ETL or [ELT (Extract, Load, Transform)](https://docs.getdbt.com/terms/elt) pipeline. It loads
-XML files into a relational model that stays close to the source data while remaining easy to query as flat database
-tables.
-
-The raw data can then be transformed using [DBT](https://www.getdbt.com/), SQL views, or stored procedures to produce
-more user-friendly tables.
+`xml2db` fits naturally into an [ELT (Extract, Load, Transform)](https://docs.getdbt.com/terms/elt) pipeline: it
+loads all the content of XML files into tables that stay close to the source, and the transformations happen later,
+in the database.
 
 See the [Getting started](getting_started.md) guide for installation, CLI usage, and the Python API.
 
 ## From XML to tables
 
-Take this XSD-described file, where each invoice has a customer and repeated lines:
+Take this file, where each invoice has a customer and repeated lines, described by an XSD schema:
+
+??? example "invoices.xsd"
+
+    ``` xml
+    <?xml version="1.0" encoding="UTF-8"?>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element name="invoices">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="invoice" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="customer">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="name" type="xs:string"/>
+                        <xs:element name="country" type="xs:string"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:element name="line" maxOccurs="unbounded">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="sku" type="xs:string"/>
+                        <xs:element name="quantity" type="xs:integer"/>
+                        <xs:element name="price" type="xs:decimal"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+                <xs:attribute name="id" type="xs:string" use="required"/>
+                <xs:attribute name="date" type="xs:date" use="required"/>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:schema>
+    ```
 
 ``` xml title="invoices.xml"
 <invoices>
@@ -78,6 +114,19 @@ JOIN invoice_line il ON il.fk_invoice = i.pk_invoice
 JOIN line l ON l.pk_line = il.fk_line;
 ```
 
+## Load first, transform later
+
+Parsing XML is slow compared to running SQL on tables already in a database. Since `xml2db` loads every element and
+attribute, you do not need to decide upfront which data to extract and how to reshape it:
+
+* explore the loaded tables with SQL before choosing transformations;
+* when a new question comes, or the transformation logic changes, rerun SQL instead of parsing the files again;
+* keep the `xml2db` tables as a raw layer, and build the tables people query on top of them with
+  [dbt](dbt.md), SQL views or stored procedures.
+
+The same applies when the final tables live elsewhere: load into [DuckDB](databases/duckdb.md), transform with SQL,
+then [export the result](databases/other_targets.md) to Parquet files, Delta Lake or SQLite.
+
 ## When to use xml2db
 
 Many XML files do not need `xml2db`. The table below compares it with common alternatives.
@@ -88,6 +137,7 @@ Many XML files do not need `xml2db`. The table below compares it with common alt
 | One repeated record element with shallow nesting | XML readers that turn each record into a row, such as Spark's XML data source or DuckDB XML extensions | Normalized tables instead of nested columns to explode |
 | Deep nesting, repeated elements at several levels, large XSD | Hand-written mappings, one per element | Tables, keys and loading code generated from the XSD, no mapping to maintain |
 | Recurring feed of files following the same schema | A custom script per feed | The same load for every file, with redundant content stored once |
+| Needs not settled yet: which fields, which aggregations | Extracting the fields you expect to need, and parsing the files again when needs change | Everything loaded once: new questions are answered with SQL |
 | All the data must be kept, or written back to XML | Hand-written mappings, with the risk of dropping fields | Every element and attribute kept, with a round trip back to XML |
 
 `xml2db` needs an XSD schema. Files are parsed in memory: files around 500 MB work in practice. Recursive schemas,
@@ -105,7 +155,8 @@ advice:
 * [DuckDB](databases/duckdb.md)
 * [SQLite, Parquet, Delta Lake and other targets through DuckDB](databases/other_targets.md)
 
-To only generate `CREATE TABLE` statements from an XSD, see [XSD to SQL tables](xsd_to_sql.md).
+To build transformed tables on top of the loaded data, see [Transform with dbt](dbt.md). To only generate
+`CREATE TABLE` statements from an XSD, see [XSD to SQL tables](xsd_to_sql.md).
 
 ## Visualising data models
 
@@ -113,71 +164,29 @@ To only generate `CREATE TABLE` statements from an XSD, see [XSD to SQL tables](
 [Mermaid](https://mermaid.js.org/syntax/entityRelationshipDiagram.html) to represent tables and their relationships. You can see this representation and others
 through the interactive configuration panel in your browser (`xml2db serve`).
 
-It looks like this:
+For the invoices schema above, it looks like this:
 
 ```mermaid
 erDiagram
-    Unavailability_MarketDocument ||--o{ TimeSeries : "TimeSeries*"
-    Unavailability_MarketDocument ||--|{ Reason : "Reason*"
-    Unavailability_MarketDocument {
-        string mRID
-        string revisionNumber
-        NMTOKEN type
-        NMTOKEN process_processType
-        dateTime createdDateTime
-        string sender_MarketParticipant_mRID
-        NMTOKEN sender_MarketParticipant_marketRole_type
-        string receiver_MarketParticipant_mRID
-        NMTOKEN receiver_MarketParticipant_marketRole_type
-        string unavailability_Time_Period_timeInterval_start
-        string unavailability_Time_Period_timeInterval_end
-        NMTOKEN docStatus_value
+    invoices ||--|{ invoice : "invoice*"
+    invoices {
     }
-    TimeSeries ||--o{ Available_Period : "Available_Period*"
-    TimeSeries ||--o{ Available_Period : "WindPowerFeedin_Period*"
-    TimeSeries ||--o{ Asset_RegisteredResource : "Asset_RegisteredResource*"
-    TimeSeries ||--o{ Reason : "Reason*"
-    TimeSeries {
-        string mRID
-        NMTOKEN businessType
-        string biddingZone_Domain_mRID
-        string in_Domain_mRID
-        string out_Domain_mRID
-        date start_DateAndOrTime_date
-        time start_DateAndOrTime_time
-        date end_DateAndOrTime_date
-        time end_DateAndOrTime_time
-        NMTOKEN quantity_Measure_Unit_name
-        NMTOKEN curveType
-        string production_RegisteredResource_mRID
-        string production_RegisteredResource_name
-        string production_RegisteredResource_location_name
-        NMTOKEN production_RegisteredResource_pSRType_psrType
-        string production_RegisteredResource_pSRType_powerSystemResources_mRID
-        string production_RegisteredResource_pSRType_powerSystemResources_name
-        float production_RegisteredResource_pSRType_powerSystemResources_nominalP
+    invoice ||--|{ line : "line*"
+    invoice {
+        string id
+        date date
+        string customer_name
+        string customer_country
     }
-    Available_Period ||--|{ Point : "Point*"
-    Available_Period {
-        string timeInterval_start
-        string timeInterval_end
-        duration resolution
-    }
-    Point {
-        integer position
-        decimal quantity
-    }
-    Asset_RegisteredResource {
-        string mRID
-        string name
-        NMTOKEN asset_PSRType_psrType
-        string location_name
-    }
-    Reason {
-        NMTOKEN code
-        string text
+    line {
+        string sku
+        integer quantity
+        decimal price
     }
 ```
+
+Each box is a table with its columns and XSD types. The asterisk on `line*` means that a relationship table,
+`invoice_line`, links the two tables, since a line can be shared by several invoices.
 
 ## How to contribute to this project
 

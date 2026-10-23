@@ -58,7 +58,8 @@ Primary keys are filled from DuckDB sequences, named `pk_sequ_<table>`. Table an
 characters are shortened with a hash suffix, as for PostgreSQL. This limit comes from the SQLAlchemy integration, not
 from DuckDB.
 
-## Writing to other targets
+## Transforming and exporting
 
-DuckDB extensions can copy the loaded tables to SQLite, Parquet files, Delta Lake, DuckLake and other targets that
-`xml2db` does not support directly. See [Other targets through DuckDB](other_targets.md).
+Keep the DuckDB file as the raw copy of your XML data, and build the tables you need with SQL views or
+[dbt](../dbt.md). DuckDB extensions then export them to Parquet files, SQLite, Delta Lake, DuckLake and other targets
+that `xml2db` does not support directly: see [SQLite, Parquet or Delta Lake](other_targets.md).
