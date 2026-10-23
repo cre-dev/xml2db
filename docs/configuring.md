@@ -391,6 +391,9 @@ records.
 
 Configuration: `"reuse":` `True` (default) or `False` (disable)
 
+The root table is always deduplicated, so that loading the same file twice stores it once: setting `"reuse": False` on
+it raises an error.
+
 !!! example
     Disabling deduplication for a given table:
     ``` python
