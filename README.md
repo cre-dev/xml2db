@@ -101,24 +101,35 @@ document.insert_into_target_tables()
 
 ## Testing
 
-Running the tests requires installing additional development dependencies, after cloning the repo, with:
+After cloning the repo, install the package with its development dependencies, plus DuckDB and `pytz` to run the
+database tests locally:
 
 ```bash
-pip install -e .[tests,docs]
+pip install -e .[tests,docs] duckdb_engine pytz
 ```
 
-Run all tests with the following command:
+Run all tests, including database integration tests, against an in-memory DuckDB database:
 
 ```bash
-python -m pytest
+TZ="Europe/Paris" DB_STRING="duckdb:///:memory:" python -m pytest
 ```
 
-Integration tests require write access to a PostgreSQL or MS SQL Server database; the connection string is provided as an
-environment variable `DB_STRING`. If you want to run only conversion tests that do not require a database you can run:
+Round-trip tests compare datetimes read back from the database in the `Europe/Paris` time zone, so `TZ` must be set to
+it.
+
+Integration tests use the database given by the `DB_STRING` connection string. To run them against another database,
+for instance PostgreSQL:
 
 ```bash
-pytest -m "not dbtest"
-`````
+TZ="Europe/Paris" DB_STRING="postgresql+psycopg2://user:pw@localhost:5432/testdb" python -m pytest
+```
+
+Continuous integration runs them against DuckDB, PostgreSQL, MySQL and MS SQL Server. To run only the tests that do
+not need a database:
+
+```bash
+TZ="Europe/Paris" python -m pytest -m "not dbtest"
+```
 
 ## Contributing
 
