@@ -37,7 +37,7 @@ and for database-specific guides: [PostgreSQL](https://cre-dev.github.io/xml2db/
 [SQL Server](https://cre-dev.github.io/xml2db/databases/sql_server/),
 [MySQL and MariaDB](https://cre-dev.github.io/xml2db/databases/mysql/),
 [DuckDB](https://cre-dev.github.io/xml2db/databases/duckdb/),
-[Parquet, Delta Lake and Iceberg](https://cre-dev.github.io/xml2db/databases/other_targets/). To transform the loaded
+[export to files, lakehouses and other databases](https://cre-dev.github.io/xml2db/databases/other_targets/). To transform the loaded
 data, see [Transform with dbt](https://cre-dev.github.io/xml2db/dbt/). To only generate SQL tables from an XSD, see
 [XSD to SQL tables](https://cre-dev.github.io/xml2db/xsd_to_sql/).
 

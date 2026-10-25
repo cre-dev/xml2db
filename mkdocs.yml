@@ -14,7 +14,7 @@ nav:
       - SQL Server: "databases/sql_server.md"
       - MySQL and MariaDB: "databases/mysql.md"
       - DuckDB: "databases/duckdb.md"
-      - Parquet, Delta Lake, Iceberg: "databases/other_targets.md"
+      - Export through DuckDB: "databases/other_targets.md"
   - Transform with dbt: "dbt.md"
   - XSD to SQL tables: "xsd_to_sql.md"
   - Configuring: "configuring.md"

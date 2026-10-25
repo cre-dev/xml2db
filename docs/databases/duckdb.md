@@ -62,4 +62,4 @@ itself accepts longer names.
 
 Keep the DuckDB file as the raw copy of your XML data, and build the tables you need with SQL views or
 [dbt](../dbt.md). DuckDB then exports them to Parquet files, Delta Lake, Iceberg and other targets that `xml2db` does
-not support directly: see [Parquet, Delta Lake or Iceberg](other_targets.md).
+not support directly: see [Export to files, lakehouses and other databases](other_targets.md).

@@ -200,4 +200,4 @@ With `dbt-duckdb`, the `external` materialization writes a model to a Parquet fi
 select * from {{ ref('fct_invoice_lines') }}
 ```
 
-See [Parquet, Delta Lake or Iceberg](databases/other_targets.md) for other targets.
+See [Export to files, lakehouses and other databases](databases/other_targets.md) for other targets.

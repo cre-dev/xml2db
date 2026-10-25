@@ -1,9 +1,9 @@
 ---
-title: "Load XML into Parquet, Delta Lake or Iceberg"
-description: "Use xml2db with DuckDB to keep all the data of complex XML files, transform it with SQL, and export the resulting tables to Parquet files, object storage, Delta Lake, Iceberg, a server database or DataFrames."
+title: "Export to files, lakehouses and other databases"
+description: "Use xml2db with DuckDB to keep all the data of complex XML files, transform it with SQL, and export the resulting tables to Parquet, CSV or Excel files, object storage, cloud data warehouses, Delta Lake, Iceberg, DuckLake, server databases or DataFrames."
 ---
 
-# Load XML into Parquet, Delta Lake or Iceberg
+# Export to files, lakehouses and other databases
 
 `xml2db` merges each file into existing tables: it matches records by hash, generates keys and links rows through
 foreign keys. This needs a database with sequences or identity columns, unique constraints and `UPDATE` statements,

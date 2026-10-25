@@ -125,7 +125,7 @@ attribute, you do not need to decide upfront which data to extract and how to re
   [dbt](dbt.md), SQL views or stored procedures.
 
 The same applies when the final tables live elsewhere: load into [DuckDB](databases/duckdb.md), transform with SQL,
-then [export the result](databases/other_targets.md) to Parquet files, Delta Lake or Iceberg.
+then [export the result](databases/other_targets.md) to files, lakehouse tables or other databases.
 
 ## When to use xml2db
 
@@ -153,7 +153,7 @@ advice:
 * [SQL Server](databases/sql_server.md)
 * [MySQL and MariaDB](databases/mysql.md)
 * [DuckDB](databases/duckdb.md)
-* [Parquet, Delta Lake, Iceberg and other targets through DuckDB](databases/other_targets.md)
+* [Files, lakehouses and other databases, through DuckDB](databases/other_targets.md)
 
 To build transformed tables on top of the loaded data, see [Transform with dbt](dbt.md). To only generate
 `CREATE TABLE` statements from an XSD, see [XSD to SQL tables](xsd_to_sql.md).
