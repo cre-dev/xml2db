@@ -168,6 +168,7 @@ class TestGlobalTransformOption:
         with pytest.raises(DataModelConfigError, match="Invalid 'transform'"):
             self._make_model({"transform": "none"})
 
+
     def test_transform_false_per_field_auto_overrides_global(self):
         # Global false but explicit per-field "auto" should restore default elevation
         m_off = self._make_model({"transform": False})
@@ -183,6 +184,12 @@ class TestGlobalTransformOption:
             c.startswith("orderperson_")
             for c in m_field_auto.tables["shipordertype"].columns
         )
+
+
+def test_root_table_without_reuse_raises():
+    # the root table is always deduplicated, so that loads are idempotent
+    with pytest.raises(DataModelConfigError, match="root table 'orders'"):
+        DataModel(xsd_file=ORDERS_XSD, model_config={"tables": {"orders": {"reuse": False}}})
 
 
 # ---------------------------------------------------------------------------

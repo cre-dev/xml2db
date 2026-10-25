@@ -1,6 +1,6 @@
 ---
 title: "Configuring your data model"
-description: "Configure xml2db's data model via model_config: override column types, control field elevation, adjust deduplication, simplify XSD choice groups, and add custom indexes."
+description: "Configure the tables xml2db derives from an XSD: column types and names, flattening of child elements, deduplication, choice groups and indexes."
 ---
 
 # Configuring your data model
@@ -390,6 +390,9 @@ relationship is then modelled with a plain foreign key to the parent, which simp
 records.
 
 Configuration: `"reuse":` `True` (default) or `False` (disable)
+
+The root table is always deduplicated, so that loading the same file twice stores it once: setting `"reuse": False` on
+it raises an error.
 
 !!! example
     Disabling deduplication for a given table:

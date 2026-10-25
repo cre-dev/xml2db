@@ -1,6 +1,6 @@
 ---
-title: "How it works"
-description: "Deep dive into how xml2db builds a relational data model from an XSD schema, performs hash-based deduplication, models 1-1/1-n/n-n relationships, and loads XML data into a database."
+title: "How it works: from XSD schema to SQL tables"
+description: "How xml2db builds SQL tables from an XSD schema, deduplicates records with hashes, models relationships, and loads XML files into the database."
 ---
 
 # How it works
@@ -196,6 +196,9 @@ missing tool, or server configuration), it falls back silently to SQLAlchemy's s
 | MySQL / MariaDB | `LOAD DATA LOCAL INFILE` | `pymysql` or `mysqlclient`; server `local_infile=ON` | 100 rows |
 | MS SQL Server | `bcp` utility | `bcp` on PATH; SQL or Windows/Kerberos auth | 100 rows |
 | DuckDB | `read_csv()` | built-in | 100 rows |
+
+The pages for [PostgreSQL](databases/postgresql.md#bulk-loading), [SQL Server](databases/sql-server.md#bulk-loading),
+[MySQL](databases/mysql.md#bulk-loading) and [DuckDB](databases/duckdb.md#bulk-loading) give the setup details.
 
 The threshold column means that batches smaller than that number always use `executemany` (avoiding temp-file overhead
 for small inserts). PostgreSQL's `COPY` is in-protocol and has no file overhead, so there is no threshold.

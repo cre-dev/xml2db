@@ -1,6 +1,6 @@
 ---
-title: "Getting started"
-description: "Step-by-step guide to installing xml2db, exploring an XSD schema with the CLI, importing XML into a relational database, and visualizing the resulting data model."
+title: "Getting started: load XML files into a database"
+description: "Install xml2db, explore an XSD schema in the browser, and load XML files into a database from the command line or from Python."
 ---
 
 # Getting started
@@ -15,7 +15,8 @@ Install the package, preferably in a virtual environment:
 pip install xml2db
 ```
 
-You will also need a database driver for your backend (e.g. `psycopg2` or `psycopg` for PostgreSQL, `pymysql` or `mysqlclient` for MySQL, `pyodbc` for SQL Server, `duckdb-engine` for DuckDB). See [How it works](how_it_works.md#bulk-loading) for which drivers enable native bulk loading.
+You will also need a database driver for your backend (e.g. `psycopg2` or `psycopg` for PostgreSQL, `pymysql` or `mysqlclient` for MySQL, `pyodbc` for SQL Server, `duckdb-engine` for DuckDB). The database pages give connection strings and bulk loading setup for each backend: [PostgreSQL](databases/postgresql.md),
+[SQL Server](databases/sql-server.md), [MySQL and MariaDB](databases/mysql.md) and [DuckDB](databases/duckdb.md).
 
 !!! note
     To contribute to `xml2db` development, clone the repository and install in editable mode:
@@ -51,6 +52,8 @@ xml2db render schema.xsd --format source-tree
 xml2db render schema.xsd --format ddl --db-type postgresql
 ```
 
+To generate `CREATE TABLE` statements for review or deployment, see [XSD to SQL](xsd-to-sql.md).
+
 !!! note "Documents mixing several schemas"
 
     `DataModel` reads a single XSD file, but that file can pull in others with `xs:import` (for
@@ -78,6 +81,8 @@ Key options:
 - `--metadata KEY=VALUE`: values for `metadata_columns` (e.g. `--metadata source=file.xml`)
 - `--validate`: validate the XML against the schema before importing
 - `--recover`: attempt to parse malformed XML
+
+See the [command line reference](cli.md) for all options.
 
 ## Using the Python API
 
@@ -160,6 +165,11 @@ By default, XML files are not validated against the schema. Enable validation if
         flat_data = document.data
     document.insert_into_target_tables()
     ```
+
+## Transforming the loaded data
+
+The loaded tables keep all the content of the XML files. Build the tables people query on top of them with SQL
+views or [dbt](dbt.md), or [export them](databases/export.md) to Parquet files, Delta Lake and other targets.
 
 ## Getting data back to XML
 

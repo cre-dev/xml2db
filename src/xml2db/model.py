@@ -197,6 +197,11 @@ class DataModel:
         table_config = self.tables_config.get(table_name, {})
         if table_config is None:
             table_config = {}
+        if is_root_table and not table_config.get("reuse", True):
+            raise DataModelConfigError(
+                f"'reuse: false' is not supported for the root table '{table_name}': the root table is always "
+                f"deduplicated, so that loading the same file twice stores it once"
+            )
         if table_config.get("reuse", True):
             return DataModelTableReused(
                 table_name,
