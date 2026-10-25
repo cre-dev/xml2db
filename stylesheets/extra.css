@@ -1,0 +1,13 @@
+:root {
+  --md-primary-fg-color:        #295f85;
+  --md-primary-fg-color--light: #295f85;
+  --md-primary-fg-color--dark:  #295f85;
+
+  --md-accent-fg-color:         #116baa;
+  --md-accent-fg-color--light:  #2a8cd0;
+  --md-accent-fg-color--dark:   #116baa;
+}
+
+.md-typeset .admonition, .md-typeset details {
+  font-size: .75rem;
+}
