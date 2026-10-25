@@ -1,6 +1,6 @@
 ---
 title: "Export to files, lakehouses and other databases"
-description: "Use xml2db with DuckDB to keep all the data of complex XML files, transform it with SQL, and export the resulting tables to Parquet, CSV or Excel files, object storage, cloud data warehouses, Delta Lake, Iceberg, DuckLake, server databases or DataFrames."
+description: "Load XML with xml2db into DuckDB, transform it with SQL, then export to Parquet, CSV or Excel, Delta Lake, Iceberg, warehouses or server databases."
 ---
 
 # Export to files, lakehouses and other databases

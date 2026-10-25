@@ -1,6 +1,6 @@
 ---
 title: "Load XML into MySQL and MariaDB"
-description: "Load complex XML files into MySQL or MariaDB tables generated from an XSD schema with xml2db: drivers, LOAD DATA LOCAL INFILE bulk loading, identifier limits and string sizes."
+description: "Load complex XML files into MySQL or MariaDB tables generated from an XSD with xml2db: drivers, LOAD DATA bulk loading, names and string sizes."
 ---
 
 # Load XML into MySQL and MariaDB

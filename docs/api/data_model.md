@@ -1,6 +1,6 @@
 ---
 title: "DataModel"
-description: "API reference for the xml2db DataModel class: constructor parameters, methods for parsing XML files, visualizing the schema as ERD or tree, and generating DDL statements."
+description: "API reference for the xml2db DataModel class: constructor parameters, parsing XML files, ERD and tree views of the schema, and DDL generation."
 ---
 
 # DataModel

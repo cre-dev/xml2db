@@ -1,6 +1,6 @@
 ---
 title: "Load XML into SQL Server"
-description: "Load complex XML files into Microsoft SQL Server tables generated from an XSD schema with xml2db: pyodbc connection, bcp bulk loading, columnstore indexes and type mapping."
+description: "Load complex XML files into SQL Server tables generated from an XSD with xml2db: pyodbc connection, bcp bulk loading, columnstore indexes, types."
 ---
 
 # Load XML into SQL Server

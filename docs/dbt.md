@@ -1,6 +1,6 @@
 ---
 title: "Transform XML data with dbt"
-description: "Use dbt on top of xml2db tables: keep all the XML data as a raw layer, flatten it with staging and mart models, and build incremental models with key-based filters."
+description: "Use dbt on top of xml2db tables: keep all the XML data as a raw layer, flatten it with SQL models, and build incremental models filtered on keys."
 ---
 
 # Transform XML data with dbt
@@ -200,4 +200,4 @@ With `dbt-duckdb`, the `external` materialization writes a model to a Parquet fi
 select * from {{ ref('fct_invoice_lines') }}
 ```
 
-See [Export to files, lakehouses and other databases](databases/other_targets.md) for other targets.
+See [Export to files, lakehouses and other databases](databases/export.md) for other targets.

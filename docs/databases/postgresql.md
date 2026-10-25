@@ -1,6 +1,6 @@
 ---
 title: "Load XML into PostgreSQL"
-description: "Load complex XML files into PostgreSQL tables generated from an XSD schema with xml2db: drivers, COPY bulk loading, identifier limits, type overrides and concurrent loads."
+description: "Load complex XML files into PostgreSQL tables generated from an XSD with xml2db: drivers, COPY bulk loading, names, types and concurrent loads."
 ---
 
 # Load XML into PostgreSQL

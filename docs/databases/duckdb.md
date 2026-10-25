@@ -1,6 +1,6 @@
 ---
 title: "Load XML into DuckDB"
-description: "Load complex XML files into DuckDB tables generated from an XSD schema with xml2db, query them locally without a server, and use DuckDB as a staging database for other targets."
+description: "Load complex XML files into DuckDB tables generated from an XSD with xml2db, query them without a server, or read simple XML with DuckDB extensions."
 ---
 
 # Load XML into DuckDB
@@ -8,6 +8,16 @@ description: "Load complex XML files into DuckDB tables generated from an XSD sc
 DuckDB runs inside the Python process and stores a whole database in a single file. With `xml2db`, it gives a
 relational copy of XML files without any server to set up, which suits local analysis, trying a data model before
 deploying it, and tests.
+
+## Reading XML in DuckDB
+
+DuckDB community extensions, such as [webbed](https://duckdb.org/community_extensions/extensions/webbed), add a
+`read_xml` function that reads XML files directly in SQL. It turns a repeated element into rows, with nested elements
+as `STRUCT` and `LIST` columns, and needs no XSD. It fits quick queries on record-like files.
+
+`xml2db` fits files described by an XSD, with deep nesting or repeated elements at several levels: it loads them into
+normalized tables with keys, stores identical records once, and gives the same tables for every file of a feed. Both
+work in the same DuckDB database, so each can be used where it fits.
 
 ## Connecting
 
@@ -62,4 +72,4 @@ itself accepts longer names.
 
 Keep the DuckDB file as the raw copy of your XML data, and build the tables you need with SQL views or
 [dbt](../dbt.md). DuckDB then exports them to Parquet files, Delta Lake, Iceberg and other targets that `xml2db` does
-not support directly: see [Export to files, lakehouses and other databases](other_targets.md).
+not support directly: see [Export to files, lakehouses and other databases](export.md).

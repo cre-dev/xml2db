@@ -1,6 +1,6 @@
 ---
 title: "API Overview"
-description: "Overview of the xml2db Python API: building DataModel objects, parsing and loading XML files into a database, and extracting data back to XML, including multiprocessing patterns."
+description: "Overview of the xml2db Python API: building a DataModel, loading XML files into a database, extracting data back to XML, and multiprocessing."
 ---
 
 # API Overview

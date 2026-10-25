@@ -1,4 +1,4 @@
-# Loading XML files into a relational database
+# Load XML files into a SQL database with Python
 
 `xml2db` is a Python package that parses and loads XML files into a relational database. It handles complex 
 XML files which cannot be denormalized to flat tables, and works out of the box, without any custom mapping rules.
@@ -34,12 +34,12 @@ transformed and exported to Parquet files, Delta Lake or Iceberg.
 
 `xml2db` needs an XSD schema. See the documentation for an [example](https://cre-dev.github.io/xml2db/#from-xml-to-tables)
 and for database-specific guides: [PostgreSQL](https://cre-dev.github.io/xml2db/databases/postgresql/),
-[SQL Server](https://cre-dev.github.io/xml2db/databases/sql_server/),
+[SQL Server](https://cre-dev.github.io/xml2db/databases/sql-server/),
 [MySQL and MariaDB](https://cre-dev.github.io/xml2db/databases/mysql/),
 [DuckDB](https://cre-dev.github.io/xml2db/databases/duckdb/),
-[export to files, lakehouses and other databases](https://cre-dev.github.io/xml2db/databases/other_targets/). To transform the loaded
+[export to files, lakehouses and other databases](https://cre-dev.github.io/xml2db/databases/export/). To transform the loaded
 data, see [Transform with dbt](https://cre-dev.github.io/xml2db/dbt/). To only generate SQL tables from an XSD, see
-[XSD to SQL tables](https://cre-dev.github.io/xml2db/xsd_to_sql/).
+[XSD to SQL tables](https://cre-dev.github.io/xml2db/xsd-to-sql/).
 
 ## Installation
 

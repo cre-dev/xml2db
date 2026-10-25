@@ -1,6 +1,6 @@
 ---
-title: "CLI usage"
-description: "Reference for the xml2db command-line interface: import XML files, render ERDs and DDL, and launch the interactive browser explorer."
+title: "Command line: import XML into a database, render DDL"
+description: "Reference for the xml2db command line: import XML files into a database, render diagrams and DDL from an XSD, and explore a schema in the browser."
 ---
 
 # CLI usage
@@ -80,6 +80,8 @@ xml2db render schema.xsd --format source-tree
 xml2db render schema.xsd --format ddl --db-type postgresql
 xml2db render schema.xsd --format erd --output diagram.md
 ```
+
+[XSD to SQL](xsd-to-sql.md) shows the generated DDL and how to adjust it.
 
 ## xml2db serve
 

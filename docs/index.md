@@ -1,9 +1,9 @@
 ---
-title: "Loading XML into a relational database"
-description: "xml2db is a Python package that automatically maps an XSD schema to relational database tables and loads XML files into them, with no custom mapping rules required."
+title: "Load XML into a SQL database with Python"
+description: "xml2db is a Python package that turns an XSD schema into SQL tables and loads XML files into them, with no mapping rules to write."
 ---
 
-# Loading XML into a relational database
+# Load XML into a SQL database with Python
 
 `xml2db` is a Python package that parses and loads XML files into a relational database:
 
@@ -15,7 +15,8 @@ description: "xml2db is a Python package that automatically maps an XSD schema t
 loads all the content of XML files into tables that stay close to the source, and the transformations happen later,
 in the database.
 
-See the [Getting started](getting_started.md) guide for installation, CLI usage, and the Python API.
+See the [Getting started](getting_started.md) guide for installation and the Python API, and the
+[command line reference](cli.md) for all commands.
 
 ## From XML to tables
 
@@ -125,7 +126,7 @@ attribute, you do not need to decide upfront which data to extract and how to re
   [dbt](dbt.md), SQL views or stored procedures.
 
 The same applies when the final tables live elsewhere: load into [DuckDB](databases/duckdb.md), transform with SQL,
-then [export the result](databases/other_targets.md) to files, lakehouse tables or other databases.
+then [export the result](databases/export.md) to files, lakehouse tables or other databases.
 
 ## When to use xml2db
 
@@ -150,13 +151,13 @@ MS SQL Server, and DuckDB. Each backend has its own page with connection strings
 advice:
 
 * [PostgreSQL](databases/postgresql.md)
-* [SQL Server](databases/sql_server.md)
+* [SQL Server](databases/sql-server.md)
 * [MySQL and MariaDB](databases/mysql.md)
 * [DuckDB](databases/duckdb.md)
-* [Files, lakehouses and other databases, through DuckDB](databases/other_targets.md)
+* [Files, lakehouses and other databases, through DuckDB](databases/export.md)
 
 To build transformed tables on top of the loaded data, see [Transform with dbt](dbt.md). To only generate
-`CREATE TABLE` statements from an XSD, see [XSD to SQL tables](xsd_to_sql.md).
+`CREATE TABLE` statements from an XSD, see [XSD to SQL tables](xsd-to-sql.md).
 
 ## Visualising data models
 

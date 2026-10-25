@@ -1,6 +1,6 @@
 ---
 title: "Configuring your data model"
-description: "Configure xml2db's data model via model_config: override column types, control field elevation, adjust deduplication, simplify XSD choice groups, and add custom indexes."
+description: "Configure the tables xml2db derives from an XSD: column types and names, flattening of child elements, deduplication, choice groups and indexes."
 ---
 
 # Configuring your data model

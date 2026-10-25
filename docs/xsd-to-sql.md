@@ -1,9 +1,9 @@
 ---
-title: "XSD to SQL tables"
-description: "Generate SQL CREATE TABLE statements from an XSD schema with xml2db, for PostgreSQL, SQL Server or MySQL, and adjust the resulting relational schema with a configuration file."
+title: "XSD to SQL: generate database tables from an XML schema"
+description: "Generate SQL CREATE TABLE statements from an XSD schema for PostgreSQL, SQL Server or MySQL with xml2db, and shape the tables with a config file."
 ---
 
-# XSD to SQL tables
+# XSD to SQL: generate database tables from an XML schema
 
 `xml2db` derives a relational schema from an XSD file. You can generate the `CREATE TABLE` statements without
 connecting to a database or loading any XML file, to review the schema, share it, or create the tables with your own
@@ -87,7 +87,7 @@ xml2db render invoices.xsd --format ddl --db-type postgresql --config model_conf
 ```
 
 See [Configuring your data model](configuring.md) for all options, and the database pages for backend-specific
-advice: [PostgreSQL](databases/postgresql.md), [SQL Server](databases/sql_server.md),
+advice: [PostgreSQL](databases/postgresql.md), [SQL Server](databases/sql-server.md),
 [MySQL and MariaDB](databases/mysql.md), [DuckDB](databases/duckdb.md).
 
 ## From Python
